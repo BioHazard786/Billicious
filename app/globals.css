@@ -2,32 +2,75 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --background: 220 27.27% 97.84%;
+    --foreground: 220.91 39.29% 10.98%;
+    --muted: 217.5 26.67% 94.12%;
+    --muted-foreground: 216.92 19.12% 26.67%;
+    --popover: 220 27.27% 97.84%;
+    --popover-foreground: 220.91 39.29% 10.98%;
+    --card: 220 27.27% 97.84%;
+    --card-foreground: 220.91 39.29% 10.98%;
+    --border: 218.82 27.87% 88.04%;
+    --input: 218.82 27.87% 88.04%;
+    --primary: 152.95 100% 37.84%;
+    --primary-foreground: 220 27.27% 97.84%;
+    --secondary: 217.5 26.67% 94.12%;
+    --secondary-foreground: 216.92 19.12% 26.67%;
+    --accent: 217.5 26.67% 94.12%;
+    --accent-foreground: 216.92 19.12% 26.67%;
+    --destructive: 10 87% 27%;
+    --destructive-foreground: 10 87% 87%;
+    --ring: 152.95 100% 37.84%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 220.91 39.29% 10.98%;
+    --foreground: 0 0% 100%;
+    --muted: 215 27.91% 16.86%;
+    --muted-foreground: 217.89 10.61% 64.9%;
+    --popover: 220.91 39.29% 10.98%;
+    --popover-foreground: 0 0% 100%;
+    --card: 220.91 39.29% 10.98%;
+    --card-foreground: 0 0% 100%;
+    --border: 216.92 19.12% 26.67%;
+    --input: 216.92 19.12% 26.67%;
+    --primary: 152.95 100% 37.84%;
+    --primary-foreground: 220.91 39.29% 10.98%;
+    --secondary: 215 27.91% 16.86%;
+    --secondary-foreground: 220 13.04% 90.98%;
+    --accent: 215 27.91% 16.86%;
+    --accent-foreground: 220 13.04% 90.98%;
+    --destructive: 0 90.6% 70.78%;
+    --destructive-foreground: 220.91 39.29% 10.98%;
+    --ring: 152.95 100% 37.84%;
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+::selection {
+  color: hsl(var(--primary-foreground));
+  background: hsl(var(--primary));
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
 }
