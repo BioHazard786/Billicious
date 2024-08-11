@@ -35,8 +35,9 @@ export const billsTable = pgTable('bills_table', {
 
 
 export const usersGroupsTable = pgTable('users_groups_table', {
-    userId: integer('user_id').notNull(),
+    userId: text('user_id').notNull(),
     groupId: integer('group_id').references(() => groupsTable.id),
+    userNameInGroup: text('username_in_group').notNull(),
     userIndex: integer('user_index'),
     totalAmount: numeric('total_amount').notNull()
     }, (table) => {
@@ -52,8 +53,7 @@ export const transactionsTable = pgTable('transactions_table', {
     groupId: integer('group_id').references(() => groupsTable.id),
     user1Index: integer('user1_index').notNull(),
     user2Index: integer('user2_index').notNull(),
-    amountPaid: numeric('amount_paid').notNull(),
-    amountOwe: numeric('amount_owe').notNull(),
+    balance: numeric('balance').notNull(),
     }, (table) => {
         return {
             primaryKey: primaryKey({ name: 'transactions_table_pk', columns: [table.groupId, table.user1Index,table.user2Index] }),
@@ -66,8 +66,7 @@ export const transactionsTable = pgTable('transactions_table', {
 export const userInBillsTable = pgTable('users_in_bills_table', {
     billId: integer('bill_id').references(() => billsTable.id),
     userIndex: integer('user_index').notNull(),
-    amountPaid: numeric('amount_paid').notNull(),
-    amountOwe: numeric('amount_owe').notNull(),
+    balance: numeric('balance').notNull(),
     }, (table) => {
         return {
             primaryKey: primaryKey({ name: 'users_in_bills_table_pk', columns: [table.billId, table.userIndex] }),

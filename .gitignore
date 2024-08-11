@@ -39,3 +39,7 @@ next-env.d.ts
 test.js
 group_schema.json
 bill_schema.json
+
+
+#drizzle
+/drizzle
