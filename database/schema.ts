@@ -63,16 +63,27 @@ export const transactionsTable = pgTable('transactions_table', {
 );
 
 
-export const userInBillsTable = pgTable('users_in_bills_table', {
+export const draweesInBills = pgTable('drawees_in_bills_table', {
     billId: integer('bill_id').references(() => billsTable.id),
     userIndex: integer('user_index').notNull(),
-    balance: numeric('balance').notNull(),
+    amount: numeric('amount').notNull(),
     }, (table) => {
         return {
-            primaryKey: primaryKey({ name: 'users_in_bills_table_pk', columns: [table.billId, table.userIndex] }),
-            usersInBillsTableBillIdIndex: index("users_in_bills_table_bill_id_index").on(table.billId),
+            primaryKey: primaryKey({ name: 'drawees_in_bills_table_pk', columns: [table.billId, table.userIndex] }),
+            draweesInBillsTableBillIdIndex: index("drawees_in_bills_table_bill_id_index").on(table.billId),
         }
 });
 
+
+export const payeesInBills = pgTable('payees_in_bills_table', {
+    billId: integer('bill_id').references(() => billsTable.id),
+    userIndex: integer('user_index').notNull(),
+    amount: numeric('amount').notNull(),
+    }, (table) => {
+        return {
+            primaryKey: primaryKey({ name: 'payees_in_bills_table_pk', columns: [table.billId, table.userIndex] }),
+            payeesInBillsTableBillIdIndex: index("payees_in_bills_table_bill_id_index").on(table.billId),
+        }
+});
 
 
