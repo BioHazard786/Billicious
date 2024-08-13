@@ -36,5 +36,5 @@ export const POST = async(request : any) => {
     }
 
 
-    return Response.json({message : "User Created"}, {status: 201});
+    return Response.json({message : "User Added to Group"}, {status: 201});
 }
