@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 
 export const POST = async(request : any) => {
 
+    let userId;
     try{
         await db.transaction(async (transaction) => {
 
@@ -14,7 +15,7 @@ export const POST = async(request : any) => {
                 username: requestData.username
             }
 
-            await transaction.insert(usersTable).values(newUser);
+            userId = await transaction.insert(usersTable).values(newUser).returning({id : usersTable.id});
         });
     }
     catch(err){
@@ -22,5 +23,5 @@ export const POST = async(request : any) => {
     }
 
 
-    return Response.json({message : "User Created"}, {status: 201});
+    return Response.json({UserId : userId}, {status: 201});
 }

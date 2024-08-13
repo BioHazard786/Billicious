@@ -82,5 +82,5 @@ export const POST = async(request : any) => {
         console.log(err);
         return NextResponse.json({message: err}, {status: 400});
     }
-    return Response.json({message : billId}, {status: 201});
+    return Response.json({billId : billId}, {status: 201});
 }
