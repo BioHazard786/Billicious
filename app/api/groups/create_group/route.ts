@@ -19,7 +19,5 @@ export const POST = async(request : any) => {
     catch(err){
         return NextResponse.json({message: err}, {status: 400});
     }
-
-
     return Response.json({message : groupId}, {status: 201});
 }
