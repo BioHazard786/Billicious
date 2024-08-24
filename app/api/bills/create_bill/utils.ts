@@ -52,8 +52,8 @@ export function createBalances(userMap: Map<number, number>, groupId : any){
 
     let i = 0, j = 0;
 
-    let posMapKeys = posMap.keys().toArray();
-    let negMapKeys = negMap.keys().toArray();
+    let posMapKeys = Array.from(posMap.keys());
+    let negMapKeys = Array.from(negMap.keys());
     let curNegIdx = 0, curPosIdx = 0, curNegAmt = 0, curPosAmt = 0;
 
     while(i < posMap.size && j < negMap.size){
