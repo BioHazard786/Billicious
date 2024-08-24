@@ -1,4 +1,3 @@
-import { client, db } from "@/database/dbConnect";
 import {
   billsTable,
   draweesInBills,
@@ -7,6 +6,9 @@ import {
   transactionsTable,
   usersGroupsTable,
 } from "@/database/schema";
+
+
+export const POST = async (request: any) => {
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { createBalances, createUserMap } from "./utils";
@@ -46,6 +48,9 @@ export const POST = async (request: Request) => {
         name: requestData.name,
         notes: requestData !== null ? requestData.notes : null,
         amount: totalAmount.toString(),
+        is_payment: requestData.hasOwnProperty("is_payment")
+          ? requestData.is_payment
+          : false,
         groupId: groupId,
       };
 
@@ -57,7 +62,24 @@ export const POST = async (request: Request) => {
         .returning({ id: billsTable.id });
       billId = bills[0].id;
 
-      await transaction.insert(transactionsTable).values(balances);
+
+      balances.forEach(async (balance) => {
+        await transaction
+          .insert(transactionsTable)
+          .values(balance)
+          .onConflictDoUpdate({
+            target: [
+              transactionsTable.groupId,
+              transactionsTable.user1Index,
+              transactionsTable.user2Index,
+            ],
+            set: {
+              balance: sql.raw(
+                `excluded.${transactionsTable.balance.name} + ${balance.balance}`,
+              ),
+            },
+          });
+      });
       usersInGroup.forEach(async (user) => {
         await transaction
           .update(usersGroupsTable)
