@@ -6,12 +6,14 @@ import {
   transactionsTable,
   usersGroupsTable,
 } from "@/database/schema";
-import { client, db } from "@/lib/dbConnect";
-import { NextResponse } from "next/server";
-import { eq, sql } from "drizzle-orm";
-import { createUserMap, createBalances } from "./utils";
+
 
 export const POST = async (request: any) => {
+import { eq } from "drizzle-orm";
+import { NextResponse } from "next/server";
+import { createBalances, createUserMap } from "./utils";
+
+export const POST = async (request: Request) => {
   let billId;
   try {
     await db.transaction(async (transaction) => {
@@ -60,6 +62,7 @@ export const POST = async (request: any) => {
         .returning({ id: billsTable.id });
       billId = bills[0].id;
 
+
       balances.forEach(async (balance) => {
         await transaction
           .insert(transactionsTable)
@@ -77,7 +80,6 @@ export const POST = async (request: any) => {
             },
           });
       });
-
       usersInGroup.forEach(async (user) => {
         await transaction
           .update(usersGroupsTable)
@@ -110,5 +112,5 @@ export const POST = async (request: any) => {
     console.log(err);
     return NextResponse.json({ message: err }, { status: 400 });
   }
-  return Response.json({ billId: billId }, { status: 201 });
+  return NextResponse.json({ billId: billId }, { status: 201 });
 };
