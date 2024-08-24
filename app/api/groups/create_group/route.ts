@@ -14,7 +14,11 @@ export const POST = async (request: Request) => {
     };
     await addUsersInDB(requestCopy);
   } catch (err) {
-    return NextResponse.json({ message: err }, { status: 400 });
+    console.log(err);
+    return NextResponse.json(
+      { message: "Something went Wrong" },
+      { status: 400 },
+    );
   }
   return NextResponse.json({ groupId: groupId }, { status: 201 });
 };

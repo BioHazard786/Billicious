@@ -8,7 +8,10 @@ export const POST = async (request: Request) => {
     balances = await getAllBalancesFromDB(requestData);
   } catch (err) {
     console.log(err);
-    return NextResponse.json({ message: err }, { status: 400 });
+    return NextResponse.json(
+      { message: "Something went Wrong" },
+      { status: 400 },
+    );
   }
   return NextResponse.json({ transactions: balances }, { status: 200 });
 };
