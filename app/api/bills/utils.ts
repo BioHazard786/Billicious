@@ -8,6 +8,7 @@ import {
 } from "@/database/schema";
 import { client, db } from "@/database/dbConnect";
 import { eq, sql } from "drizzle-orm";
+import { error } from "console";
 
 export async function createBillInDB(requestData: any) {
   let billId;
@@ -20,25 +21,26 @@ export async function createBillInDB(requestData: any) {
       .from(usersGroupsTable)
       .where(eq(usersGroupsTable.groupId, groupId));
 
+    // Create UserMap which stores the amount for each user
     let userMap = new Map();
     let totalAmount = createUserMap(userMap, requestData, usersGroupsTable);
 
+    // Updating the UsersGroup based on the UserMap in DB
     usersInGroup.forEach((user) => {
       if (userMap.get(user.userIndex) !== undefined) {
-        user.totalAmount = userMap.get(user.userIndex).toString();
+        user.totalAmount = (
+          parseFloat(user.totalAmount) + userMap.get(user.userIndex)
+        ).toString();
       }
     });
+    usersInGroup.forEach(async (user) => {
+      await transaction
+        .update(usersGroupsTable)
+        .set({ totalAmount: user.totalAmount })
+        .where(eq(usersGroupsTable.userId, user.userId));
+    });
 
-    // console.log(usersInGroup);
-    // console.log(userMap);
-
-    // console.log(usersInGroup);
-
-    // console.log(userMap);
-    // for(let [idx, amt] of userMap){
-    //     usersInGroup.
-    // }
-
+    // Create a New Bill in the Database
     const newBill = {
       name: requestData.name,
       notes: requestData !== null ? requestData.notes : null,
@@ -48,17 +50,16 @@ export async function createBillInDB(requestData: any) {
         : false,
       groupId: groupId,
     };
-
-    const balances = createBalances(userMap, groupId);
-
     let bills = await transaction
       .insert(billsTable)
       .values(newBill)
       .returning({ id: billsTable.id });
     billId = bills[0].id;
 
-    console.log(balances);
+    // Get all the balances for Users
+    const balances = createBalances(userMap, groupId);
 
+    // Update the balances for Users in DB
     balances.forEach(async (balance) => {
       await transaction
         .insert(transactionsTable)
@@ -75,13 +76,7 @@ export async function createBillInDB(requestData: any) {
         });
     });
 
-    usersInGroup.forEach(async (user) => {
-      await transaction
-        .update(usersGroupsTable)
-        .set({ totalAmount: user.totalAmount })
-        .where(eq(usersGroupsTable.userId, user.userId));
-    });
-
+    // Update Drawees and Payees
     let drawees = [];
     for (let [idx, amt] of Object.entries(requestData.drawees)) {
       drawees.push({
@@ -90,7 +85,6 @@ export async function createBillInDB(requestData: any) {
         amount: amt as string,
       });
     }
-
     let payees = [];
     for (let [idx, amt] of Object.entries(requestData.payees)) {
       payees.push({
@@ -100,8 +94,106 @@ export async function createBillInDB(requestData: any) {
       });
     }
 
+    // Create Drawees and Payees in DB
     await transaction.insert(draweesInBills).values(drawees);
     await transaction.insert(payeesInBills).values(payees);
+  });
+
+  return billId;
+}
+
+export async function deleteBillInDB(requestData: any) {
+  let billId;
+  await db.transaction(async (transaction) => {
+    billId = requestData.bill_id;
+
+    let bills = await transaction
+      .select()
+      .from(billsTable)
+      .where(eq(billsTable.id, billId));
+
+    if (bills.length == 0) {
+      throw new Error("Invalid Bill Id");
+    }
+
+    let bill = bills[0];
+    let groupId = bill.groupId;
+
+    const usersInGroup = await transaction
+      .select()
+      .from(usersGroupsTable)
+      .where(eq(usersGroupsTable.groupId, groupId as unknown as number));
+
+    requestData.drawees = {};
+    requestData.payees = {};
+
+    let drawees = await transaction
+      .select()
+      .from(draweesInBills)
+      .where(eq(draweesInBills.billId, billId));
+
+    for (let drawee of drawees) {
+      requestData.drawees[drawee.userIndex] = "-" + drawee.amount;
+    }
+
+    let payees = await transaction
+      .select()
+      .from(payeesInBills)
+      .where(eq(payeesInBills.billId, billId));
+
+    for (let payee of payees) {
+      requestData.payees[payee.userIndex] = "-" + payee.amount;
+    }
+
+    // Create UserMap which stores the amount for each user
+    let userMap = new Map();
+    let totalAmount = createUserMap(userMap, requestData, usersGroupsTable);
+
+    // Updating the UsersGroup based on the UserMap in DB
+    usersInGroup.forEach((user) => {
+      if (userMap.get(user.userIndex) !== undefined) {
+        user.totalAmount = (
+          parseFloat(user.totalAmount) + userMap.get(user.userIndex)
+        ).toString();
+      }
+    });
+    usersInGroup.forEach(async (user) => {
+      await transaction
+        .update(usersGroupsTable)
+        .set({ totalAmount: user.totalAmount })
+        .where(eq(usersGroupsTable.userId, user.userId));
+    });
+
+    // Get all the balances for Users
+    const balances = createBalances(userMap, groupId);
+
+    // Update the balances for Users in DB
+    balances.forEach(async (balance) => {
+      await transaction
+        .insert(transactionsTable)
+        .values(balance)
+        .onConflictDoUpdate({
+          target: [
+            transactionsTable.groupId,
+            transactionsTable.user1Index,
+            transactionsTable.user2Index,
+          ],
+          set: {
+            balance: sql`${transactionsTable.balance} + ${balance.balance}`,
+          },
+        });
+    });
+
+    // Delete Drawees and Payees in DB
+    await transaction
+      .delete(draweesInBills)
+      .where(eq(draweesInBills.billId, billId));
+    await transaction
+      .delete(payeesInBills)
+      .where(eq(payeesInBills.billId, billId));
+
+    // Delete the Bill
+    await transaction.delete(billsTable).where(eq(billsTable.id, billId));
   });
 
   return billId;
