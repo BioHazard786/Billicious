@@ -102,6 +102,25 @@ export async function createBillInDB(requestData: any) {
   return billId;
 }
 
+export async function getBillFromDB(requestData: any) {
+  let bill;
+  await db.transaction(async (transaction) => {
+    let billId = requestData.bill_id;
+
+    let bills = await transaction
+      .select()
+      .from(billsTable)
+      .where(eq(billsTable.id, billId));
+
+    if (bills.length == 0) {
+      throw new Error("Invalid Bill Id");
+    }
+
+    bill = bills[0];
+  });
+  return bill;
+}
+
 export async function deleteBillInDB(requestData: any) {
   let billId;
   await db.transaction(async (transaction) => {

@@ -43,3 +43,39 @@ export async function addUsersInDB(requestData: any) {
     await transaction.insert(usersGroupsTable).values(users);
   });
 }
+
+export async function getGroupFromDB(requestData: any) {
+  let group;
+  await db.transaction(async (transaction) => {
+    let groupId = requestData.group_id;
+    let groups = await transaction
+      .select()
+      .from(groupsTable)
+      .where(eq(groupsTable.id, groupId));
+
+    if (groups.length == 0) {
+      throw new Error("Invalid Group Id");
+    }
+
+    group = groups[0];
+  });
+
+  return group;
+}
+
+export async function getUsersFromDB(requestData: any) {
+  let users;
+  await db.transaction(async (transaction) => {
+    let groupId = requestData.group_id;
+    users = await transaction
+      .select()
+      .from(usersGroupsTable)
+      .where(eq(usersGroupsTable.groupId, groupId));
+
+    if (users.length == 0) {
+      throw new Error("Invalid Group Id");
+    }
+  });
+
+  return users;
+}
