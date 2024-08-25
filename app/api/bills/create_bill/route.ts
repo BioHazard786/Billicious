@@ -8,7 +8,10 @@ export const POST = async (request: Request) => {
     billId = await createBillInDB(requestData);
   } catch (err) {
     console.log(err);
-    return NextResponse.json({ message: err }, { status: 400 });
+    return NextResponse.json(
+      { message: "Something went Wrong" },
+      { status: 400 },
+    );
   }
   return NextResponse.json({ billId: billId }, { status: 201 });
 };
