@@ -1,5 +1,3 @@
-import { client, db } from "@/database/dbConnect";
-import { groupsTable } from "@/database/schema";
 import { NextResponse } from "next/server";
 import { addUsersInDB, createGroupInDB } from "../utils";
 
