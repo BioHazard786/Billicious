@@ -8,6 +8,7 @@ import {
   payeesInBills,
 } from "@/database/schema";
 import { eq } from "drizzle-orm";
+import { PgSelect } from "drizzle-orm/pg-core";
 
 export async function createGroupInDB(requestData: any) {
   let groupId;
@@ -124,4 +125,35 @@ export async function deleteGroupInDB(requestData: any) {
     await transaction.delete(groupsTable).where(eq(groupsTable.id, groupId));
   });
   return groupId;
+}
+
+export async function getGroupBillsFromDB(requestData: any) {
+  let bills;
+  await db.transaction(async (transaction) => {
+    let groupId = requestData.group_id;
+
+    let pageSize = requestData.hasOwnProperty("page_size")
+      ? requestData.page_size
+      : 10;
+    let page = requestData.hasOwnProperty("page") ? requestData.page : 1;
+
+    bills = await withPagination(
+      transaction
+        .select()
+        .from(billsTable)
+        .where(eq(billsTable.groupId, groupId))
+        .$dynamic(),
+      page,
+      pageSize,
+    );
+  });
+  return bills;
+}
+
+function withPagination<T extends PgSelect>(
+  qb: T,
+  page: number = 1,
+  pageSize: number = 10,
+) {
+  return qb.limit(pageSize).offset((page - 1) * pageSize);
 }

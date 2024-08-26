@@ -43,7 +43,7 @@ export async function createBillInDB(requestData: any) {
     // Create a New Bill in the Database
     const newBill = {
       name: requestData.name,
-      notes: requestData !== null ? requestData.notes : null,
+      notes: requestData.notes,
       amount: totalAmount.toString(),
       is_payment: requestData.hasOwnProperty("is_payment")
         ? requestData.is_payment
