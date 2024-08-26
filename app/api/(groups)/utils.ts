@@ -1,5 +1,12 @@
 import { client, db } from "@/database/dbConnect";
-import { usersGroupsTable, groupsTable } from "@/database/schema";
+import {
+  usersGroupsTable,
+  groupsTable,
+  billsTable,
+  transactionsTable,
+  draweesInBills,
+  payeesInBills,
+} from "@/database/schema";
 import { eq } from "drizzle-orm";
 
 export async function createGroupInDB(requestData: any) {
@@ -78,4 +85,43 @@ export async function getUsersFromDB(requestData: any) {
   });
 
   return users;
+}
+
+export async function deleteGroupInDB(requestData: any) {
+  let groupId;
+  await db.transaction(async (transaction) => {
+    groupId = requestData.group_id;
+
+    // Delete Transactions
+    await transaction
+      .delete(transactionsTable)
+      .where(eq(transactionsTable.groupId, groupId));
+
+    // delete drawees and payees
+    let bills = await transaction
+      .select()
+      .from(billsTable)
+      .where(eq(billsTable.groupId, groupId));
+
+    for (let bill of bills) {
+      await transaction
+        .delete(draweesInBills)
+        .where(eq(draweesInBills.billId, bill.id));
+      await transaction
+        .delete(payeesInBills)
+        .where(eq(payeesInBills.billId, bill.id));
+    }
+
+    // delete usersInGroup
+    await transaction
+      .delete(usersGroupsTable)
+      .where(eq(usersGroupsTable.groupId, groupId));
+
+    // Delete Bills
+    await transaction.delete(billsTable).where(eq(billsTable.groupId, groupId));
+
+    // Delete Group
+    await transaction.delete(groupsTable).where(eq(groupsTable.id, groupId));
+  });
+  return groupId;
 }
