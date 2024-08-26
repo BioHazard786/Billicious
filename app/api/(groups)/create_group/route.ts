@@ -6,10 +6,12 @@ export const POST = async (request: Request) => {
   try {
     const requestData = await request.json();
     groupId = await createGroupInDB(requestData);
+
     let requestCopy = {
       ...requestData,
-      group_id: groupId,
+      group_id: groupId![0].id,
     };
+    console.log(requestCopy);
     await addUsersInDB(requestCopy);
   } catch (err) {
     console.log(err);
