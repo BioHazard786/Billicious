@@ -2,17 +2,17 @@ import { NextResponse } from "next/server";
 import { addUsersInDB, createGroupInDB } from "../utils";
 
 export const POST = async (request: Request) => {
-  let groupId;
+  let group: any = {};
   try {
     const requestData = await request.json();
-    groupId = await createGroupInDB(requestData);
+    group.group = await createGroupInDB(requestData);
 
     let requestCopy = {
       ...requestData,
-      group_id: groupId![0].id,
+      group_id: group.group.id,
     };
-    console.log(requestCopy);
-    await addUsersInDB(requestCopy);
+    // console.log(requestCopy);
+    group.users = await addUsersInDB(requestCopy);
   } catch (err) {
     console.log(err);
     return NextResponse.json(
@@ -20,5 +20,5 @@ export const POST = async (request: Request) => {
       { status: 400 },
     );
   }
-  return NextResponse.json({ groupId: groupId }, { status: 201 });
+  return NextResponse.json({ group: group }, { status: 201 });
 };

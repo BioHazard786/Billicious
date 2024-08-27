@@ -1,11 +1,18 @@
 import { NextResponse } from "next/server";
-import { getGroupFromDB } from "../utils";
+import { getGroupFromDB, getUsersFromDB } from "../utils";
 
 export const POST = async (request: Request) => {
-  let group;
+  let group: any = {};
   try {
     const requestData = await request.json();
-    group = await getGroupFromDB(requestData);
+    group.group = await getGroupFromDB(requestData);
+
+    let requestCopy = {
+      ...requestData,
+      group_id: group.group.id,
+    };
+    // console.log(requestCopy);
+    group.users = await getUsersFromDB(requestCopy);
   } catch (err) {
     console.log(err);
     return NextResponse.json(
