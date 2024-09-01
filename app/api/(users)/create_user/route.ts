@@ -18,7 +18,7 @@ export const POST = async (request: Request) => {
         .returning({ id: usersTable.id });
     });
   } catch (err) {
-    return NextResponse.json({ message: err }, { status: 400 });
+    return NextResponse.json({ error: err }, { status: 400 });
   }
 
   return NextResponse.json({ UserId: userId }, { status: 201 });

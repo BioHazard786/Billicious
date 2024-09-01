@@ -12,12 +12,12 @@ export const POST = async (request: Request) => {
       group_id: group.group.id,
     };
     // console.log(requestCopy);
-    group.users = await addMembersInDB(requestCopy);
+    await addMembersInDB(requestCopy);
   } catch (err) {
     return NextResponse.json(
-      { Error: "Something went Wrong" },
+      { error: "Something went Wrong" },
       { status: 400 },
     );
   }
-  return NextResponse.json({ group }, { status: 200 });
+  return NextResponse.json(group, { status: 200 });
 };

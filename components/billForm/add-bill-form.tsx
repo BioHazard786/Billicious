@@ -11,7 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { createTransactionInDB } from "@/server/actions";
 import useAddBillStore from "@/store/add-bill-store";
 import useDetailstabStore from "@/store/details-tab-store";
 import useFeetabStore from "@/store/fee-tab-store";
@@ -73,7 +72,7 @@ function AddBillForm() {
   };
 
   const { isPending, mutate: server_createTransaction } = useMutation({
-    mutationFn: createTransactionInDB,
+    mutationFn: async () => {},
     onSuccess: (data) => {
       // const groupData = JSON.parse(data);
       // const path = `/group/${groupData._id}`;

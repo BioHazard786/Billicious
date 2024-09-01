@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import {
+  Card,
+  CardContent,
   CardContentMotion,
   CardDescription,
   CardFooter,
@@ -12,16 +14,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Spinner from "@/components/ui/spinner";
-import { cn, titleCase } from "@/lib/utils";
-import { createGroupInDB } from "@/server/actions";
+import { titleCase } from "@/lib/utils";
 import useCreateGroup from "@/store/create-group-store";
 import { useMutation } from "@tanstack/react-query";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { useRef } from "react";
 import { toast } from "sonner";
+
+type GroupData = {
+  name: string;
+  users: string[];
+};
 
 const CreateGroupForm = () => {
   const {
@@ -68,10 +74,25 @@ const CreateGroupForm = () => {
   };
 
   const { isPending, mutate: server_createGroup } = useMutation({
-    mutationFn: createGroupInDB,
+    mutationFn: async (groupData: GroupData) => {
+      const response = await fetch("/api/create_group", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(groupData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create group");
+      }
+
+      const data = await response.json();
+      return data;
+    },
     onSuccess: (data) => {
-      const groupData = JSON.parse(data);
-      const path = `/group/${groupData._id}`;
+      console.log(data);
+      const path = `/group/${data.id}`;
       navigate.push(path);
     },
     onError: (error) => {
@@ -101,8 +122,8 @@ const CreateGroupForm = () => {
     }
 
     const groupBody = {
-      groupName: titleCase(groupNameRef.current!.value),
-      memberNames: memberNames,
+      name: titleCase(groupNameRef.current!.value),
+      users: memberNames,
     };
 
     server_createGroup(groupBody);
@@ -172,34 +193,29 @@ const CreateGroupForm = () => {
             </span>
           )}
         </div>
-        <div className="flex flex-wrap gap-2">
-          <AnimatePresence presenceAffectsLayout mode="popLayout">
+        <ul className="flex flex-wrap gap-2">
+          <AnimatePresence presenceAffectsLayout>
             {memberNames.map((name, index) => (
-              <motion.div
+              <motion.li
                 animate={{ opacity: 1, scale: 1 }}
                 initial={{ opacity: 0, scale: 0 }}
                 exit={{ opacity: 0 }}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 key={`member-name-${index}`}
-                className={cn(
-                  "inline-flex h-8 cursor-default items-center rounded-sm bg-secondary pl-2 text-sm text-secondary-foreground",
-                  name === "Me" ? "pr-2" : "",
-                )}
+                className="inline-flex h-8 cursor-default items-center rounded-sm bg-secondary pl-2 text-sm text-secondary-foreground"
               >
                 {name}
-                {name != "Me" && (
-                  <button
-                    onClick={() => removeMembers(name)}
-                    className="inline-flex h-full items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                  >
-                    <X className="size-[0.85rem]" />
-                  </button>
-                )}
-              </motion.div>
+                <button
+                  onClick={() => removeMembers(name)}
+                  className="inline-flex h-full items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                >
+                  <X className="size-[0.85rem]" />
+                </button>
+              </motion.li>
             ))}
           </AnimatePresence>
-        </div>
+        </ul>
       </CardContentMotion>
       <CardFooter>
         <AnimatePresence presenceAffectsLayout>

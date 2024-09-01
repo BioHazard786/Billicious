@@ -1,8 +1,3 @@
-import { z } from "zod";
-import { CreateGroupFormSchema } from "./schemas";
-
-export type TCreateGroupFormSchema = z.infer<typeof CreateGroupFormSchema>;
-
 export type TGroupData = {
   id: string;
   name: string;

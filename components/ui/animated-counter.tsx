@@ -57,7 +57,7 @@ export default function AnimatedCounter({
     <motion.div
       layout
       className={cn(
-        "relative flex h-full flex-row-reverse overflow-hidden",
+        "relative flex h-full flex-row-reverse items-center justify-center overflow-hidden",
         className,
       )}
     >

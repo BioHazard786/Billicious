@@ -20,7 +20,7 @@ type Action = {
 
 const useCreateGroup = createWithEqualityFn<State & Action>(
   (set) => ({
-    memberNames: ["Me"],
+    memberNames: [],
     groupNameError: "",
     memberNameError: "",
     setMemberNames: (newMemberNames: string[]) =>

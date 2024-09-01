@@ -87,12 +87,27 @@ const ChooseDrawee = ({
   };
   return (
     <div
-      className="relative flex cursor-pointer flex-col items-center gap-1"
+      className="flex cursor-pointer flex-col items-center gap-1"
       onClick={setDrawees}
     >
-      <Avatar>
-        <AvatarFallback>{memberName[0]}</AvatarFallback>
-      </Avatar>
+      <div className="relative">
+        <Avatar>
+          <AvatarFallback>{memberName[0]}</AvatarFallback>
+        </Avatar>
+        <AnimatePresence presenceAffectsLayout>
+          {isSelected && (
+            <motion.div
+              animate={{ scale: 1 }}
+              initial={{ scale: 0 }}
+              exit={{ scale: 0 }}
+              transition={{ ease: "easeInOut", duration: 0.2 }}
+              className="absolute bottom-[-3%] right-[-13%] rounded-full bg-primary p-[0.1rem]"
+            >
+              <Check className="size-[0.85rem] text-primary-foreground" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
       <p
         className={cn(
           "text-sm transition-colors duration-200 ease-in-out",
@@ -101,19 +116,6 @@ const ChooseDrawee = ({
       >
         {memberName}
       </p>
-      <AnimatePresence presenceAffectsLayout>
-        {isSelected && (
-          <motion.div
-            animate={{ scale: 1 }}
-            initial={{ scale: 0 }}
-            exit={{ scale: 0 }}
-            transition={{ ease: "easeInOut", duration: 0.2 }}
-            className="absolute bottom-[35%] right-[-10%] rounded-full bg-primary p-[0.1rem]"
-          >
-            <Check className="size-[0.85rem] text-primary-foreground" />
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

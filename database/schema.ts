@@ -1,14 +1,12 @@
 import {
+  boolean,
+  index,
   integer,
   numeric,
   pgTable,
-  serial,
+  primaryKey,
   text,
   timestamp,
-  primaryKey,
-  index,
-  boolean,
-  uuid,
 } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
 

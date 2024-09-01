@@ -9,7 +9,7 @@ export const DELETE = async (request: Request) => {
   } catch (err) {
     console.log(err);
     return NextResponse.json(
-      { message: "Something went Wrong" },
+      { error: "Something went Wrong" },
       { status: 400 },
     );
   }
