@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { getUsersFromDB } from "../utils";
+import { getMembersFromDB } from "../utils";
 
 export const POST = async (request: Request) => {
-  let users;
+  let members;
   try {
     const requestData = await request.json();
-    users = await getUsersFromDB(requestData);
+    members = await getMembersFromDB(requestData);
   } catch (err) {
     console.log(err);
     return NextResponse.json(
@@ -13,5 +13,5 @@ export const POST = async (request: Request) => {
       { status: 400 },
     );
   }
-  return NextResponse.json({ users: users }, { status: 201 });
+  return NextResponse.json({ members }, { status: 200 });
 };

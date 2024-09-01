@@ -1,11 +1,11 @@
 import { client, db } from "@/database/dbConnect";
 import {
-  usersGroupsTable,
+  membersTable,
   groupsTable,
   billsTable,
   transactionsTable,
-  draweesInBills,
-  payeesInBills,
+  draweesInBillsTable,
+  payeesInBillsTable,
 } from "@/database/schema";
 import { eq } from "drizzle-orm";
 import { PgSelect } from "drizzle-orm/pg-core";
@@ -27,35 +27,40 @@ export async function createGroupInDB(requestData: any) {
   return group;
 }
 
-export async function addUsersInDB(requestData: any) {
-  let users;
+export async function addMembersInDB(requestData: any) {
+  let members;
   await db.transaction(async (transaction) => {
     let groupId = requestData.group_id;
-    let newUsers = [];
+    let newMembers = [];
 
-    const usersInGroup = await transaction
+    const existingMembers = await transaction
       .select()
-      .from(usersGroupsTable)
-      .where(eq(usersGroupsTable.groupId, groupId));
+      .from(membersTable)
+      .where(eq(membersTable.groupId, groupId));
 
-    let count = usersInGroup.length === null ? 0 : usersInGroup.length;
+    let count = existingMembers.length === null ? 0 : existingMembers.length;
     // console.log(requestData.users);
-    for (let user of requestData.users) {
-      newUsers.push({
+
+    if (requestData.members === undefined) {
+      throw new Error("Send Members List");
+    }
+
+    for (let member of requestData.members) {
+      newMembers.push({
         userId: groupId + " | " + count,
         groupId: groupId,
-        userNameInGroup: user,
+        userNameInGroup: member,
         userIndex: count++,
         totalAmount: "0",
       });
     }
 
-    users = await transaction
-      .insert(usersGroupsTable)
-      .values(newUsers)
+    members = await transaction
+      .insert(membersTable)
+      .values(newMembers)
       .returning();
   });
-  return users;
+  return members;
 }
 
 export async function getGroupFromDB(requestData: any) {
@@ -77,21 +82,21 @@ export async function getGroupFromDB(requestData: any) {
   return group;
 }
 
-export async function getUsersFromDB(requestData: any) {
-  let users;
+export async function getMembersFromDB(requestData: any) {
+  let members;
   await db.transaction(async (transaction) => {
     let groupId = requestData.group_id;
-    users = await transaction
+    members = await transaction
       .select()
-      .from(usersGroupsTable)
-      .where(eq(usersGroupsTable.groupId, groupId));
+      .from(membersTable)
+      .where(eq(membersTable.groupId, groupId));
 
-    if (users.length == 0) {
-      throw new Error("Invalid Group Id");
+    if (members.length == 0) {
+      throw new Error("No members In Group");
     }
   });
 
-  return users;
+  return members;
 }
 
 export async function deleteGroupInDB(requestData: any) {
@@ -112,17 +117,17 @@ export async function deleteGroupInDB(requestData: any) {
 
     for (let bill of bills) {
       await transaction
-        .delete(draweesInBills)
-        .where(eq(draweesInBills.billId, bill.id));
+        .delete(draweesInBillsTable)
+        .where(eq(draweesInBillsTable.billId, bill.id));
       await transaction
-        .delete(payeesInBills)
-        .where(eq(payeesInBills.billId, bill.id));
+        .delete(payeesInBillsTable)
+        .where(eq(payeesInBillsTable.billId, bill.id));
     }
 
     // delete usersInGroup
     await transaction
-      .delete(usersGroupsTable)
-      .where(eq(usersGroupsTable.groupId, groupId));
+      .delete(membersTable)
+      .where(eq(membersTable.groupId, groupId));
 
     // Delete Bills
     await transaction.delete(billsTable).where(eq(billsTable.groupId, groupId));
@@ -148,6 +153,7 @@ export async function getGroupBillsFromDB(requestData: any) {
         .select()
         .from(billsTable)
         .where(eq(billsTable.groupId, groupId))
+        // TODO: apply descending sort
         .$dynamic(),
       page,
       pageSize,

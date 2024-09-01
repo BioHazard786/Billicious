@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getGroupFromDB, getUsersFromDB } from "../utils";
+import { getGroupFromDB, getMembersFromDB } from "../utils";
 
 export const POST = async (request: Request) => {
   let group: any = {};
@@ -12,7 +12,7 @@ export const POST = async (request: Request) => {
       group_id: group.group.id,
     };
     // console.log(requestCopy);
-    group.users = await getUsersFromDB(requestCopy);
+    group.users = await getMembersFromDB(requestCopy);
   } catch (err) {
     console.log(err);
     return NextResponse.json(
@@ -20,5 +20,5 @@ export const POST = async (request: Request) => {
       { status: 400 },
     );
   }
-  return NextResponse.json({ group: group }, { status: 201 });
+  return NextResponse.json({ group }, { status: 200 });
 };

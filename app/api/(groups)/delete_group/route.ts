@@ -15,6 +15,6 @@ export const DELETE = async (request: Request) => {
   }
   return NextResponse.json(
     { groupId: groupId + " is Deleted." },
-    { status: 201 },
+    { status: 200 },
   );
 };

@@ -15,6 +15,6 @@ export const DELETE = async (request: Request) => {
   }
   return NextResponse.json(
     { billId: billId + " is deleted." },
-    { status: 201 },
+    { status: 200 },
   );
 };
