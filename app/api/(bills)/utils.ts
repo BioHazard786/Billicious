@@ -152,7 +152,7 @@ export async function deleteBillInDB(requestData: any) {
     const usersInGroup = await transaction
       .select()
       .from(membersTable)
-      .where(eq(membersTable.groupId, groupId as unknown as number));
+      .where(eq(membersTable.groupId, groupId as unknown as string));
 
     requestData.drawees = {};
     requestData.payees = {};
