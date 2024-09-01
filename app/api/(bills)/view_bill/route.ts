@@ -20,5 +20,5 @@ export const POST = async (request: Request) => {
       { status: 500 },
     );
   }
-  return NextResponse.json({ bill }, { status: 200 });
+  return NextResponse.json(bill, { status: 200 });
 };

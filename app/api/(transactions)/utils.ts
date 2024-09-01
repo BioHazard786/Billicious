@@ -6,7 +6,6 @@ export async function getAllBalancesFromDB(requestData: any) {
   let balances;
   await db.transaction(async (transaction) => {
     let groupId = requestData.group_id;
-    let userIndex = requestData.user_index;
 
     balances = await transaction
       .select()
