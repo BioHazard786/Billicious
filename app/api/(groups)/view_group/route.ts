@@ -5,6 +5,11 @@ export const POST = async (request: Request) => {
   let group: any = {};
   try {
     const requestData = await request.json();
+
+    if (requestData.group_id === undefined) {
+      throw new Error("Group Id is Required");
+    }
+
     group.group = await getGroupFromDB(requestData);
 
     let requestCopy = {
@@ -14,10 +19,12 @@ export const POST = async (request: Request) => {
     // console.log(requestCopy);
     group.users = await getMembersFromDB(requestCopy);
   } catch (err) {
-    console.log(err);
+    if (err instanceof Error) {
+      return NextResponse.json({ message: err.message }, { status: 400 });
+    }
     return NextResponse.json(
-      { error: "Something went Wrong" },
-      { status: 400 },
+      { message: "Something went Wrong" },
+      { status: 500 },
     );
   }
   return NextResponse.json(group, { status: 200 });

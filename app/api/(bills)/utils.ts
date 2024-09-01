@@ -31,6 +31,18 @@ export async function createBillInDB(requestData: any) {
       .from(membersTable)
       .where(eq(membersTable.groupId, groupId));
 
+    // Check UserIndexes in Range
+    for (let [idx, amt] of Object.entries(requestData.drawees)) {
+      if (parseInt(idx) >= members.length) {
+        throw new Error("Drawees Index should be in range of Members Length");
+      }
+    }
+    for (let [idx, amt] of Object.entries(requestData.payees)) {
+      if (parseInt(idx) >= members.length) {
+        throw new Error("Payees Index should be in range of Members Length");
+      }
+    }
+
     // Create UserMap which stores the amount for each user
     let userMap = new Map();
     let totalAmount = createUserMap(userMap, requestData, membersTable);
