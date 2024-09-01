@@ -5,12 +5,19 @@ export const DELETE = async (request: Request) => {
   let billId;
   try {
     const requestData = await request.json();
+
+    if (requestData.bill_id === undefined) {
+      throw new Error("BillId is Required");
+    }
+
     billId = await deleteBillInDB(requestData);
   } catch (err) {
-    console.log(err);
+    if (err instanceof Error) {
+      return NextResponse.json({ message: err.message }, { status: 400 });
+    }
     return NextResponse.json(
       { message: "Something went Wrong" },
-      { status: 400 },
+      { status: 500 },
     );
   }
   return NextResponse.json(

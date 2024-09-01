@@ -16,7 +16,17 @@ export async function createBillInDB(requestData: any) {
   await db.transaction(async (transaction) => {
     let groupId = requestData.group_id;
 
-    const usersInGroup = await transaction
+    // Validate Group Exists
+    let groups = await transaction
+      .select()
+      .from(groupsTable)
+      .where(eq(groupsTable.id, groupId));
+
+    if (groups.length === 0) {
+      throw new Error("No Such Group Exists");
+    }
+
+    const members = await transaction
       .select()
       .from(membersTable)
       .where(eq(membersTable.groupId, groupId));
@@ -26,14 +36,14 @@ export async function createBillInDB(requestData: any) {
     let totalAmount = createUserMap(userMap, requestData, membersTable);
 
     // Updating the UsersGroup based on the UserMap in DB
-    usersInGroup.forEach((user) => {
+    members.forEach((user) => {
       if (userMap.get(user.userIndex) !== undefined) {
         user.totalAmount = (
           parseFloat(user.totalAmount) + userMap.get(user.userIndex)
         ).toString();
       }
     });
-    usersInGroup.forEach(async (user) => {
+    members.forEach(async (user) => {
       await transaction
         .update(membersTable)
         .set({ totalAmount: user.totalAmount })
@@ -99,6 +109,16 @@ export async function createBillInDB(requestData: any) {
     // Create Drawees and Payees in DB
     await transaction.insert(draweesInBillsTable).values(drawees);
     await transaction.insert(payeesInBillsTable).values(payees);
+
+    // Update GroupTotalExpense
+    if (bills[0].isPayment === false) {
+      await transaction
+        .update(groupsTable)
+        .set({
+          totalExpense: sql`${groupsTable.totalExpense} + ${totalAmount.toString()}`,
+        })
+        .where(eq(groupsTable.id, groupId));
+    }
   });
 
   return bill;
@@ -152,7 +172,7 @@ export async function deleteBillInDB(requestData: any) {
     const usersInGroup = await transaction
       .select()
       .from(membersTable)
-      .where(eq(membersTable.groupId, groupId as unknown as number));
+      .where(eq(membersTable.groupId, groupId as unknown as string));
 
     requestData.drawees = {};
     requestData.payees = {};
@@ -224,6 +244,16 @@ export async function deleteBillInDB(requestData: any) {
 
     // Delete the Bill
     await transaction.delete(billsTable).where(eq(billsTable.id, billId));
+
+    // Update GroupTotalExpense
+    if (bill.isPayment === false) {
+      await transaction
+        .update(groupsTable)
+        .set({
+          totalExpense: sql`${groupsTable.totalExpense} + ${totalAmount.toString()}`,
+        })
+        .where(eq(groupsTable.id, groupId as unknown as string));
+    }
   });
 
   return billId;
