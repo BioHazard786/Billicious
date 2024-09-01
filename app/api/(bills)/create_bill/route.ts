@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import { createBillInDB } from "../utils";
 
 export const POST = async (request: Request) => {
-  let billId;
+  let bill;
   try {
     const requestData = await request.json();
-    billId = await createBillInDB(requestData);
+    bill = await createBillInDB(requestData);
   } catch (err) {
     console.log(err);
     return NextResponse.json(
@@ -13,5 +13,5 @@ export const POST = async (request: Request) => {
       { status: 400 },
     );
   }
-  return NextResponse.json({ billId: billId }, { status: 201 });
+  return NextResponse.json({ bill: bill }, { status: 201 });
 };

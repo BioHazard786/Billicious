@@ -11,25 +11,27 @@ import { eq } from "drizzle-orm";
 import { PgSelect } from "drizzle-orm/pg-core";
 
 export async function createGroupInDB(requestData: any) {
-  let groupId;
+  let group;
   await db.transaction(async (transaction) => {
     const newGroup = {
       name: requestData.name,
     };
 
-    groupId = await transaction
+    let groups = await transaction
       .insert(groupsTable)
       .values(newGroup)
-      .returning({ id: groupsTable.id });
+      .returning();
+    group = groups[0];
   });
 
-  return groupId;
+  return group;
 }
 
 export async function addUsersInDB(requestData: any) {
+  let users;
   await db.transaction(async (transaction) => {
     let groupId = requestData.group_id;
-    let users = [];
+    let newUsers = [];
 
     const usersInGroup = await transaction
       .select()
@@ -39,7 +41,7 @@ export async function addUsersInDB(requestData: any) {
     let count = usersInGroup.length === null ? 0 : usersInGroup.length;
     // console.log(requestData.users);
     for (let user of requestData.users) {
-      users.push({
+      newUsers.push({
         userId: groupId + " | " + count,
         groupId: groupId,
         userNameInGroup: user,
@@ -48,8 +50,12 @@ export async function addUsersInDB(requestData: any) {
       });
     }
 
-    await transaction.insert(usersGroupsTable).values(users);
+    users = await transaction
+      .insert(usersGroupsTable)
+      .values(newUsers)
+      .returning();
   });
+  return users;
 }
 
 export async function getGroupFromDB(requestData: any) {

@@ -11,7 +11,7 @@ import { eq, sql } from "drizzle-orm";
 import { error } from "console";
 
 export async function createBillInDB(requestData: any) {
-  let billId;
+  let bill: any = {};
 
   await db.transaction(async (transaction) => {
     let groupId = requestData.group_id;
@@ -53,8 +53,8 @@ export async function createBillInDB(requestData: any) {
     let bills = await transaction
       .insert(billsTable)
       .values(newBill)
-      .returning({ id: billsTable.id });
-    billId = bills[0].id;
+      .returning();
+    bill.bill = bills[0];
 
     // Get all the balances for Users
     const balances = createBalances(userMap, groupId);
@@ -80,7 +80,7 @@ export async function createBillInDB(requestData: any) {
     let drawees = [];
     for (let [idx, amt] of Object.entries(requestData.drawees)) {
       drawees.push({
-        billId: billId,
+        billId: bills[0].id,
         userIndex: parseInt(idx),
         amount: amt as string,
       });
@@ -88,22 +88,24 @@ export async function createBillInDB(requestData: any) {
     let payees = [];
     for (let [idx, amt] of Object.entries(requestData.payees)) {
       payees.push({
-        billId: billId,
+        billId: bills[0].id,
         userIndex: parseInt(idx),
         amount: amt as string,
       });
     }
+    bill.drawees = drawees;
+    bill.payees = payees;
 
     // Create Drawees and Payees in DB
     await transaction.insert(draweesInBills).values(drawees);
     await transaction.insert(payeesInBills).values(payees);
   });
 
-  return billId;
+  return bill;
 }
 
 export async function getBillFromDB(requestData: any) {
-  let bill;
+  let bill: any = {};
   await db.transaction(async (transaction) => {
     let billId = requestData.bill_id;
 
@@ -116,7 +118,16 @@ export async function getBillFromDB(requestData: any) {
       throw new Error("Invalid Bill Id");
     }
 
-    bill = bills[0];
+    bill.drawees = await transaction
+      .select()
+      .from(draweesInBills)
+      .where(eq(draweesInBills.billId, billId));
+    bill.payees = await transaction
+      .select()
+      .from(payeesInBills)
+      .where(eq(payeesInBills.billId, billId));
+
+    bill.bill = bills[0];
   });
   return bill;
 }
