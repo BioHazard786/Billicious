@@ -16,5 +16,5 @@ export const POST = async (request: Request) => {
       { status: 400 },
     );
   }
-  return NextResponse.json({ transactions: balances }, { status: 200 });
+  return NextResponse.json({ balances }, { status: 200 });
 };

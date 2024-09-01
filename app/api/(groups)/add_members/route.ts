@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { addUsersInDB } from "../utils";
+import { addMembersInDB } from "../utils";
 
 export const POST = async (request: Request) => {
   try {
     const requestData = await request.json();
-    await addUsersInDB(requestData);
+    await addMembersInDB(requestData);
   } catch (err) {
     console.log(err);
     return NextResponse.json(
@@ -13,5 +13,5 @@ export const POST = async (request: Request) => {
     );
   }
 
-  return NextResponse.json({ message: "User Added to Group" }, { status: 201 });
+  return NextResponse.json({ message: "User Added to Group" }, { status: 200 });
 };

@@ -1,10 +1,10 @@
 import {
   billsTable,
-  draweesInBills,
+  draweesInBillsTable,
   groupsTable,
-  payeesInBills,
+  payeesInBillsTable,
   transactionsTable,
-  usersGroupsTable,
+  membersTable,
 } from "@/database/schema";
 import { client, db } from "@/database/dbConnect";
 import { eq, sql } from "drizzle-orm";
@@ -18,12 +18,12 @@ export async function createBillInDB(requestData: any) {
 
     const usersInGroup = await transaction
       .select()
-      .from(usersGroupsTable)
-      .where(eq(usersGroupsTable.groupId, groupId));
+      .from(membersTable)
+      .where(eq(membersTable.groupId, groupId));
 
     // Create UserMap which stores the amount for each user
     let userMap = new Map();
-    let totalAmount = createUserMap(userMap, requestData, usersGroupsTable);
+    let totalAmount = createUserMap(userMap, requestData, membersTable);
 
     // Updating the UsersGroup based on the UserMap in DB
     usersInGroup.forEach((user) => {
@@ -35,9 +35,9 @@ export async function createBillInDB(requestData: any) {
     });
     usersInGroup.forEach(async (user) => {
       await transaction
-        .update(usersGroupsTable)
+        .update(membersTable)
         .set({ totalAmount: user.totalAmount })
-        .where(eq(usersGroupsTable.userId, user.userId));
+        .where(eq(membersTable.userId, user.userId));
     });
 
     // Create a New Bill in the Database
@@ -97,8 +97,8 @@ export async function createBillInDB(requestData: any) {
     bill.payees = payees;
 
     // Create Drawees and Payees in DB
-    await transaction.insert(draweesInBills).values(drawees);
-    await transaction.insert(payeesInBills).values(payees);
+    await transaction.insert(draweesInBillsTable).values(drawees);
+    await transaction.insert(payeesInBillsTable).values(payees);
   });
 
   return bill;
@@ -120,12 +120,12 @@ export async function getBillFromDB(requestData: any) {
 
     bill.drawees = await transaction
       .select()
-      .from(draweesInBills)
-      .where(eq(draweesInBills.billId, billId));
+      .from(draweesInBillsTable)
+      .where(eq(draweesInBillsTable.billId, billId));
     bill.payees = await transaction
       .select()
-      .from(payeesInBills)
-      .where(eq(payeesInBills.billId, billId));
+      .from(payeesInBillsTable)
+      .where(eq(payeesInBillsTable.billId, billId));
 
     bill.bill = bills[0];
   });
@@ -151,16 +151,16 @@ export async function deleteBillInDB(requestData: any) {
 
     const usersInGroup = await transaction
       .select()
-      .from(usersGroupsTable)
-      .where(eq(usersGroupsTable.groupId, groupId as unknown as number));
+      .from(membersTable)
+      .where(eq(membersTable.groupId, groupId as unknown as number));
 
     requestData.drawees = {};
     requestData.payees = {};
 
     let drawees = await transaction
       .select()
-      .from(draweesInBills)
-      .where(eq(draweesInBills.billId, billId));
+      .from(draweesInBillsTable)
+      .where(eq(draweesInBillsTable.billId, billId));
 
     for (let drawee of drawees) {
       requestData.drawees[drawee.userIndex] = "-" + drawee.amount;
@@ -168,8 +168,8 @@ export async function deleteBillInDB(requestData: any) {
 
     let payees = await transaction
       .select()
-      .from(payeesInBills)
-      .where(eq(payeesInBills.billId, billId));
+      .from(payeesInBillsTable)
+      .where(eq(payeesInBillsTable.billId, billId));
 
     for (let payee of payees) {
       requestData.payees[payee.userIndex] = "-" + payee.amount;
@@ -177,7 +177,7 @@ export async function deleteBillInDB(requestData: any) {
 
     // Create UserMap which stores the amount for each user
     let userMap = new Map();
-    let totalAmount = createUserMap(userMap, requestData, usersGroupsTable);
+    let totalAmount = createUserMap(userMap, requestData, membersTable);
 
     // Updating the UsersGroup based on the UserMap in DB
     usersInGroup.forEach((user) => {
@@ -189,9 +189,9 @@ export async function deleteBillInDB(requestData: any) {
     });
     usersInGroup.forEach(async (user) => {
       await transaction
-        .update(usersGroupsTable)
+        .update(membersTable)
         .set({ totalAmount: user.totalAmount })
-        .where(eq(usersGroupsTable.userId, user.userId));
+        .where(eq(membersTable.userId, user.userId));
     });
 
     // Get all the balances for Users
@@ -216,11 +216,11 @@ export async function deleteBillInDB(requestData: any) {
 
     // Delete Drawees and Payees in DB
     await transaction
-      .delete(draweesInBills)
-      .where(eq(draweesInBills.billId, billId));
+      .delete(draweesInBillsTable)
+      .where(eq(draweesInBillsTable.billId, billId));
     await transaction
-      .delete(payeesInBills)
-      .where(eq(payeesInBills.billId, billId));
+      .delete(payeesInBillsTable)
+      .where(eq(payeesInBillsTable.billId, billId));
 
     // Delete the Bill
     await transaction.delete(billsTable).where(eq(billsTable.id, billId));
