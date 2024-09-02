@@ -1,3 +1,4 @@
+import TotalExpense from "@/components/dashboard/total-expense";
 import { client, db } from "@/database/dbConnect";
 import {
   membersTable,
@@ -51,7 +52,8 @@ export async function addMembersInDB(requestData: any) {
         groupId: groupId,
         userNameInGroup: member,
         userIndex: count++,
-        totalAmount: "0",
+        totalSpent: "0",
+        totalPaid: "0",
       });
     }
 

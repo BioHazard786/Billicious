@@ -15,6 +15,9 @@ export const POST = async (request: Request) => {
     if (requestData.drawees === undefined || requestData.payees === undefined) {
       throw new Error("Drawees and Payees Required");
     }
+    if (requestData.category === undefined) {
+      throw new Error("Category is Required");
+    }
 
     bill = await createBillInDB(requestData);
   } catch (err) {
