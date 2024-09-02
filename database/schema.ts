@@ -46,6 +46,7 @@ export const billsTable = pgTable(
     notes: text("notes"),
     groupId: text("group_id").references(() => groupsTable.id),
     isPayment: boolean("is_payment").default(false),
+    category: text("category").notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
       .notNull()
@@ -67,11 +68,8 @@ export const membersTable = pgTable(
     groupId: text("group_id").references(() => groupsTable.id),
     userNameInGroup: text("username_in_group").notNull(),
     userIndex: integer("user_index"),
-    totalAmount: numeric("total_amount").notNull(),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at")
-      .notNull()
-      .$onUpdate(() => new Date()),
+    totalSpent: numeric("total_spent").notNull().default("0"),
+    totalPaid: numeric("total_paid").notNull().default("0"),
   },
   (table) => {
     return {
