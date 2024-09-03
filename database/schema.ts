@@ -13,11 +13,9 @@ import { nanoid } from "nanoid";
 export const usersTable = pgTable(
   "users_table",
   {
-    id: text("id")
-      .primaryKey()
-      .$defaultFn(() => nanoid()),
+    id: text("id").$defaultFn(() => nanoid()),
     username: text("username").notNull().unique(),
-    identifier: text("identifier").notNull().unique(),
+    platform: text("identifier").notNull(),
     name: text("name").notNull(),
     upiId: text("upi_id"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -27,11 +25,12 @@ export const usersTable = pgTable(
   },
   (table) => {
     return {
+      primaryKey: primaryKey({
+        name: "request_table_pk",
+        columns: [table.id, table.platform],
+      }),
       usersTableUsernameIndex: index("users_table_username_index").on(
         table.username,
-      ),
-      usersTableIdentifierIndex: index("users_table_identifier_index").on(
-        table.identifier,
       ),
     };
   },
@@ -170,6 +169,23 @@ export const payeesInBillsTable = pgTable(
       payeesInBillsTableBillIdIndex: index(
         "payees_in_bills_table_bill_id_index",
       ).on(table.billId),
+    };
+  },
+);
+
+export const requestTable = pgTable(
+  "request_table",
+  {
+    userId: text("user_id").references(() => usersTable.id),
+    groupId: text("group_id").references(() => groupsTable.id),
+    userIndex: integer("user_index"),
+  },
+  (table) => {
+    return {
+      primaryKey: primaryKey({
+        name: "request_table_pk",
+        columns: [table.userId, table.groupId],
+      }),
     };
   },
 );
