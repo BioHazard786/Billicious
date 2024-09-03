@@ -13,7 +13,9 @@ import { nanoid } from "nanoid";
 export const usersTable = pgTable(
   "users_table",
   {
-    id: text("id").$defaultFn(() => nanoid()),
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => nanoid()),
     username: text("username").notNull().unique(),
     platform: text("identifier").notNull(),
     name: text("name").notNull(),
@@ -25,10 +27,6 @@ export const usersTable = pgTable(
   },
   (table) => {
     return {
-      primaryKey: primaryKey({
-        name: "request_table_pk",
-        columns: [table.id, table.platform],
-      }),
       usersTableUsernameIndex: index("users_table_username_index").on(
         table.username,
       ),
@@ -87,13 +85,13 @@ export const membersTable = pgTable(
   (table) => {
     return {
       primaryKey: primaryKey({
-        name: "users_group_table_pk",
+        name: "members_table_pk",
         columns: [table.userId, table.groupId],
       }),
-      usersGroupsTableUserIdIndex: index("members_table_user_id_index").on(
+      membersTableUserIdIndex: index("members_table_user_id_index").on(
         table.userId,
       ),
-      usersGroupsTableGroupIdIndex: index("members_table_group_id_index").on(
+      membersTableGroupIdIndex: index("members_table_group_id_index").on(
         table.groupId,
       ),
     };
