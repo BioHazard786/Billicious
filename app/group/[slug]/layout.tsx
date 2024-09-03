@@ -1,7 +1,28 @@
-export default function DashboardLayout({
+import { getGroupFromDB, getMembersFromDB } from "@/app/api/(groups)/utils";
+import FloatingNavbar from "@/components/layouts/floating-navbar";
+import SideNavbar from "@/components/layouts/side-navbar";
+import { formatGroupData } from "@/lib/utils";
+import { DashboardStoreProvider } from "@/providers/dashboard-store-provider";
+
+export default async function DashboardLayout({
   children, // will be a page or nested layout
+  params,
 }: {
   children: React.ReactNode;
+  params: { slug: string };
 }) {
-  return <section>{children}</section>;
+  const groupId = params.slug;
+  const data: any = {};
+  data.group = await getGroupFromDB({ group_id: groupId });
+  data.users = await getMembersFromDB({ group_id: groupId });
+  const groupData = formatGroupData(data);
+  return (
+    <section>
+      <DashboardStoreProvider initialGroupData={groupData}>
+        <SideNavbar />
+        <FloatingNavbar />
+        {children}
+      </DashboardStoreProvider>
+    </section>
+  );
 }

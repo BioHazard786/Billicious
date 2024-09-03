@@ -10,16 +10,10 @@ export type DashboardStore = ReturnType<typeof createDashboardStore>;
 export const createDashboardStore = (initialGroupData: TGroupData) => {
   return createStore<DashboardAction & TGroupData>()((set) => ({
     ...initialGroupData,
-    addUser: (user: TMembers) =>
+    addMember: (member: TMembers[]) =>
       set(
-        produce((state) => {
-          state.users.push(user);
-        }),
-      ),
-    restoreUsers: (users: TMembers[]) =>
-      set(
-        produce((state) => {
-          state.users = users;
+        produce((state: TGroupData) => {
+          state.members.push(...member);
         }),
       ),
     addBill: (bill: billState) =>

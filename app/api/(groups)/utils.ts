@@ -1,12 +1,12 @@
 import TotalExpense from "@/components/dashboard/total-expense";
 import { client, db } from "@/database/dbConnect";
 import {
-  membersTable,
-  groupsTable,
   billsTable,
-  transactionsTable,
   draweesInBillsTable,
+  groupsTable,
+  membersTable,
   payeesInBillsTable,
+  transactionsTable,
 } from "@/database/schema";
 import { eq } from "drizzle-orm";
 import { PgSelect } from "drizzle-orm/pg-core";
@@ -29,10 +29,9 @@ export async function createGroupInDB(requestData: any) {
 }
 
 export async function addMembersInDB(requestData: any) {
-  let members;
+  let newMembers: any = [];
   await db.transaction(async (transaction) => {
     let groupId = requestData.group_id;
-    let newMembers = [];
 
     const existingMembers = await transaction
       .select()
@@ -57,12 +56,9 @@ export async function addMembersInDB(requestData: any) {
       });
     }
 
-    members = await transaction
-      .insert(membersTable)
-      .values(newMembers)
-      .returning();
+    await transaction.insert(membersTable).values(newMembers).returning();
   });
-  return members;
+  return newMembers;
 }
 
 export async function getGroupFromDB(requestData: any) {

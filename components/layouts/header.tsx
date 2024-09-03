@@ -1,10 +1,12 @@
 import Logo from "@/components/ui/logo";
+import Mascot from "@/components/ui/mascot";
 import ThemeToggleButton from "@/components/ui/theme-toggle-button";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 
 const Header = () => {
   return (
     <header className="sticky top-0 z-[75] flex h-[53px] w-full items-center border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      {/* <Mascot className="h-[2.3rem] cursor-pointer" /> */}
       <Logo className="h-[2.3rem] lg:ml-14" />
       <div className="ml-auto flex place-items-center justify-center">
         <a

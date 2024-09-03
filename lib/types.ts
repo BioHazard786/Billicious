@@ -6,8 +6,8 @@ export type TGroupData = {
 };
 
 export type TMembers = {
-  memberBills: { [key: string]: number };
-  expenses: number;
+  totalPaid: number;
+  balance: number;
   memberId: string;
   name: string;
 };
@@ -29,9 +29,8 @@ export type billState = {
 };
 
 export type DashboardAction = {
-  addUser: (user: TMembers) => void;
   addBill: (bill: billState) => void;
-  restoreUsers: (users: TMembers[]) => void;
+  addMember: (member: TMembers[]) => void;
 };
 
 export type TransactionT = {

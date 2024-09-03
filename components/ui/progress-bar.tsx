@@ -4,24 +4,24 @@ import { Avatar, AvatarFallback } from "./avatar";
 
 const ProgressBar = ({
   name,
-  moneySpent,
-  total,
-  expenses,
+  totalPaid,
+  totalBill,
+  balance,
 }: {
   name: string;
-  moneySpent: number;
-  total: number;
-  expenses: number;
+  totalPaid: number;
+  totalBill: number;
+  balance: number;
 }) => {
-  const width = total === 0 ? 0 : Number(moneySpent / total);
-  const previousBill = useRef<number>(moneySpent);
-  const previousExpense = useRef<number>(expenses);
-  const moneySpendRef = useRef<HTMLSpanElement | null>(null);
-  const expensesRef = useRef<HTMLSpanElement | null>(null);
+  const width = totalBill === 0 ? 0 : Number(totalPaid / totalBill);
+  const previousBill = useRef<number>(totalPaid);
+  const previousBalance = useRef<number>(balance);
+  const totalPaidRef = useRef<HTMLSpanElement | null>(null);
+  const balanceRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
-    const node = moneySpendRef.current;
-    const controls = animate(previousBill.current, moneySpent, {
+    const node = totalPaidRef.current;
+    const controls = animate(previousBill.current, totalPaid, {
       duration: 0.5,
       onUpdate(value) {
         if (node) {
@@ -29,23 +29,24 @@ const ProgressBar = ({
         }
       },
     });
-    previousBill.current = moneySpent;
+    previousBill.current = totalPaid;
     return () => controls.stop();
-  }, [moneySpent]);
+  }, [totalPaid]);
 
   useEffect(() => {
-    const node = expensesRef.current;
-    const controls = animate(previousExpense.current, expenses, {
+    const node = balanceRef.current;
+    const controls = animate(previousBalance.current, balance, {
       duration: 0.5,
       onUpdate(value) {
         if (node) {
-          node.textContent = value.toFixed(2);
+          node.textContent =
+            value < 0 ? `-₹${(-value).toFixed(2)}` : `₹${value.toFixed(2)}`;
         }
       },
     });
-    previousExpense.current = expenses;
+    previousBalance.current = balance;
     return () => controls.stop();
-  }, [expenses]);
+  }, [balance]);
 
   return (
     <motion.div
@@ -62,22 +63,22 @@ const ProgressBar = ({
         <div className="mb-1 flex flex-row justify-between">
           <p className="text-sm">
             {name}
-            {expenses !== 0 ? (
+            {balance !== 0 ? (
               <span
-                className={expenses >= 0 ? "text-primary" : "text-destructive"}
+                className={balance >= 0 ? "text-primary" : "text-destructive"}
               >
                 <span className="ml-1">(</span>
-                <span ref={expensesRef}>
-                  {expenses < 0
-                    ? `-₹${(-expenses).toFixed(2)}`
-                    : `₹${expenses.toFixed(2)}`}
+                <span ref={balanceRef}>
+                  {balance < 0
+                    ? `-₹${(-balance).toFixed(2)}`
+                    : `₹${balance.toFixed(2)}`}
                 </span>
                 <span>)</span>
               </span>
             ) : null}
           </p>
           <p className="text-sm">
-            ₹<span ref={moneySpendRef}>{moneySpent}</span>
+            ₹<span ref={totalPaidRef}>{totalPaid}</span>
           </p>
         </div>
         <div className="flex h-[0.65rem] flex-col rounded-lg rounded-l-sm bg-muted">

@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { addBillToGroupInDB } from "@/server/fetchHelpers";
 import useAddBillStore from "@/store/add-bill-store";
 import useDetailstabStore from "@/store/details-tab-store";
 import useFeetabStore from "@/store/fee-tab-store";
@@ -72,7 +73,7 @@ function AddBillForm() {
   };
 
   const { isPending, mutate: server_createTransaction } = useMutation({
-    mutationFn: async () => {},
+    mutationFn: addBillToGroupInDB,
     onSuccess: (data) => {
       // const groupData = JSON.parse(data);
       // const path = `/group/${groupData._id}`;
@@ -80,9 +81,7 @@ function AddBillForm() {
     },
     onError: (error) => {
       console.log(error.name, error.message);
-      return toast.error(
-        "Error occured on Database. Try again after some time",
-      );
+      return toast.error("Error occured on Database.");
     },
   });
 
@@ -154,8 +153,9 @@ function AddBillForm() {
           onClick={() => {
             if (activeTab + 1 < tabs.length) {
               handleTabClick(activeTab + 1);
+            } else {
+              createTransaction();
             }
-            // setIsPending(!isPending);
           }}
         >
           <AnimatePresence initial={false} mode="wait">
