@@ -10,18 +10,32 @@ import {
 } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
 
-export const usersTable = pgTable("users_table", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => nanoid()),
-  username: text("username").notNull().unique(),
-  name: text("name").notNull(),
-  upiId: text("upi_id"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at")
-    .notNull()
-    .$onUpdate(() => new Date()),
-});
+export const usersTable = pgTable(
+  "users_table",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => nanoid()),
+    username: text("username").notNull().unique(),
+    identifier: text("identifier").notNull().unique(),
+    name: text("name").notNull(),
+    upiId: text("upi_id"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => {
+    return {
+      usersTableUsernameIndex: index("users_table_username_index").on(
+        table.username,
+      ),
+      usersTableIdentifierIndex: index("users_table_identifier_index").on(
+        table.identifier,
+      ),
+    };
+  },
+);
 
 export const groupsTable = pgTable("groups_table", {
   id: text("id")
