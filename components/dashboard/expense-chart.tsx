@@ -6,7 +6,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import ProgressBar from "@/components/ui/progress-bar";
-import { totalPayeeBill as memberBillPaid } from "@/lib/utils";
 import useDashboardStore from "@/store/dashboard-store";
 import { AnimatePresence } from "framer-motion";
 import { ScrollArea } from "../ui/scroll-area";
@@ -29,9 +28,9 @@ const ExpenseChart = () => {
             {members.map((member, index) => (
               <ProgressBar
                 name={member.name}
-                expenses={member.expenses}
-                moneySpent={memberBillPaid(member.memberBills)}
-                total={totalBill}
+                balance={member.balance}
+                totalPaid={member.totalPaid}
+                totalBill={totalBill}
                 key={`progress-bar-${index}`}
               />
             ))}

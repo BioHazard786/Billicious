@@ -2,8 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
   CardContentMotion,
   CardDescription,
   CardFooter,
@@ -15,19 +13,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Spinner from "@/components/ui/spinner";
 import { titleCase } from "@/lib/utils";
+import { createGroupInDB } from "@/server/fetchHelpers";
 import useCreateGroup from "@/store/create-group-store";
 import { useMutation } from "@tanstack/react-query";
-import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { useRef } from "react";
 import { toast } from "sonner";
-
-type GroupData = {
-  name: string;
-  users: string[];
-};
 
 const CreateGroupForm = () => {
   const {
@@ -74,32 +68,14 @@ const CreateGroupForm = () => {
   };
 
   const { isPending, mutate: server_createGroup } = useMutation({
-    mutationFn: async (groupData: GroupData) => {
-      const response = await fetch("/api/create_group", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(groupData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create group");
-      }
-
-      const data = await response.json();
-      return data;
-    },
+    mutationFn: createGroupInDB,
     onSuccess: (data) => {
-      console.log(data);
-      const path = `/group/${data.id}`;
+      const path = `/group/${encodeURIComponent(data.group.id)}`;
       navigate.push(path);
     },
     onError: (error) => {
-      console.log(error.name, error.message);
-      return toast.error(
-        "Error occured on Database. Try again after some time",
-      );
+      console.log(error);
+      return toast.error("Error occured on Database");
     },
   });
 
@@ -123,7 +99,7 @@ const CreateGroupForm = () => {
 
     const groupBody = {
       name: titleCase(groupNameRef.current!.value),
-      users: memberNames,
+      members: memberNames,
     };
 
     server_createGroup(groupBody);
@@ -218,7 +194,7 @@ const CreateGroupForm = () => {
         </ul>
       </CardContentMotion>
       <CardFooter>
-        <AnimatePresence presenceAffectsLayout>
+        <AnimatePresence presenceAffectsLayout initial={false}>
           <Button
             type="submit"
             variant="default"

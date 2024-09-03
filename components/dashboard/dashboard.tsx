@@ -1,6 +1,6 @@
 "use client";
 
-import { TMembers } from "@/lib/types";
+import useDashboardStore from "@/store/dashboard-store";
 import useSplitTabStore from "@/store/split-tab-store";
 import { useEffect } from "react";
 import EventName from "./event-name";
@@ -8,17 +8,14 @@ import ExpenseChart from "./expense-chart";
 import RecentTransactions from "./recent-transactions";
 import TotalExpense from "./total-expense";
 
-const Dashboard = ({
-  initialGroupMembers,
-}: {
-  initialGroupMembers: TMembers[];
-}) => {
+const Dashboard = () => {
+  const members = useDashboardStore((state) => state.members);
   const setInitialDraweeState = useSplitTabStore(
     (state) => state.setInitialDraweeState,
   );
 
   useEffect(() => {
-    setInitialDraweeState(initialGroupMembers);
+    setInitialDraweeState(members);
   }, []);
 
   return (

@@ -12,7 +12,6 @@ import AnimatedCounter from "../ui/animated-counter";
 
 export default function TotalExpense() {
   const totalBill = useDashboardStore((group) => group.totalBill);
-
   return (
     <Card className="h-min">
       <CardHeader>

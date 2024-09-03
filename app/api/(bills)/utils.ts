@@ -1,14 +1,13 @@
+import { client, db } from "@/database/dbConnect";
 import {
   billsTable,
   draweesInBillsTable,
   groupsTable,
+  membersTable,
   payeesInBillsTable,
   transactionsTable,
-  membersTable,
 } from "@/database/schema";
-import { client, db } from "@/database/dbConnect";
 import { eq, sql } from "drizzle-orm";
-import { error } from "console";
 
 export async function createBillInDB(requestData: any) {
   let bill: any = {};
@@ -195,7 +194,7 @@ export async function deleteBillInDB(requestData: any) {
     const members = await transaction
       .select()
       .from(membersTable)
-      .where(eq(membersTable.groupId, groupId as unknown as string));
+      .where(eq(membersTable.groupId, groupId as string));
 
     requestData.drawees = {};
     requestData.payees = {};
@@ -281,7 +280,7 @@ export async function deleteBillInDB(requestData: any) {
         .set({
           totalExpense: sql`${groupsTable.totalExpense} + ${totalAmount.toString()}`,
         })
-        .where(eq(groupsTable.id, groupId as unknown as string));
+        .where(eq(groupsTable.id, groupId as string));
     }
   });
 

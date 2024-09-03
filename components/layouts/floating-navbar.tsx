@@ -1,14 +1,18 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerTrigger } from "@/components/ui/drawer";
 import { Activity, LayoutDashboard, PieChart, Plus, Users } from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import {
   Variants,
   motion,
   useMotionValueEvent,
   useScroll,
 } from "framer-motion";
+import Link from "next/link";
+import { useParams, usePathname } from "next/navigation";
 import { useRef, useState } from "react";
 import { AddBillFormDrawer } from "../dashboard/add-bill-form";
 
@@ -16,6 +20,8 @@ const FloatingNavbar = () => {
   const [hidden, setHidden] = useState(false);
   const { scrollY } = useScroll();
   const lastYRef = useRef(0);
+  const pathname = usePathname();
+  const { slug } = useParams();
 
   useMotionValueEvent(scrollY, "change", (y) => {
     const difference = y - lastYRef.current;
@@ -39,14 +45,19 @@ const FloatingNavbar = () => {
       transition={{ duration: 0.2, ease: "easeInOut" }}
       className="fixed inset-x-0 bottom-5 z-[75] mx-auto flex w-min items-center justify-center gap-4 rounded-lg border border-border bg-background p-2 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden"
     >
-      <Button
-        variant="ghost"
-        size="icon"
-        className="rounded-lg bg-muted"
-        aria-label="Dashboard"
-      >
-        <LayoutDashboard className="size-5" />
-      </Button>
+      <Link href={`/group/${encodeURIComponent(slug as string)}`}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn(
+            "rounded-lg",
+            /^\/group\/[^\/]+$/.test(pathname) ? "bg-muted" : "",
+          )}
+          aria-label="Dashboard"
+        >
+          <LayoutDashboard className="size-5" />
+        </Button>
+      </Link>
       <Button
         variant="ghost"
         size="icon"
@@ -77,14 +88,19 @@ const FloatingNavbar = () => {
       >
         <Activity className="size-5" />
       </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="rounded-lg"
-        aria-label="Members"
-      >
-        <Users className="size-5" />
-      </Button>
+      <Link href={`/group/${encodeURIComponent(slug as string)}/members`}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn(
+            "rounded-lg",
+            /^\/group\/[^\/]+\/members$/.test(pathname) ? "bg-muted" : "",
+          )}
+          aria-label="Members"
+        >
+          <Users className="size-5" />
+        </Button>
+      </Link>
     </motion.nav>
   );
 };

@@ -123,10 +123,10 @@ const DetailsTable = ({
       </TableHeader>
       <TableBody>
         {members.map((member, index) => (
-          <TableRow key={`member-deatil-table-list-${index}`}>
+          <TableRow key={`member-detail-table-list-${index}`}>
             <TableCell>
               <span className="flex items-center gap-2">
-                <Avatar className="h-7 w-7">
+                <Avatar className="size-8">
                   <AvatarFallback>{member.name[0]}</AvatarFallback>
                 </Avatar>
                 {member.name}
