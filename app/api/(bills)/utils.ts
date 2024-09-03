@@ -12,6 +12,14 @@ import { eq, sql } from "drizzle-orm";
 export async function createBillInDB(requestData: any) {
   let bill: any = {};
 
+  // CREATE BILL FUNCTION
+  // 1. FOR ALL DRAWEES ADD THE AMOUNT TO TOTAL SPENT IN MEMBERS TABLE
+  // 2. FOR ALL PAYEES ADD THE AMOUNT TO TOTAL PAID IN MEMBERS TABLE
+  // 3. CREATE A USERS EXPENSE MAP AS TO HOW MUCH DOES EACH USER HAS SPENT FOR THE BILL
+  // 4. CREATE BALANCES AS TO HOW MUCH EACH DRAWING USER MUST PAY TO THE PAYING USER
+  // 5. UPDATE BALANCES IN TRANSACTIONS TABLE
+  // 6. UPDATE THE TOTAL AMOUNT IN GROUP EXPENSES
+
   await db.transaction(async (transaction) => {
     let groupId = requestData.group_id;
 
@@ -30,36 +38,31 @@ export async function createBillInDB(requestData: any) {
       .from(membersTable)
       .where(eq(membersTable.groupId, groupId));
 
-    // Check UserIndexes in Range
-    for (let [idx, amt] of Object.entries(requestData.drawees)) {
-      if (parseInt(idx) >= members.length) {
-        throw new Error("Drawees Index should be in range of Members Length");
-      }
-    }
-    for (let [idx, amt] of Object.entries(requestData.payees)) {
-      if (parseInt(idx) >= members.length) {
-        throw new Error("Payees Index should be in range of Members Length");
-      }
-    }
-
-    // Create UserMap which stores the amount for each user
-    let userMap = new Map();
-    let totalAmount = createUserMap(userMap, requestData, membersTable);
-
-    // Updating the UsersGroup based on the UserMap in DB
+    // Updating the Members based on the Drawees and Payees in Request
     members.forEach((user) => {
-      if (userMap.get(user.userIndex) !== undefined) {
-        if (userMap.get(user.userIndex) < 0) {
+      if (user.userIndex != null) {
+        if (requestData.drawees[user.userIndex] !== undefined) {
           user.totalSpent = (
-            parseFloat(user.totalSpent) - userMap.get(user.userIndex)
+            parseFloat(user.totalSpent) + requestData.drawees[user.userIndex]
           ).toString();
-        } else {
+        }
+        if (requestData.payees[user.userIndex] !== undefined) {
           user.totalPaid = (
-            parseFloat(user.totalPaid) + userMap.get(user.userIndex)
+            parseFloat(user.totalPaid) + requestData.payees[user.userIndex]
           ).toString();
         }
       }
     });
+
+    // Create userExpenseMap which stores the amount for each user
+    let userExpenseMap = new Map();
+    let totalAmount = createUserExpenseMap(
+      userExpenseMap,
+      requestData,
+      members,
+    );
+
+    // Update the Members for Group
     members.forEach(async (user) => {
       await transaction
         .update(membersTable)
@@ -89,7 +92,7 @@ export async function createBillInDB(requestData: any) {
     bill.bill_id = bills[0].id;
 
     // Get all the balances for Users
-    const balances = createBalances(userMap, groupId);
+    const balances = createBalances(userExpenseMap, groupId);
 
     // Update the balances for Users in DB
     balances.forEach(async (balance) => {
@@ -175,9 +178,9 @@ export async function getBillFromDB(requestData: any) {
 }
 
 export async function deleteBillInDB(requestData: any) {
-  let billId;
+  let bill: any = {};
   await db.transaction(async (transaction) => {
-    billId = requestData.bill_id;
+    let billId = requestData.bill_id;
 
     let bills = await transaction
       .select()
@@ -188,8 +191,7 @@ export async function deleteBillInDB(requestData: any) {
       throw new Error("Invalid Bill Id");
     }
 
-    let bill = bills[0];
-    let groupId = bill.groupId;
+    let groupId = bills[0].groupId;
 
     const members = await transaction
       .select()
@@ -217,33 +219,43 @@ export async function deleteBillInDB(requestData: any) {
       requestData.payees[payee.userIndex] = "-" + payee.amount;
     }
 
-    // Create UserMap which stores the amount for each user
-    let userMap = new Map();
-    let totalAmount = createUserMap(userMap, requestData, membersTable);
-
-    // Updating the UsersGroup based on the UserMap in DB
+    // Updating the Members based on the Drawees and Payees in DB
     members.forEach((user) => {
-      if (userMap.get(user.userIndex) !== undefined) {
-        if (userMap.get(user.userIndex) > 0) {
+      if (user.userIndex != null) {
+        if (requestData.drawees[user.userIndex] !== undefined) {
           user.totalSpent = (
-            parseFloat(user.totalSpent) - userMap.get(user.userIndex)
+            parseFloat(user.totalSpent) +
+            parseFloat(requestData.drawees[user.userIndex])
           ).toString();
-        } else {
+        }
+        if (requestData.payees[user.userIndex] !== undefined) {
           user.totalPaid = (
-            parseFloat(user.totalPaid) + userMap.get(user.userIndex)
+            parseFloat(user.totalPaid) +
+            parseFloat(requestData.payees[user.userIndex])
           ).toString();
         }
       }
     });
+
+    // Create userExpenseMap which stores the amount for each user
+    let userExpenseMap = new Map();
+    let totalAmount = createUserExpenseMap(
+      userExpenseMap,
+      requestData,
+      membersTable,
+    );
+
+    // Update the Members for Group
     members.forEach(async (user) => {
       await transaction
         .update(membersTable)
         .set({ totalSpent: user.totalSpent, totalPaid: user.totalPaid })
         .where(eq(membersTable.userId, user.userId));
     });
+    bill.members = members;
 
     // Get all the balances for Users
-    const balances = createBalances(userMap, groupId);
+    const balances = createBalances(userExpenseMap, groupId);
 
     // Update the balances for Users in DB
     balances.forEach(async (balance) => {
@@ -274,7 +286,7 @@ export async function deleteBillInDB(requestData: any) {
     await transaction.delete(billsTable).where(eq(billsTable.id, billId));
 
     // Update GroupTotalExpense
-    if (bill.isPayment === false) {
+    if (bills[0].isPayment === false) {
       await transaction
         .update(groupsTable)
         .set({
@@ -284,13 +296,13 @@ export async function deleteBillInDB(requestData: any) {
     }
   });
 
-  return billId;
+  return bill;
 }
 
-function createUserMap(
-  userMap: Map<number, number>,
+function createUserExpenseMap(
+  userExpenseMap: Map<number, number>,
   requestData: any,
-  usersInGroup: any,
+  members: any,
 ) {
   let totalDrawn = 0,
     totalPaid = 0;
@@ -298,24 +310,24 @@ function createUserMap(
   for (let [idx, amt] of Object.entries(requestData.drawees)) {
     let index = parseInt(idx),
       amount = parseInt(amt as string);
-    if (index >= usersInGroup.length) {
-      throw new Error("User Index Error");
+    if (index >= members.length) {
+      throw new Error("Drawees Index must be less than Member's Length");
     }
     totalDrawn += amount;
-    userMap.set(index, -1 * amount);
+    userExpenseMap.set(index, -1 * amount);
   }
 
   for (let [idx, amt] of Object.entries(requestData.payees)) {
     let index = parseInt(idx),
       amount = parseInt(amt as string);
-    if (index >= usersInGroup.length) {
-      throw new Error("User Index Error");
+    if (index >= members.length) {
+      throw new Error("Payees Index must be less than Member's Length");
     }
     totalPaid += amount;
-    if (userMap.get(index) === undefined) {
-      userMap.set(index, amount);
+    if (userExpenseMap.get(index) === undefined) {
+      userExpenseMap.set(index, amount);
     } else {
-      userMap.set(index, amount + userMap.get(index)!);
+      userExpenseMap.set(index, amount + userExpenseMap.get(index)!);
     }
   }
 
@@ -326,11 +338,11 @@ function createUserMap(
   return totalPaid;
 }
 
-function createBalances(userMap: Map<number, number>, groupId: any) {
+function createBalances(userExpenseMap: Map<number, number>, groupId: any) {
   let negMap = new Map(),
     posMap = new Map();
   let balances = [];
-  for (let [idx, amt] of userMap.entries()) {
+  for (let [idx, amt] of userExpenseMap.entries()) {
     if (amt < 0) negMap.set(idx, amt);
     else if (amt > 0) posMap.set(idx, amt);
   }

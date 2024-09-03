@@ -2,14 +2,14 @@ import { NextResponse } from "next/server";
 import { addMembersInDB } from "../utils";
 
 export const POST = async (request: Request) => {
-  let newMembers = [];
+  let members = [];
   try {
     const requestData = await request.json();
     if (requestData.members === undefined || requestData.members.length === 0) {
       throw new Error("Members are Required");
     }
 
-    newMembers = await addMembersInDB(requestData);
+    members = await addMembersInDB(requestData);
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });
@@ -20,5 +20,5 @@ export const POST = async (request: Request) => {
     );
   }
 
-  return NextResponse.json(newMembers, { status: 200 });
+  return NextResponse.json(members, { status: 200 });
 };
