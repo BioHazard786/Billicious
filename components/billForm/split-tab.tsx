@@ -34,7 +34,7 @@ const SplitTab = () => {
             <ChooseDrawee
               key={`drawee-list-${index}`}
               memberName={member.name}
-              memberId={member.memberId}
+              memberIndex={member.memberIndex}
             />
           ))}
         </div>
@@ -64,10 +64,10 @@ const SplitTab = () => {
 
 const ChooseDrawee = ({
   memberName,
-  memberId,
+  memberIndex,
 }: {
   memberName: string;
-  memberId: string;
+  memberIndex: string;
 }) => {
   const [drawees, addDrawees, removeDrawees] = useSplitTabStore((state) => [
     state.drawees,
@@ -76,14 +76,14 @@ const ChooseDrawee = ({
   ]);
 
   const isSelected: boolean = drawees.some(
-    ({ draweeId }) => draweeId === memberId,
+    (draweeIndex) => draweeIndex === memberIndex,
   );
 
   const setDrawees = () => {
     if (isSelected) {
       if (drawees.length === 1) return;
-      removeDrawees(memberId);
-    } else addDrawees(memberId, memberName);
+      removeDrawees(memberIndex);
+    } else addDrawees(memberIndex);
   };
   return (
     <div

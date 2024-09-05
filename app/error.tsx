@@ -18,7 +18,7 @@ export default function Error({ error, reset }: ErrorProps) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background text-foreground">
+    <div className="flex h-dvh flex-col items-center justify-center bg-background p-4 text-foreground">
       <div className="space-y-6 text-center">
         <h1 className="flex items-center justify-center gap-2 text-9xl font-extrabold text-primary">
           <span>4</span>

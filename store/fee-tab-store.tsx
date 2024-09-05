@@ -9,6 +9,7 @@ type State = {
 type Action = {
   setPayees: (payeeId: string, payeeAmount: number) => void;
   deletePayee: (payeeId: string) => void;
+  reset: () => void;
 };
 
 const useFeetabStore = createWithEqualityFn<State & Action>(
@@ -26,7 +27,9 @@ const useFeetabStore = createWithEqualityFn<State & Action>(
           delete state.payees[payeeId];
         }),
       ),
+    reset: () => set({ payees: {} }),
   }),
+
   shallow,
 );
 

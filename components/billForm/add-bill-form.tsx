@@ -10,13 +10,15 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { DialogContent, DialogFooter } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
+import { cn, formatDrawees, totalPayeeBill } from "@/lib/utils";
 import { addBillToGroupInDB } from "@/server/fetchHelpers";
 import useAddBillStore from "@/store/add-bill-store";
 import useDetailstabStore from "@/store/details-tab-store";
 import useFeetabStore from "@/store/fee-tab-store";
+import useSplitTabStore from "@/store/split-tab-store";
 import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
+import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import Spinner from "../ui/spinner";
@@ -43,6 +45,7 @@ const tabs = [
 ];
 
 function AddBillForm() {
+  const { slug } = useParams();
   const {
     activeTab,
     direction,
@@ -53,7 +56,14 @@ function AddBillForm() {
   } = useAddBillStore((state) => state);
 
   const payees = useFeetabStore((state) => state.payees);
-  const billName = useDetailstabStore((state) => state.billName);
+  const payeeBill = useMemo(() => totalPayeeBill(payees), [payees]);
+
+  const [billName, createdAt, notes] = useDetailstabStore((state) => [
+    state.billName,
+    state.createdAt,
+    state.notes,
+  ]);
+  const drawees = useSplitTabStore((state) => state.drawees);
 
   const content = useMemo(() => {
     const activeTabContent = tabs.find((tab) => tab.id === activeTab)?.content;
@@ -75,12 +85,10 @@ function AddBillForm() {
   const { isPending, mutate: server_createTransaction } = useMutation({
     mutationFn: addBillToGroupInDB,
     onSuccess: (data) => {
-      // const groupData = JSON.parse(data);
-      // const path = `/group/${groupData._id}`;
-      // navigate.push(path);
+      console.log("success");
     },
     onError: (error) => {
-      console.log(error.name, error.message);
+      console.log(error);
       return toast.error("Error occured on Database.");
     },
   });
@@ -89,6 +97,15 @@ function AddBillForm() {
     if (!billName) {
       return toast.error("Bill Name should not be empty");
     }
+    server_createTransaction({
+      group_id: slug as string,
+      name: billName,
+      category: "Food",
+      created_at: createdAt,
+      notes: notes,
+      payees: payees,
+      drawees: formatDrawees(drawees, payeeBill),
+    });
   };
 
   const variants = {

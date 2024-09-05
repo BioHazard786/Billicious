@@ -56,13 +56,13 @@ import {
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { formatMemberData, titleCase } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { forwardRef, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Spinner from "../ui/spinner";
 
 export default function AddMembers() {
   const members = useDashboardStore((state) => state.members);
   return (
-    <Card className="m-3 lg:ml-[4.2rem]">
+    <Card className="m-3 mt-[4.2rem] lg:ml-[4.2rem]">
       <CardHeader>
         <CardTitle>Members</CardTitle>
         <CardDescription>
@@ -186,6 +186,11 @@ const MemberAddDialog = () => {
                 placeholder="Member's name"
                 className="col-span-3"
                 ref={memberRef}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    addMembersToGroup();
+                  }
+                }}
               />
             </div>
           </div>
@@ -246,6 +251,11 @@ const MemberAddDialog = () => {
             id="name"
             placeholder="Member's name"
             className="col-span-3"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                addMembersToGroup();
+              }
+            }}
             ref={memberRef}
           />
         </div>

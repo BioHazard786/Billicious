@@ -13,6 +13,7 @@ type BillData = {
   name: string;
   category: string;
   created_at?: Date;
+  notes?: string;
   drawees: { [key: string]: number };
   payees: { [key: string]: number };
 };

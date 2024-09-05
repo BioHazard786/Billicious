@@ -14,8 +14,8 @@ import { useState } from "react";
 
 export function DatePicker() {
   const [date, setDate] = useDetailstabStore((state) => [
-    state.creationDate,
-    state.setCreationDate,
+    state.createdAt,
+    state.setCreatedAt,
   ]);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 

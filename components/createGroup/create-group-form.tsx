@@ -40,7 +40,12 @@ const CreateGroupForm = () => {
 
   const addMembers = () => {
     if (memberRef.current!.value.length <= 2) {
-      return setMemberNameError("Member Name should be atleast 2 characters");
+      return setMemberNameError("Member Name should be atleast 3 characters");
+    }
+
+    if (memberRef.current!.value.length >= 32) {
+      setMemberNameError("Member Name should be atmost 32 characters");
+      return (memberRef.current!.value = "");
     }
 
     if (
@@ -83,7 +88,7 @@ const CreateGroupForm = () => {
     if (groupNameRef.current!.value.length <= 2) {
       return setCreateGroupState(
         memberNames,
-        "Group Name should be atleast 2 characters",
+        "Group Name should be atleast 3 characters",
         "",
       );
     }
@@ -91,10 +96,10 @@ const CreateGroupForm = () => {
       if (groupNameRef.current!.value.length <= 2)
         return setCreateGroupState(
           memberNames,
-          "Group Name should be atleast 2 characters",
-          "Add Atleast 1 Member",
+          "Group Name should be atleast 3 characters",
+          "Add Atleast 2 Member",
         );
-      else return setCreateGroupState(memberNames, "", "Add Atleast 1 Member");
+      else return setCreateGroupState(memberNames, "", "Add Atleast 2 Member");
     }
 
     const groupBody = {
@@ -107,7 +112,7 @@ const CreateGroupForm = () => {
   };
 
   return (
-    <CardMotion layout className="mx-auto max-w-sm">
+    <CardMotion layout className="max-w-sm">
       <CardHeader>
         <CardTitle className="text-2xl">Create Group</CardTitle>
         <CardDescription>
@@ -127,7 +132,7 @@ const CreateGroupForm = () => {
             name="groupName"
             id="groupName"
             type="text"
-            placeholder="m@example.com"
+            placeholder="Trip to Pornhub"
           />
           {groupNameError ? (
             <span className="text-xs text-destructive">{groupNameError}</span>

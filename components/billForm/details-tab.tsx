@@ -133,14 +133,12 @@ const DetailsTable = ({
               </span>
             </TableCell>
             <TableCell className="text-right text-primary">
-              {Object.keys(payees).some(
-                (payeeId) => payeeId === member.memberId,
-              )
-                ? `₹${payees[member.memberId].toFixed(2)}`
+              {payees.hasOwnProperty(member.memberIndex)
+                ? `₹${payees[member.memberIndex].toFixed(2)}`
                 : "-"}
             </TableCell>
             <TableCell className="text-right text-destructive">
-              {drawees.some(({ draweeId }) => draweeId === member.memberId)
+              {drawees.some((draweeIndex) => draweeIndex === member.memberIndex)
                 ? `-₹${billPerEachDrawee.toFixed(2)}`
                 : "-"}
             </TableCell>

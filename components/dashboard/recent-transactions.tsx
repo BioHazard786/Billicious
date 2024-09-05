@@ -17,7 +17,7 @@ import {
 
 export default function RecentTransactions() {
   return (
-    <Card className="h-min md:col-span-2">
+    <Card className="h-full md:col-span-2">
       <CardHeader className="px-7">
         <CardTitle>Orders</CardTitle>
         <CardDescription>Recent orders from your store.</CardDescription>

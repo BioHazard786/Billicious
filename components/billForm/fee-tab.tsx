@@ -26,7 +26,7 @@ const FeeTab = () => {
             <PayeeInputAmount
               key={`payee-list-${index}`}
               memberName={member.name}
-              memberId={member.memberId}
+              memberIndex={member.memberIndex}
             />
           ))}
         </div>
@@ -37,10 +37,10 @@ const FeeTab = () => {
 
 const PayeeInputAmount = ({
   memberName,
-  memberId,
+  memberIndex,
 }: {
   memberName: string;
-  memberId: string;
+  memberIndex: string;
 }) => {
   const [payee, setPayee, deletePayee] = useFeetabStore((state) => [
     state.payees,
@@ -60,11 +60,11 @@ const PayeeInputAmount = ({
         <Input
           className="w-[60%]"
           type="number"
-          value={payee[memberId] || ""}
+          value={payee[memberIndex] || ""}
           onChange={(e) => {
             if (e.target.value === "0" || e.target.value === "")
-              deletePayee(memberId);
-            else setPayee(memberId, Number(e.target.value));
+              deletePayee(memberIndex);
+            else setPayee(memberIndex, Number(e.target.value));
           }}
           inputMode="numeric"
           pattern="\d*"

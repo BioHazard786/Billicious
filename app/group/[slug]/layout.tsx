@@ -13,8 +13,10 @@ export default async function DashboardLayout({
 }) {
   const groupId = params.slug;
   const data: any = {};
-  data.group = await getGroupFromDB({ group_id: groupId });
-  data.users = await getMembersFromDB({ group_id: groupId });
+  [data.group, data.users] = await Promise.all([
+    getGroupFromDB({ group_id: groupId }),
+    getMembersFromDB({ group_id: groupId }),
+  ]);
   const groupData = formatGroupData(data);
   return (
     <section>

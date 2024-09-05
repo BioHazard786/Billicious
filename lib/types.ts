@@ -9,6 +9,7 @@ export type TMembers = {
   totalPaid: number;
   balance: number;
   memberId: string;
+  memberIndex: string;
   name: string;
 };
 

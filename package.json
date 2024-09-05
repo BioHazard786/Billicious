@@ -38,6 +38,7 @@
     "react-day-picker": "^8.10.1",
     "react-dom": "^18",
     "react-hook-form": "^7.51.5",
+    "react-icons": "^5.3.0",
     "react-use-measure": "^2.1.1",
     "sonner": "^1.4.41",
     "tailwind-merge": "^2.3.0",
@@ -50,11 +51,16 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "autoprefixer": "^10.0.1",
+    "autoprefixer": "^10.4.20",
     "drizzle-kit": "^0.23.1",
     "postcss": "^8",
     "prettier-plugin-tailwindcss": "^0.6.1",
     "tailwindcss": "^3.3.0",
     "typescript": "^5"
-  }
+  },
+  "browserslist": [
+    ">0.3%",
+    "not dead",
+    "not op_mini all"
+  ]
 }
