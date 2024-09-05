@@ -22,10 +22,10 @@ export const POST = async (request: Request) => {
     bill = await createBillInDB(requestData);
   } catch (err) {
     if (err instanceof Error) {
-      return NextResponse.json({ message: err.message }, { status: 400 });
+      return NextResponse.json({ error: err.message }, { status: 400 });
     }
     return NextResponse.json(
-      { message: "Something went Wrong" },
+      { error: "Something went Wrong" },
       { status: 500 },
     );
   }

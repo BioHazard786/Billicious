@@ -10,19 +10,31 @@ import {
 } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
 
-export const usersTable = pgTable("users_table", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => nanoid()),
-  username: text("username").notNull().unique(),
-  name: text("name").notNull(),
-  upiId: text("upi_id"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at")
-    .notNull()
-    .$onUpdate(() => new Date()),
-});
+export const usersTable = pgTable(
+  "users_table",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => nanoid()),
+    username: text("username").notNull().unique(),
+    platform: text("platform").notNull(),
+    name: text("name").notNull(),
+    upiId: text("upi_id"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => {
+    return {
+      usersTableUsernameIndex: index("users_table_username_index").on(
+        table.username,
+      ),
+    };
+  },
+);
 
+// TODO: Add owner to the groupTable
 export const groupsTable = pgTable("groups_table", {
   id: text("id")
     .primaryKey()
@@ -74,13 +86,13 @@ export const membersTable = pgTable(
   (table) => {
     return {
       primaryKey: primaryKey({
-        name: "users_group_table_pk",
+        name: "members_table_pk",
         columns: [table.userId, table.groupId],
       }),
-      usersGroupsTableUserIdIndex: index("members_table_user_id_index").on(
+      membersTableUserIdIndex: index("members_table_user_id_index").on(
         table.userId,
       ),
-      usersGroupsTableGroupIdIndex: index("members_table_group_id_index").on(
+      membersTableGroupIdIndex: index("members_table_group_id_index").on(
         table.groupId,
       ),
     };
@@ -156,6 +168,23 @@ export const payeesInBillsTable = pgTable(
       payeesInBillsTableBillIdIndex: index(
         "payees_in_bills_table_bill_id_index",
       ).on(table.billId),
+    };
+  },
+);
+
+export const requestTable = pgTable(
+  "request_table",
+  {
+    userId: text("user_id").references(() => usersTable.id),
+    groupId: text("group_id").references(() => groupsTable.id),
+    userIndex: integer("user_index"),
+  },
+  (table) => {
+    return {
+      primaryKey: primaryKey({
+        name: "request_table_pk",
+        columns: [table.userId, table.groupId],
+      }),
     };
   },
 );

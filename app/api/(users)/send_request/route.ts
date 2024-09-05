@@ -6,10 +6,10 @@ export const POST = async (request: Request) => {
   try {
     const requestData = await request.json();
 
-    if (requestData.Id !== undefined) {
+    if (requestData.user_id !== undefined) {
       throw new Error("Id is required");
     }
-    if (requestData.userName !== undefined) {
+    if (requestData.group_id !== undefined) {
       throw new Error("UserName is required");
     }
     if (requestData.name !== undefined) {

@@ -17,13 +17,13 @@ export const POST = async (request: Request) => {
       group_id: group.group.id,
     };
     // console.log(requestCopy);
-    group.users = await getMembersFromDB(requestCopy);
+    group.members = await getMembersFromDB(requestCopy);
   } catch (err) {
     if (err instanceof Error) {
-      return NextResponse.json({ message: err.message }, { status: 400 });
+      return NextResponse.json({ error: err.message }, { status: 400 });
     }
     return NextResponse.json(
-      { message: "Something went Wrong" },
+      { error: "Something went Wrong" },
       { status: 500 },
     );
   }
