@@ -1,5 +1,4 @@
 import { TMembers } from "@/lib/types";
-import { produce } from "immer";
 import { shallow } from "zustand/shallow";
 import { createWithEqualityFn } from "zustand/traditional";
 
@@ -10,8 +9,7 @@ type State = {
 type Action = {
   addDrawees: (draweeIndex: string) => void;
   removeDrawees: (draweeIndex: string) => void;
-  setInitialDraweeState: (groupMembers: TMembers[]) => void;
-  reset: () => void;
+  reset: (groupMembers: TMembers[]) => void;
 };
 
 const useSplitTabStore = createWithEqualityFn<State & Action>(
@@ -25,11 +23,10 @@ const useSplitTabStore = createWithEqualityFn<State & Action>(
       set((state) => ({
         drawees: state.drawees.filter((index) => index !== draweeIndex),
       })),
-    setInitialDraweeState: (groupMembers) =>
+    reset: (groupMembers) =>
       set(() => ({
         drawees: groupMembers.map(({ memberIndex }) => memberIndex),
       })),
-    reset: () => set({ drawees: [] }),
   }),
   shallow,
 );

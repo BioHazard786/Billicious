@@ -5,10 +5,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn, totalPayeeBill } from "@/lib/utils";
+import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
-import useFeetabStore from "@/store/fee-tab-store";
 import useSplitTabStore from "@/store/split-tab-store";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check } from "lucide-react";
@@ -18,44 +23,52 @@ import AnimatedCounter from "../ui/animated-counter";
 const SplitTab = () => {
   const members = useDashboardStore((group) => group.members);
   const drawees = useSplitTabStore((state) => state.drawees);
-  const payees = useFeetabStore((state) => state.payees);
+  const payees = useContributionsTabStore((state) => state.payees);
   const payeeBill = useMemo(() => totalPayeeBill(payees), [payees]);
   return (
     <>
-      <DialogHeader className="pb-4">
+      <DialogHeader className="hidden pb-4 md:block">
         <DialogTitle>Split</DialogTitle>
         <DialogDescription>
           Select those who spent with this expense
         </DialogDescription>
       </DialogHeader>
+      <DrawerHeader className="pb-4 md:hidden">
+        <DrawerTitle>Split</DrawerTitle>
+        <DrawerDescription>
+          Select those who spent with this expense
+        </DrawerDescription>
+      </DrawerHeader>
       <ScrollArea className="h-[300px]">
-        <div className="flex flex-wrap items-center justify-center gap-5 pb-8 pt-4">
-          {members.map((member, index) => (
-            <ChooseDrawee
-              key={`drawee-list-${index}`}
-              memberName={member.name}
-              memberIndex={member.memberIndex}
-            />
-          ))}
-        </div>
-        <div className="flex flex-col items-center justify-center gap-1">
-          <motion.p layout="size" className="text-sm">
-            Splitting with{" "}
-            <AnimatedNumber
-              value={drawees.length}
-              className="font-mono font-bold text-primary"
-            />{" "}
-            people, each of them spent
-          </motion.p>
+        <div className="p-4 md:px-0 md:pr-4">
+          <div className="flex flex-wrap items-center justify-center gap-4 pb-8 lg:gap-5">
+            {members.map((member, index) => (
+              <ChooseDrawee
+                key={`drawee-list-${index}`}
+                memberName={member.name}
+                memberIndex={member.memberIndex}
+              />
+            ))}
+          </div>
+          <div className="flex flex-col items-center justify-center gap-1">
+            <motion.p layout="size" className="text-sm">
+              Splitting with{" "}
+              <AnimatedNumber
+                value={drawees.length}
+                className="font-mono font-bold text-primary"
+              />{" "}
+              people, each of them spent
+            </motion.p>
 
-          <span className="flex font-bold text-primary">
-            <span className="mr-[0.1rem]">₹</span>
-            <AnimatedCounter
-              value={payeeBill / drawees.length}
-              precision={2}
-              className="font-mono"
-            />
-          </span>
+            <span className="flex font-bold text-primary">
+              <span className="mr-[0.1rem]">₹</span>
+              <AnimatedCounter
+                value={payeeBill / drawees.length}
+                precision={2}
+                className="font-mono"
+              />
+            </span>
+          </div>
         </div>
       </ScrollArea>
     </>

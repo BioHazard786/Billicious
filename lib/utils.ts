@@ -1,3 +1,6 @@
+import useAddBillStore from "@/store/add-bill-store";
+import useContributionsTabStore from "@/store/contributions-tab-store";
+import useDetailsTabStore from "@/store/details-tab-store";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { TGroupData, TMembers } from "./types";
@@ -51,4 +54,10 @@ export function formatGroupData(groupData: any): TGroupData {
     totalBill: parseFloat(groupData.group.totalExpense),
     members: members,
   };
+}
+
+export function resetBillFormStores() {
+  useAddBillStore.getState().reset();
+  useDetailsTabStore.getState().reset();
+  useContributionsTabStore.getState().reset();
 }

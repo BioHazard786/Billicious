@@ -6,6 +6,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -25,9 +30,9 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { totalPayeeBill } from "@/lib/utils";
+import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
-import useDetailstabStore from "@/store/details-tab-store";
-import useFeetabStore from "@/store/fee-tab-store";
+import useDetailsTabStore from "@/store/details-tab-store";
 import useSplitTabStore from "@/store/split-tab-store";
 import {
   Bed,
@@ -46,21 +51,25 @@ import {
 import { useMemo } from "react";
 
 const DetailsTab = () => {
-  const payees = useFeetabStore((state) => state.payees);
+  const payees = useContributionsTabStore((state) => state.payees);
   const totalBill = useMemo(() => totalPayeeBill(payees), [payees]);
-  const [billName, setBillName, notes, setNotes] = useDetailstabStore(
-    (state) => [state.billName, state.setBillName, state.notes, state.setNotes],
+  const { billName, setBillName, notes, setNotes } = useDetailsTabStore(
+    (state) => state,
   );
 
   return (
     <>
-      <DialogHeader className="pb-4">
+      <DialogHeader className="hidden pb-4 md:block">
         <DialogTitle>Details</DialogTitle>
         <DialogDescription>Total: ₹{totalBill.toFixed(2)}</DialogDescription>
       </DialogHeader>
+      <DrawerHeader className="pb-4 md:hidden">
+        <DrawerTitle>Details</DrawerTitle>
+        <DrawerDescription>Total: ₹{totalBill.toFixed(2)}</DrawerDescription>
+      </DrawerHeader>
       <ScrollArea className="h-[300px]">
-        <div className="flex flex-col gap-5 pl-1 pr-4">
-          <div className="flex gap-2 pt-4">
+        <div className="flex flex-col gap-5 p-4 md:px-0 md:pr-4">
+          <div className="flex gap-2">
             <Popover modal>
               <PopoverTrigger asChild>
                 <Button variant="ghost" size="icon" className="px-2">

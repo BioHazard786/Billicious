@@ -1,4 +1,4 @@
-import { DashboardAction, TGroupData, TMembers, billState } from "@/lib/types";
+import { DashboardAction, TBill, TGroupData, TMembers } from "@/lib/types";
 import { produce } from "immer";
 import { createContext, useContext } from "react";
 import { createStore } from "zustand";
@@ -16,16 +16,11 @@ export const createDashboardStore = (initialGroupData: TGroupData) => {
           state.members.push(...member);
         }),
       ),
-    addBill: (bill: billState) =>
+    addBill: (bill: TBill) =>
       set(
-        produce((state) => {
-          state.users = bill.usersWithBillAdded;
-          state.totalBill += bill.billAmount;
-          state.bills[bill.billId] = {
-            amount: bill.billAmount,
-            name: bill.billName,
-            shared_amount: bill.sharedAmount,
-          };
+        produce((state: TGroupData) => {
+          state.totalBill = bill.totalAmount;
+          state.members = bill.updatedMembers;
         }),
       ),
   }));

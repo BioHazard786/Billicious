@@ -12,7 +12,7 @@ type Action = {
   reset: () => void;
 };
 
-const useFeetabStore = createWithEqualityFn<State & Action>(
+const useContributionsTabStore = createWithEqualityFn<State & Action>(
   (set) => ({
     payees: {},
     setPayees: (payeeId, payeeAmount) =>
@@ -33,4 +33,4 @@ const useFeetabStore = createWithEqualityFn<State & Action>(
   shallow,
 );
 
-export default useFeetabStore;
+export default useContributionsTabStore;

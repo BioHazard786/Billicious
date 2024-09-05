@@ -14,7 +14,7 @@ type Action = {
   reset: () => void;
 };
 
-const useDetailstabStore = createWithEqualityFn<State & Action>(
+const useDetailsTabStore = createWithEqualityFn<State & Action>(
   (set) => ({
     billName: "",
     createdAt: new Date(),
@@ -27,4 +27,4 @@ const useDetailstabStore = createWithEqualityFn<State & Action>(
   shallow,
 );
 
-export default useDetailstabStore;
+export default useDetailsTabStore;

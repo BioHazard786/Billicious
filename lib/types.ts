@@ -13,24 +13,13 @@ export type TMembers = {
   name: string;
 };
 
-export type TBills = {
-  [id: string]: {
-    amount: number;
-    name: string;
-    shared_amount: number;
-  };
-};
-
-export type billState = {
-  billId: string;
-  billName: string;
-  billAmount: number;
-  usersWithBillAdded: TMembers[];
-  sharedAmount: number;
+export type TBill = {
+  totalAmount: number;
+  updatedMembers: TMembers[];
 };
 
 export type DashboardAction = {
-  addBill: (bill: billState) => void;
+  addBill: (bill: TBill) => void;
   addMember: (member: TMembers[]) => void;
 };
 
