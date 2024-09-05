@@ -8,9 +8,6 @@ export const POST = async (request: Request) => {
     if (requestData.user_id !== undefined) {
       throw new Error("User Id is undefined");
     }
-    if (requestData.platform !== undefined) {
-      throw new Error("Platform is undefined");
-    }
     user = await getUserFromDB(requestData);
   } catch (err) {
     if (err instanceof Error) {

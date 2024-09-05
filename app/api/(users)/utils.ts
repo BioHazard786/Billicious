@@ -6,6 +6,7 @@ export async function addUsersInDB(requestData: any) {
   let user: any = {};
   await db.transaction(async (transaction) => {
     const newUser = {
+      id: requestData.id,
       name: requestData.name,
       username: requestData.username,
       platform: requestData.platform,
@@ -22,16 +23,13 @@ export async function getUserFromDB(requestData: any) {
     let users = await transaction
       .select()
       .from(usersTable)
-      .where(
-        and(
-          eq(usersTable.id, requestData.user_id),
-          eq(usersTable.platform, requestData.platform),
-        ),
-      );
+      .where(eq(usersTable.id, requestData.user_id));
     if (users.length === 0) {
-      throw new Error("Invalid UserId or Platform");
+      throw new Error("Invalid UserId");
     }
     user = users[0];
   });
   return user;
 }
+
+export async function sendRequest(requestData: any) {}

@@ -137,12 +137,14 @@ export async function createBillInDB(requestData: any) {
 
     // Update GroupTotalExpense
     if (bills[0].isPayment === false) {
-      await transaction
+      let groups = await transaction
         .update(groupsTable)
         .set({
           totalExpense: sql`${groupsTable.totalExpense} + ${totalAmount.toString()}`,
         })
-        .where(eq(groupsTable.id, groupId));
+        .where(eq(groupsTable.id, groupId))
+        .returning();
+      bill.total_group_expense = groups[0].totalExpense;
     }
   });
 
@@ -287,12 +289,14 @@ export async function deleteBillInDB(requestData: any) {
 
     // Update GroupTotalExpense
     if (bills[0].isPayment === false) {
-      await transaction
+      let groups = await transaction
         .update(groupsTable)
         .set({
           totalExpense: sql`${groupsTable.totalExpense} + ${totalAmount.toString()}`,
         })
-        .where(eq(groupsTable.id, groupId as string));
+        .where(eq(groupsTable.id, groupId as string))
+        .returning();
+      bill.total_group_expense = groups[0].totalExpense;
     }
   });
 

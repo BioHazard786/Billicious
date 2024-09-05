@@ -17,7 +17,7 @@ export const usersTable = pgTable(
       .primaryKey()
       .$defaultFn(() => nanoid()),
     username: text("username").notNull().unique(),
-    platform: text("identifier").notNull(),
+    platform: text("platform").notNull(),
     name: text("name").notNull(),
     upiId: text("upi_id"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -34,6 +34,7 @@ export const usersTable = pgTable(
   },
 );
 
+// TODO: Add owner to the groupTable
 export const groupsTable = pgTable("groups_table", {
   id: text("id")
     .primaryKey()
