@@ -312,8 +312,8 @@ function createUserExpenseMap(
     totalPaid = 0;
 
   for (let [idx, amt] of Object.entries(requestData.drawees)) {
-    let index = parseInt(idx),
-      amount = parseInt(amt as string);
+    let index = parseFloat(idx),
+      amount = parseFloat(amt as string);
     if (index >= members.length) {
       throw new Error("Drawees Index must be less than Member's Length");
     }
@@ -322,8 +322,8 @@ function createUserExpenseMap(
   }
 
   for (let [idx, amt] of Object.entries(requestData.payees)) {
-    let index = parseInt(idx),
-      amount = parseInt(amt as string);
+    let index = parseFloat(idx),
+      amount = parseFloat(amt as string);
     if (index >= members.length) {
       throw new Error("Payees Index must be less than Member's Length");
     }
@@ -334,6 +334,9 @@ function createUserExpenseMap(
       userExpenseMap.set(index, amount + userExpenseMap.get(index)!);
     }
   }
+
+  // console.log(totalDrawn);
+  // console.log(totalPaid);
 
   if (totalDrawn != totalPaid) {
     throw new Error("Drawn and Paid Amount mismatch");
