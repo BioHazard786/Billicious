@@ -1,9 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Drawer, DrawerTrigger } from "@/components/ui/drawer";
 import { Activity, LayoutDashboard, PieChart, Plus, Users } from "lucide-react";
 
+import AddBillForm from "@/components/billForm/add-bill-form";
 import { cn } from "@/lib/utils";
 import {
   Variants,
@@ -14,7 +14,6 @@ import {
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useRef, useState } from "react";
-import { AddBillFormDrawer } from "../dashboard/add-bill-form";
 
 const FloatingNavbar = () => {
   const [hidden, setHidden] = useState(false);
@@ -66,19 +65,7 @@ const FloatingNavbar = () => {
       >
         <PieChart className="size-5" />
       </Button>
-      <Drawer>
-        <DrawerTrigger asChild>
-          <Button
-            variant="default"
-            size="icon"
-            className="rounded-lg"
-            aria-label="Add-Transactions"
-          >
-            <Plus className="size-5" />
-          </Button>
-        </DrawerTrigger>
-        <AddBillFormDrawer />
-      </Drawer>
+      <AddBillForm />
 
       <Button
         variant="ghost"

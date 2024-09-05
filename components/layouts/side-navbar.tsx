@@ -4,7 +4,6 @@ import { Activity, LayoutDashboard, PieChart, Plus, Users } from "lucide-react";
 
 import AddBillForm from "@/components/billForm/add-bill-form";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import Mascot from "@/components/ui/mascot";
 import {
   Tooltip,
@@ -60,19 +59,7 @@ const SideNavbar = () => {
             Expenses
           </TooltipContent>
         </Tooltip>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button
-              variant="default"
-              size="icon"
-              className="rounded-lg"
-              aria-label="Add-Transactions"
-            >
-              <Plus className="size-5" />
-            </Button>
-          </DialogTrigger>
-          <AddBillForm />
-        </Dialog>
+        <AddBillForm />
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

@@ -22,7 +22,7 @@ export default function TotalExpense() {
         <CardDescription>Total money spent till now</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="mt-[0.625rem] flex text-3xl font-bold">
+        <div className="mt-[0.625rem] flex font-mono text-3xl font-bold">
           <span className="mr-1">₹</span>
           <AnimatedCounter value={totalBill} precision={2} />
         </div>

@@ -1,40 +1,31 @@
 import { TMembers } from "@/lib/types";
-import { produce } from "immer";
 import { shallow } from "zustand/shallow";
 import { createWithEqualityFn } from "zustand/traditional";
 
 type State = {
-  drawees: { draweeId: string; draweeName: string }[];
+  drawees: string[];
 };
 
 type Action = {
-  addDrawees: (draweeId: string, draweeName: string) => void;
-  removeDrawees: (draweeId: string) => void;
-  setInitialDraweeState: (groupMembers: TMembers[]) => void;
+  addDrawees: (draweeIndex: string) => void;
+  removeDrawees: (draweeIndex: string) => void;
+  reset: (groupMembers: TMembers[]) => void;
 };
 
 const useSplitTabStore = createWithEqualityFn<State & Action>(
   (set) => ({
     drawees: [],
-    addDrawees: (draweeId, draweeName) =>
-      set(
-        produce((state: State) => {
-          state.drawees.push({
-            draweeId: draweeId,
-            draweeName: draweeName,
-          });
-        }),
-      ),
-    removeDrawees: (draweeId) =>
+    addDrawees: (draweeIndex) =>
       set((state) => ({
-        drawees: state.drawees.filter((drawee) => drawee.draweeId !== draweeId),
+        drawees: [...state.drawees, draweeIndex],
       })),
-    setInitialDraweeState: (groupMembers) =>
+    removeDrawees: (draweeIndex) =>
+      set((state) => ({
+        drawees: state.drawees.filter((index) => index !== draweeIndex),
+      })),
+    reset: (groupMembers) =>
       set(() => ({
-        drawees: groupMembers.map(({ memberId, name }) => ({
-          draweeId: memberId,
-          draweeName: name,
-        })),
+        drawees: groupMembers.map(({ memberIndex }) => memberIndex),
       })),
   }),
   shallow,

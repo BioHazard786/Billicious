@@ -3,26 +3,28 @@ import { createWithEqualityFn } from "zustand/traditional";
 
 type State = {
   billName: string;
-  creationDate?: Date;
+  createdAt?: Date;
   notes: string;
 };
 
 type Action = {
   setBillName: (billName: string) => void;
-  setCreationDate: (creation_date?: Date) => void;
+  setCreatedAt: (creation_date?: Date) => void;
   setNotes: (notes: string) => void;
+  reset: () => void;
 };
 
-const useDetailstabStore = createWithEqualityFn<State & Action>(
+const useDetailsTabStore = createWithEqualityFn<State & Action>(
   (set) => ({
     billName: "",
-    creationDate: new Date(),
+    createdAt: new Date(),
     notes: "",
     setBillName: (billName) => set({ billName: billName }),
-    setCreationDate: (creation_date) => set({ creationDate: creation_date }),
+    setCreatedAt: (creation_date) => set({ createdAt: creation_date }),
     setNotes: (notes) => set({ notes: notes }),
+    reset: () => set({ billName: "", createdAt: new Date(), notes: "" }),
   }),
   shallow,
 );
 
-export default useDetailstabStore;
+export default useDetailsTabStore;
