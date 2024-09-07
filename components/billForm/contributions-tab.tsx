@@ -13,23 +13,44 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { totalPayeeBill } from "@/lib/utils";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
+import { useMemo } from "react";
+import AnimatedCounter from "../ui/animated-counter";
 
 const ContributionsTab = () => {
   const members = useDashboardStore((group) => group.members);
+  const payees = useContributionsTabStore((state) => state.payees);
+  const payeeBill = useMemo(() => totalPayeeBill(payees), [payees]);
   return (
     <>
       <DialogHeader className="hidden pb-4 md:block">
         <DialogTitle>Contributions</DialogTitle>
-        <DialogDescription>
-          Enter the group cost of this expense
+        <DialogDescription className="flex gap-1">
+          Total Contributions:{" "}
+          <span className="flex">
+            <span className="mr-[0.1rem]">₹</span>
+            <AnimatedCounter
+              value={payeeBill}
+              precision={2}
+              className="font-mono"
+            />
+          </span>
         </DialogDescription>
       </DialogHeader>
       <DrawerHeader className="pb-4 md:hidden">
         <DrawerTitle>Contributions</DrawerTitle>
-        <DrawerDescription>
-          Enter the group cost of this expense
+        <DrawerDescription className="flex justify-center gap-1">
+          Total Contributions:{" "}
+          <span className="flex">
+            <span className="mr-[0.1rem]">₹</span>
+            <AnimatedCounter
+              value={payeeBill}
+              precision={2}
+              className="font-mono"
+            />
+          </span>
         </DrawerDescription>
       </DrawerHeader>
       <ScrollArea className="h-[300px]">
@@ -54,25 +75,23 @@ const PayeeInputAmount = ({
   memberName: string;
   memberIndex: string;
 }) => {
-  const [payee, setPayee, deletePayee] = useContributionsTabStore((state) => [
-    state.payees,
-    state.setPayees,
-    state.deletePayee,
-  ]);
+  const { payees, setPayee, deletePayee } = useContributionsTabStore(
+    (state) => state,
+  );
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
         <Avatar>
           <AvatarFallback>{memberName[0]}</AvatarFallback>
         </Avatar>
-        <p className="text-sm">{memberName}</p>
+        <p className="w-14 truncate text-sm md:w-32">{memberName}</p>
       </div>
       <div className="flex items-center justify-end gap-2">
         <p className="w-min text-sm">₹</p>
         <Input
-          className="w-[60%]"
+          className="w-[70%]"
           type="number"
-          value={payee[memberIndex] || ""}
+          value={payees[memberIndex] || ""}
           onChange={(e) => {
             if (e.target.value === "0" || e.target.value === "")
               deletePayee(memberIndex);
@@ -88,6 +107,7 @@ const PayeeInputAmount = ({
               e.preventDefault();
             }
           }}
+          onWheel={(e) => (e.target as HTMLElement).blur()}
           inputMode="numeric"
           pattern="\d*"
           placeholder="0"

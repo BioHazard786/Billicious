@@ -26,12 +26,56 @@ export function totalPayeeBill(payees: { [key: string]: number }) {
   return total;
 }
 
+export function formatDraweeAmount(drawees: string[], payeeBill: number) {
+  const draweeBill = Math.floor((payeeBill / drawees.length) * 100) / 100;
+  const formatedDrawees: { [key: string]: number } = {};
+  for (let i of drawees) {
+    formatedDrawees[i] = draweeBill;
+  }
+  return formatedDrawees;
+}
+
+export function removeDraweeAmount(
+  draweeIndex: string,
+  draweeAmount: { [key: string]: number },
+) {
+  delete draweeAmount[draweeIndex];
+  const draweeBill =
+    Math.floor(
+      (totalPayeeBill(draweeAmount) / Object.keys(draweeAmount).length) * 100,
+    ) / 100;
+  for (let key in draweeAmount) {
+    draweeAmount[key] = draweeBill;
+  }
+  console.log(draweeBill, draweeAmount);
+  return draweeAmount;
+}
+
 export function formatDrawees(drawees: string[], payeeBill: number) {
   const formattedDrawees: { [key: string]: number } = {};
-  const draweeBill = Math.round((payeeBill / drawees.length) * 100) / 100;
-  for (let i of drawees) {
-    formattedDrawees[i] = draweeBill;
+  const draweesCount = drawees.length;
+
+  // Calculate the base bill for each drawee
+  const baseBill = Math.floor((payeeBill / draweesCount) * 100) / 100;
+
+  // Calculate total used amount and remainder for adjustment
+  let used = baseBill * draweesCount;
+  let remainder = Math.round((payeeBill - used) * 100) / 100;
+
+  // Distribute the base bill and adjust for remainder in the same loop
+  for (let i = 0; i < draweesCount; ++i) {
+    let adjustedBill = baseBill;
+
+    // Distribute the remaining cents (remainder) to the first few drawees
+    if (remainder > 0) {
+      adjustedBill = Math.round((adjustedBill + 0.01) * 100) / 100;
+      remainder = Math.round((remainder - 0.01) * 100) / 100;
+    }
+
+    // Assign the adjusted value to the corresponding drawee
+    formattedDrawees[drawees[i]] = adjustedBill;
   }
+
   return formattedDrawees;
 }
 

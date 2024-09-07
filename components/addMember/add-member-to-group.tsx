@@ -89,7 +89,9 @@ export default function AddMembers() {
                     <Avatar className="size-8 md:size-10">
                       <AvatarFallback>{member.name[0]}</AvatarFallback>
                     </Avatar>
-                    {member.name}
+                    <p className="w-14 truncate md:w-32 lg:w-full">
+                      {member.name}
+                    </p>
                   </span>
                 </TableCell>
                 <TableCell
@@ -155,6 +157,10 @@ const MemberAddDialog = () => {
   const addMembersToGroup = () => {
     if (memberRef.current!.value.length <= 2) {
       return toast.error("Name must be atleast 3 characters");
+    }
+    if (memberRef.current!.value.length >= 32) {
+      toast.error("Member Name should be atmost 32 characters");
+      return (memberRef.current!.value = "");
     }
 
     server_addMembersToGroup({

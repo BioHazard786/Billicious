@@ -61,11 +61,23 @@ const DetailsTab = () => {
     <>
       <DialogHeader className="hidden pb-4 md:block">
         <DialogTitle>Details</DialogTitle>
-        <DialogDescription>Total: ₹{totalBill.toFixed(2)}</DialogDescription>
+        <DialogDescription className="flex gap-1">
+          Total:{" "}
+          <span className="flex">
+            <span className="mr-[0.1rem]">₹</span>
+            <span className="font-mono">{totalBill.toFixed(2)}</span>
+          </span>
+        </DialogDescription>
       </DialogHeader>
       <DrawerHeader className="pb-4 md:hidden">
         <DrawerTitle>Details</DrawerTitle>
-        <DrawerDescription>Total: ₹{totalBill.toFixed(2)}</DrawerDescription>
+        <DrawerDescription className="flex justify-center gap-1">
+          Total:{" "}
+          <span className="flex">
+            <span className="mr-[0.1rem]">₹</span>
+            <span className="font-mono">{totalBill.toFixed(2)}</span>
+          </span>
+        </DrawerDescription>
       </DrawerHeader>
       <ScrollArea className="h-[300px]">
         <div className="flex flex-col gap-5 p-4 md:px-0 md:pr-4">
