@@ -1,25 +1,23 @@
 import { NextResponse } from "next/server";
-import { addUsersInDB } from "../utils";
+import { sendRequest } from "../utils";
 
 export const POST = async (request: Request) => {
   let user;
   try {
     const requestData = await request.json();
-
-    if (requestData.user_id !== undefined) {
-      throw new Error("Id is required");
+    if (requestData.sender_user_id !== undefined) {
+      throw new Error("sender user id is required");
+    }
+    if (requestData.receiver_username !== undefined) {
+      throw new Error("receiver user name is required");
     }
     if (requestData.group_id !== undefined) {
-      throw new Error("UserName is required");
+      throw new Error("group id is required");
     }
-    if (requestData.name !== undefined) {
-      throw new Error("Name is required");
+    if (requestData.user_index !== undefined) {
+      throw new Error("user index is required");
     }
-    if (requestData.platform !== undefined) {
-      throw new Error("Platform is required");
-    }
-
-    user = await addUsersInDB(requestData);
+    user = await sendRequest(requestData);
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });
