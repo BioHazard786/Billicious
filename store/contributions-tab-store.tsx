@@ -7,7 +7,7 @@ type State = {
 };
 
 type Action = {
-  setPayees: (payeeId: string, payeeAmount: number) => void;
+  setPayee: (payeeId: string, payeeAmount: number) => void;
   deletePayee: (payeeId: string) => void;
   reset: () => void;
 };
@@ -15,7 +15,7 @@ type Action = {
 const useContributionsTabStore = createWithEqualityFn<State & Action>(
   (set) => ({
     payees: {},
-    setPayees: (payeeId, payeeAmount) =>
+    setPayee: (payeeId, payeeAmount) =>
       set(
         produce((state) => {
           state.payees[payeeId] = payeeAmount;

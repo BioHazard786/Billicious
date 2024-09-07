@@ -128,19 +128,18 @@ function AddBillForm() {
   const { isPending, mutate: server_createTransaction } = useMutation({
     mutationFn: addBillToGroupInDB,
     onSuccess: (data) => {
+      setIsOpen(false);
       addBillToGroup({
         updatedMembers: formatMemberData(data.members),
         totalAmount: parseFloat(data.total_group_expense),
       });
+      resetBillFormStores();
       return toast.success("Bill added successfully");
     },
     onError: (error) => {
       console.log(error);
-      return toast.error("Error occured on Database.");
-    },
-    onSettled: () => {
       setIsOpen(false);
-      resetBillFormStores();
+      return toast.error("Error occured on Database.");
     },
   });
 

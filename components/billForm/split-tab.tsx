@@ -1,5 +1,3 @@
-import AnimatedNumber from "@/components/ui/animated-number";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DialogDescription,
   DialogHeader,
@@ -11,24 +9,28 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn, totalPayeeBill } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatDraweeAmount, totalPayeeBill } from "@/lib/utils";
 import useContributionsTabStore from "@/store/contributions-tab-store";
-import useDashboardStore from "@/store/dashboard-store";
 import useSplitTabStore from "@/store/split-tab-store";
-import { AnimatePresence, motion } from "framer-motion";
-import { Check } from "lucide-react";
+import { IndianRupee, Percent, Scale, Users } from "lucide-react";
 import { useMemo } from "react";
-import AnimatedCounter from "../ui/animated-counter";
+import AmountSplit from "./splitTab/amount-split";
+import EqualSplit from "./splitTab/equal-split";
 
 const SplitTab = () => {
-  const members = useDashboardStore((group) => group.members);
-  const drawees = useSplitTabStore((state) => state.drawees);
   const payees = useContributionsTabStore((state) => state.payees);
   const payeeBill = useMemo(() => totalPayeeBill(payees), [payees]);
+  const { drawees, draweeAmount, setDraweeAmount } = useSplitTabStore(
+    (state) => state,
+  );
+  if (Object.keys(draweeAmount).length === 0) {
+    setDraweeAmount(formatDraweeAmount(drawees, payeeBill));
+  }
   return (
     <>
       <DialogHeader className="hidden pb-4 md:block">
-        <DialogTitle>Split</DialogTitle>
+        <DialogTitle>Split By</DialogTitle>
         <DialogDescription>
           Select those who spent with this expense
         </DialogDescription>
@@ -39,97 +41,39 @@ const SplitTab = () => {
           Select those who spent with this expense
         </DrawerDescription>
       </DrawerHeader>
-      <ScrollArea className="h-[300px]">
-        <div className="p-4 md:px-0 md:pr-4">
-          <div className="flex flex-wrap items-center justify-center gap-4 pb-8 lg:gap-5">
-            {members.map((member, index) => (
-              <ChooseDrawee
-                key={`drawee-list-${index}`}
-                memberName={member.name}
-                memberIndex={member.memberIndex}
-              />
-            ))}
-          </div>
-          <div className="flex flex-col items-center justify-center gap-1">
-            <motion.p layout="size" className="text-sm">
-              Splitting with{" "}
-              <AnimatedNumber
-                value={drawees.length}
-                className="font-mono font-bold text-primary"
-              />{" "}
-              people, each of them spent
-            </motion.p>
-
-            <span className="flex font-bold text-primary">
-              <span className="mr-[0.1rem]">₹</span>
-              <AnimatedCounter
-                value={payeeBill / drawees.length}
-                precision={2}
-                className="font-mono"
-              />
-            </span>
-          </div>
+      <Tabs defaultValue="equally" className="w-full">
+        <div className="flex w-full justify-center pb-2">
+          <TabsList className="w-min">
+            <TabsTrigger value="equally">
+              <Users className="mr-2 hidden size-4 md:block" />
+              Equally
+            </TabsTrigger>
+            <TabsTrigger value="amount">
+              <IndianRupee className="mr-2 hidden size-4 md:block" />
+              Amount
+            </TabsTrigger>
+            <TabsTrigger value="percent">
+              <Percent className="mr-2 hidden size-4 md:block" />
+              Percent
+            </TabsTrigger>
+            <TabsTrigger value="weights">
+              <Scale className="mr-2 hidden size-4 md:block" />
+              Weights
+            </TabsTrigger>
+          </TabsList>
         </div>
-      </ScrollArea>
+        <ScrollArea className="h-[256px]">
+          <div className="px-4 py-2 md:px-0 md:pr-4">
+            <TabsContent value="equally">
+              <EqualSplit payeeBill={payeeBill} />
+            </TabsContent>
+            <TabsContent value="amount">
+              <AmountSplit payeeBill={payeeBill} />
+            </TabsContent>
+          </div>
+        </ScrollArea>
+      </Tabs>
     </>
-  );
-};
-
-const ChooseDrawee = ({
-  memberName,
-  memberIndex,
-}: {
-  memberName: string;
-  memberIndex: string;
-}) => {
-  const [drawees, addDrawees, removeDrawees] = useSplitTabStore((state) => [
-    state.drawees,
-    state.addDrawees,
-    state.removeDrawees,
-  ]);
-
-  const isSelected: boolean = drawees.some(
-    (draweeIndex) => draweeIndex === memberIndex,
-  );
-
-  const setDrawees = () => {
-    if (isSelected) {
-      if (drawees.length === 1) return;
-      removeDrawees(memberIndex);
-    } else addDrawees(memberIndex);
-  };
-  return (
-    <div
-      className="flex cursor-pointer flex-col items-center gap-1"
-      onClick={setDrawees}
-    >
-      <div className="relative">
-        <Avatar>
-          <AvatarFallback>{memberName[0]}</AvatarFallback>
-        </Avatar>
-        <AnimatePresence presenceAffectsLayout>
-          {isSelected && (
-            <motion.div
-              animate={{ scale: 1 }}
-              initial={{ scale: 0 }}
-              exit={{ scale: 0 }}
-              transition={{ ease: "easeInOut", duration: 0.2 }}
-              className="absolute bottom-[-3%] right-[-13%] rounded-full bg-primary p-[0.1rem]"
-            >
-              <Check className="size-[0.85rem] text-primary-foreground" />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-      <p
-        className={cn(
-          "text-sm transition-colors duration-200 ease-in-out",
-          isSelected ? "" : "text-muted-foreground/50",
-        )}
-      >
-        {memberName}
-      </p>
-    </div>
   );
 };
 

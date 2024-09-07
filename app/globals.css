@@ -53,6 +53,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -61,6 +62,31 @@
 ::selection {
   color: hsl(var(--primary-foreground));
   background: hsl(var(--primary));
+}
+
+.custom-scrollbars ::-webkit-scrollbar {
+  background-color: transparent;
+  height: .6em;
+  width: .6em
+}
+
+.custom-scrollbars ::-webkit-scrollbar-track {
+  --tw-bg-opacity: 1;
+  background-color: hsl(var(--muted)/1);
+  background-color: hsl(var(--muted)/var(--tw-bg-opacity))
+}
+
+.custom-scrollbars ::-webkit-scrollbar-thumb {
+  border-radius: .6em;
+  --tw-bg-opacity: 0.2;
+  background-color: hsl(var(--muted-foreground)/0.2);
+  background-color: hsl(var(--muted-foreground)/var(--tw-bg-opacity))
+}
+
+.custom-scrollbars ::-webkit-scrollbar-thumb:hover {
+  --tw-bg-opacity: 0.4;
+  background-color: hsl(var(--muted-foreground)/0.4);
+  background-color: hsl(var(--muted-foreground)/var(--tw-bg-opacity))
 }
 
 input[type="number"]::-webkit-inner-spin-button,

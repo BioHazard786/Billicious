@@ -62,7 +62,7 @@ const ProgressBar = ({
       <div className="ml-4 flex flex-grow flex-col">
         <div className="mb-1 flex flex-row justify-between">
           <p className="text-sm">
-            {name}
+            {name.length > 7 ? name.slice(0, 5) + "..." : name}
             {balance !== 0 ? (
               <span
                 className={balance >= 0 ? "text-primary" : "text-destructive"}
