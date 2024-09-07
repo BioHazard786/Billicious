@@ -34,7 +34,6 @@ export const usersTable = pgTable(
   },
 );
 
-// TODO: Add owner to the groupTable
 export const groupsTable = pgTable("groups_table", {
   id: text("id")
     .primaryKey()
@@ -79,6 +78,8 @@ export const membersTable = pgTable(
     userId: text("user_id").notNull(),
     groupId: text("group_id").references(() => groupsTable.id),
     userNameInGroup: text("username_in_group").notNull(),
+    isAdmin: boolean("is_admin").default(false),
+    isTemporary: boolean("is_temporary").default(true),
     userIndex: integer("user_index"),
     totalSpent: numeric("total_spent").notNull().default("0"),
     totalPaid: numeric("total_paid").notNull().default("0"),

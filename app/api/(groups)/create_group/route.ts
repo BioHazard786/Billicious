@@ -5,7 +5,6 @@ export const POST = async (request: Request) => {
   let group: any = {};
   try {
     const requestData = await request.json();
-    group.group = await createGroupInDB(requestData);
 
     if (requestData.name === undefined) {
       throw new Error("Group Name is Required");
@@ -14,6 +13,7 @@ export const POST = async (request: Request) => {
       throw new Error("Members are Required");
     }
 
+    group.group = await createGroupInDB(requestData);
     let requestCopy = {
       ...requestData,
       group_id: group.group.id,

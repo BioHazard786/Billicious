@@ -69,7 +69,9 @@ export async function createBillInDB(requestData: any) {
         .set({ totalSpent: user.totalSpent, totalPaid: user.totalPaid })
         .where(eq(membersTable.userId, user.userId));
     });
-    bill.members = members;
+    bill.members = members.sort(
+      (i, j) => (i.userIndex as number) - (j.userIndex as number),
+    );
 
     // Create a New Bill in the Database
     const newBill = {
@@ -254,7 +256,9 @@ export async function deleteBillInDB(requestData: any) {
         .set({ totalSpent: user.totalSpent, totalPaid: user.totalPaid })
         .where(eq(membersTable.userId, user.userId));
     });
-    bill.members = members;
+    bill.members = members.sort(
+      (i, j) => (i.userIndex as number) - (j.userIndex as number),
+    );
 
     // Get all the balances for Users
     const balances = createBalances(userExpenseMap, groupId);
