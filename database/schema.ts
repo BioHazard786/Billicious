@@ -88,7 +88,7 @@ export const membersTable = pgTable(
     return {
       primaryKey: primaryKey({
         name: "members_table_pk",
-        columns: [table.userId, table.groupId],
+        columns: [table.userIndex, table.groupId],
       }),
       membersTableUserIdIndex: index("members_table_user_id_index").on(
         table.userId,

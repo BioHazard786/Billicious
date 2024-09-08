@@ -38,14 +38,11 @@ export async function getUserFromDB(requestData: any) {
 }
 
 export async function sendRequest(requestData: any) {
-  let requestSent;
   await db.transaction(async (transaction) => {
-    let groupId = requestData.group_id;
-
     let groups = await transaction
       .select()
       .from(groupsTable)
-      .where(eq(groupsTable.id, groupId));
+      .where(eq(groupsTable.id, requestData.group_id));
 
     if (groups.length === 0) {
       throw new Error("Invalid Group Id");
@@ -78,12 +75,9 @@ export async function sendRequest(requestData: any) {
       if (member.userId === sender.id) {
         // check if sender is admin
         if (!member.isAdmin) {
-          throw new Error("Sender is not an Admin");
+          throw new Error("Sender is not an admin of group");
         }
         senderInfo = member;
-      }
-      if (member.userId === receiver.id) {
-        receiverInfo = member;
       }
 
       if (member.userIndex === requestData.user_index && member.isTemporary) {
@@ -92,10 +86,7 @@ export async function sendRequest(requestData: any) {
     }
 
     if (senderInfo === null) {
-      throw new Error("Invalid Sender Id");
-    }
-    if (receiverInfo === null) {
-      throw new Error("Invalid Receiver Id");
+      throw new Error("Sender is not a member of group");
     }
 
     if (!validUserIndex) {
@@ -104,18 +95,57 @@ export async function sendRequest(requestData: any) {
 
     let newRequest = {
       userId: receiver.id,
-      groupId: groupId,
+      groupId: requestData.group_id,
       userIndex: requestData.user_index,
     };
 
     await transaction.insert(requestTable).values(newRequest);
     await transaction
       .update(membersTable)
-      .set({ isTemporary: true })
+      .set({ isTemporary: false })
       .where(
         and(
-          eq(membersTable.groupId, groupId),
+          eq(membersTable.groupId, requestData.group_id),
           eq(membersTable.userIndex, requestData.user_index),
+        ),
+      );
+  });
+}
+
+export async function deleteRequest(requestData: any) {
+  await db.transaction(async (transaction) => {
+    let groupRequests = await transaction
+      .select()
+      .from(requestTable)
+      .where(
+        and(
+          eq(requestTable.groupId, requestData.group_id),
+          eq(requestTable.userId, requestData.user_id),
+        ),
+      );
+
+    if (groupRequests.length === 0) {
+      throw new Error("No request exists");
+    }
+
+    let groupRequest = groupRequests[0];
+
+    await transaction
+      .update(membersTable)
+      .set({ isTemporary: false })
+      .where(
+        and(
+          eq(membersTable.groupId, requestData.group_id),
+          eq(membersTable.userIndex, groupRequest.userIndex as number),
+        ),
+      );
+
+    await transaction
+      .delete(requestTable)
+      .where(
+        or(
+          eq(requestTable.groupId, requestData.group_id),
+          eq(requestTable.userId, requestData.user_id),
         ),
       );
   });

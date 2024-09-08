@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
-import { getUserFromDB } from "../utils";
+import { deleteRequest } from "../utils";
 
 export const POST = async (request: Request) => {
-  let user;
   try {
     const requestData = await request.json();
     if (requestData.user_id === undefined) {
-      throw new Error("User Id is undefined");
+      throw new Error("user id is required");
     }
-    user = await getUserFromDB(requestData);
+    if (requestData.group_id === undefined) {
+      throw new Error("group id is required");
+    }
+    await deleteRequest(requestData);
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });
@@ -19,5 +21,5 @@ export const POST = async (request: Request) => {
     );
   }
 
-  return NextResponse.json({ user }, { status: 201 });
+  return NextResponse.json({ message: "Request Deleted" }, { status: 201 });
 };
