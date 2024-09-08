@@ -6,16 +6,16 @@ export const POST = async (request: Request) => {
   try {
     const requestData = await request.json();
 
-    if (requestData.Id !== undefined) {
+    if (requestData.id === undefined) {
       throw new Error("Id is required");
     }
-    if (requestData.userName !== undefined) {
+    if (requestData.username === undefined) {
       throw new Error("UserName is required");
     }
-    if (requestData.name !== undefined) {
+    if (requestData.name === undefined) {
       throw new Error("Name is required");
     }
-    if (requestData.platform !== undefined) {
+    if (requestData.platform === undefined) {
       throw new Error("Platform is required");
     }
 

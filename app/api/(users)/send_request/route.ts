@@ -2,22 +2,21 @@ import { NextResponse } from "next/server";
 import { sendRequest } from "../utils";
 
 export const POST = async (request: Request) => {
-  let user;
   try {
     const requestData = await request.json();
-    if (requestData.sender_user_id !== undefined) {
+    if (requestData.sender_user_id === undefined) {
       throw new Error("sender user id is required");
     }
-    if (requestData.receiver_username !== undefined) {
+    if (requestData.receiver_username === undefined) {
       throw new Error("receiver user name is required");
     }
-    if (requestData.group_id !== undefined) {
+    if (requestData.group_id === undefined) {
       throw new Error("group id is required");
     }
-    if (requestData.user_index !== undefined) {
+    if (requestData.user_index === undefined) {
       throw new Error("user index is required");
     }
-    user = await sendRequest(requestData);
+    await sendRequest(requestData);
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });
@@ -28,5 +27,5 @@ export const POST = async (request: Request) => {
     );
   }
 
-  return NextResponse.json({ user }, { status: 201 });
+  return NextResponse.json({ message: "Request Sent" }, { status: 201 });
 };

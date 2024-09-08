@@ -8,7 +8,7 @@ import {
   payeesInBillsTable,
   transactionsTable,
 } from "@/database/schema";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { PgSelect } from "drizzle-orm/pg-core";
 
 export async function createGroupInDB(requestData: any) {
@@ -92,6 +92,10 @@ export async function getMembersFromDB(requestData: any) {
     if (members.length == 0) {
       throw new Error("No members In Group");
     }
+
+    members = members.sort(
+      (i, j) => (i.userIndex as number) - (j.userIndex as number),
+    );
   });
 
   return members;
@@ -151,7 +155,7 @@ export async function getGroupBillsFromDB(requestData: any) {
         .select()
         .from(billsTable)
         .where(eq(billsTable.groupId, groupId))
-        // TODO: apply descending sort
+        .orderBy(desc(billsTable.createdAt))
         .$dynamic(),
       page,
       pageSize,
