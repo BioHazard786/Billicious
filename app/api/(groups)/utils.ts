@@ -7,6 +7,7 @@ import {
   membersTable,
   payeesInBillsTable,
   transactionsTable,
+  requestTable,
 } from "@/database/schema";
 import { desc, eq } from "drizzle-orm";
 import { PgSelect } from "drizzle-orm/pg-core";
@@ -170,4 +171,23 @@ function withPagination<T extends PgSelect>(
   pageSize: number = 10,
 ) {
   return qb.limit(pageSize).offset((page - 1) * pageSize);
+}
+
+export async function getRequestFromDB(requestData: any) {
+  let groupRequests;
+  await db.transaction(async (transaction) => {
+    groupRequests = await transaction
+      .select()
+      .from(requestTable)
+      .where(eq(requestTable.groupId, requestData.group_id));
+
+    groupRequests = groupRequests.sort(
+      (i, j) => (i.userIndex as number) - (j.userIndex as number),
+    );
+
+    if (groupRequests.length === 0) {
+      throw new Error("No request exists");
+    }
+    return groupRequests;
+  });
 }
