@@ -117,6 +117,43 @@ export async function deleteRequest(requestData: any) {
     let groupRequests = await transaction
       .select()
       .from(requestTable)
+      .where(and(eq(requestTable.groupId, requestData.group_id)));
+    groupRequests = groupRequests.filter(
+      (groupRequest) => groupRequest.userIndex === requestData.user_index,
+    );
+
+    if (groupRequests.length === 0) {
+      throw new Error("No request exists");
+    }
+
+    let groupRequest = groupRequests[0];
+
+    await transaction
+      .update(membersTable)
+      .set({ isTemporary: false })
+      .where(
+        and(
+          eq(membersTable.groupId, groupRequest.groupId as string),
+          eq(membersTable.userIndex, groupRequest.userIndex as number),
+        ),
+      );
+
+    await transaction
+      .delete(requestTable)
+      .where(
+        or(
+          eq(requestTable.groupId, groupRequest.groupId as string),
+          eq(requestTable.userId, groupRequest.userId as string),
+        ),
+      );
+  });
+}
+
+export async function acceptRequest(requestData: any) {
+  await db.transaction(async (transaction) => {
+    let groupRequests = await transaction
+      .select()
+      .from(requestTable)
       .where(
         and(
           eq(requestTable.groupId, requestData.group_id),
@@ -132,10 +169,10 @@ export async function deleteRequest(requestData: any) {
 
     await transaction
       .update(membersTable)
-      .set({ isTemporary: false })
+      .set({ userId: requestData.user_id })
       .where(
         and(
-          eq(membersTable.groupId, requestData.group_id),
+          eq(membersTable.groupId, groupRequest.groupId as string),
           eq(membersTable.userIndex, groupRequest.userIndex as number),
         ),
       );
@@ -144,44 +181,9 @@ export async function deleteRequest(requestData: any) {
       .delete(requestTable)
       .where(
         or(
-          eq(requestTable.groupId, requestData.group_id),
-          eq(requestTable.userId, requestData.user_id),
+          eq(requestTable.groupId, groupRequest.groupId as string),
+          eq(requestTable.userId, groupRequest.userId as string),
         ),
       );
   });
 }
-
-// export function splitDraweesEqually(amount: number, length: number) {
-//   let split = [];
-//   let used = 0.0,
-//     cur = parseFloat((amount / length).toFixed(2));
-//   for (let i = 0; i < length; ++i) {
-//     used += cur;
-//     split.push(cur);
-//   }
-//   for (let i = 0; i < length; ++i) {
-//     if (used == amount) break;
-//     split[i] += 0.01;
-//     used -= 0.01;
-//   }
-//   console.log(split);
-// }
-
-// export function splitDraweesPercentageWise(
-//   amount: number,
-//   percentages: number[],
-// ) {
-//   let split = [];
-//   let used = 0.0;
-//   for (let i = 0; i < percentages.length; ++i) {
-//     let cur = parseFloat(((percentages[i] * amount) / 100.0).toFixed(2));
-//     used += cur;
-//     split.push(cur);
-//   }
-//   for (let i = 0; i < percentages.length; ++i) {
-//     if (used == amount) break;
-//     split[i] += 0.01;
-//     used -= 0.01;
-//   }
-//   console.log(split);
-// }
