@@ -8,6 +8,10 @@ import {
   transactionsTable,
 } from "@/database/schema";
 import { eq, sql } from "drizzle-orm";
+// import { CompressionTypes } from "kafkajs";
+// import { redpanda } from "@/database/kafka";
+
+// const producer = redpanda.producer();
 
 export async function createBillInDB(requestData: any) {
   let bill: any = {};
@@ -148,6 +152,8 @@ export async function createBillInDB(requestData: any) {
         .returning();
       bill.total_group_expense = groups[0].totalExpense;
     }
+
+    // sendBillDataToKafka(bill, groupId);
   });
 
   return bill;
@@ -302,6 +308,8 @@ export async function deleteBillInDB(requestData: any) {
         .returning();
       bill.total_group_expense = groups[0].totalExpense;
     }
+
+    // sendBillDataToKafka(bill, groupId as string);
   });
 
   return bill;
@@ -412,3 +420,30 @@ function createBalances(userExpenseMap: Map<number, number>, groupId: any) {
 
   return balances;
 }
+
+// export async function sendBillDataToKafka(bill: any, groupId: string) {
+//   const sendMessage = (msg: string) => {
+//     return producer
+//       .send({
+//         topic: "billicious",
+//         compression: CompressionTypes.GZIP,
+//         messages: [
+//           {
+//             // Messages with the same key are sent to the same topic partition for
+//             // guaranteed ordering
+//             key: groupId,
+//             value: JSON.stringify(msg),
+//           },
+//         ],
+//       })
+//       .catch((e: { message: any }) => {
+//         throw new Error(e.message);
+//       });
+//   };
+
+//   await producer.connect();
+//   let response = await sendMessage(bill);
+//   if (response === null) {
+//     throw new Error("unable to send message");
+//   }
+// }
