@@ -24,6 +24,8 @@ export async function createGroupInDB(requestData: any) {
       .values(newGroup)
       .returning();
     group = groups[0];
+
+    // createKafkaTopic(group.id);
   });
 
   return group;
@@ -137,6 +139,8 @@ export async function deleteGroupInDB(requestData: any) {
 
     // Delete Group
     await transaction.delete(groupsTable).where(eq(groupsTable.id, groupId));
+
+    // deleteKafkaTopics(groupId);
   });
   return groupId;
 }
@@ -191,3 +195,37 @@ export async function getRequestFromDB(requestData: any) {
     return groupRequests;
   });
 }
+
+// export async function createKafkaTopic(groupId: string) {
+//   await admin.connect();
+//   let response = await admin.createTopics({
+//     topics: [
+//       {
+//         topic: groupId,
+//         numPartitions: 1,
+//         replicationFactor: -1,
+//       },
+//     ],
+//   });
+//   await admin.disconnect();
+//   if (response === null) {
+//     throw new Error("Failed to Create Topic");
+//   }
+// }
+
+// export async function deleteKafkaTopics(groupId: string) {
+//   await admin.connect();
+//   let response = await admin.deleteTopics({
+//     topics: [
+//       {
+//         topic: groupId,
+//         numPartitions: 1,
+//         replicationFactor: -1,
+//       },
+//     ],
+//   });
+//   await admin.disconnect();
+//   if (response === null) {
+//     throw new Error("Failed to Delete Topic");
+//   }
+// }
