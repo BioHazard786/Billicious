@@ -1,5 +1,6 @@
 import { shallow } from "zustand/shallow";
 import { createWithEqualityFn } from "zustand/traditional";
+import createSelectors from "./selectors";
 
 type State = {
   billName: string;
@@ -14,7 +15,7 @@ type Action = {
   reset: () => void;
 };
 
-const useDetailsTabStore = createWithEqualityFn<State & Action>(
+const useDetailsTabStoreBase = createWithEqualityFn<State & Action>(
   (set) => ({
     billName: "",
     createdAt: new Date(),
@@ -26,5 +27,7 @@ const useDetailsTabStore = createWithEqualityFn<State & Action>(
   }),
   shallow,
 );
+
+const useDetailsTabStore = createSelectors(useDetailsTabStoreBase);
 
 export default useDetailsTabStore;

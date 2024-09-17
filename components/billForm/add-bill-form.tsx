@@ -31,13 +31,15 @@ import {
   formatDrawees,
   formatMemberData,
   resetBillFormStores,
-  totalPayeeBill,
 } from "@/lib/utils";
 import { addBillToGroupInDB } from "@/server/fetchHelpers";
 import useAddBillStore from "@/store/add-bill-store";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
-import useDetailstabStore from "@/store/details-tab-store";
+import useDetailsTabStore from "@/store/details-tab-store";
+import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
+import useSplitByPercentTabStore from "@/store/split-by-percent-tab-store";
+import useSplitEquallyTabStore from "@/store/split-equally-tab-store";
 import useSplitTabStore from "@/store/split-tab-store";
 import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
@@ -72,17 +74,17 @@ const variants = {
   initial: (direction: number) => ({
     x: 300 * direction,
     opacity: 0,
-    filter: "blur(4px)",
+    // filter: "blur(4px)",
   }),
   active: {
     x: 0,
     opacity: 1,
-    filter: "blur(0px)",
+    // filter: "blur(0px)",
   },
   exit: (direction: number) => ({
     x: -300 * direction,
     opacity: 0,
-    filter: "blur(4px)",
+    // filter: "blur(4px)",
   }),
 };
 
@@ -90,23 +92,31 @@ function AddBillForm() {
   const { slug } = useParams();
   const [isOpen, setIsOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const {
-    activeTab,
-    direction,
-    isAnimating,
-    setActiveTab,
-    setDirection,
-    setIsAnimating,
-  } = useAddBillStore((state) => state);
+
+  const activeTab = useAddBillStore.use.activeTab();
+  const direction = useAddBillStore.use.direction();
+  const isAnimating = useAddBillStore.use.isAnimating();
+  const setActiveTab = useAddBillStore.use.setActiveTab();
+  const setDirection = useAddBillStore.use.setDirection();
+  const setIsAnimating = useAddBillStore.use.setIsAnimating();
 
   const addBillToGroup = useDashboardStore((state) => state.addBill);
-  const payees = useContributionsTabStore((state) => state.payees);
-  const payeeBill = useMemo(() => totalPayeeBill(payees), [payees]);
 
-  const { billName, setBillName, createdAt, notes } = useDetailstabStore(
-    (state) => state,
-  );
-  const drawees = useSplitTabStore((state) => state.drawees);
+  const payees = useContributionsTabStore.use.payees();
+  const payeesBill = useContributionsTabStore.use.payeesBill();
+
+  const billName = useDetailsTabStore.use.billName();
+  const setBillName = useDetailsTabStore.use.setBillName();
+  const notes = useDetailsTabStore.use.notes();
+  const createdAt = useDetailsTabStore((state) => state.createdAt);
+
+  const currentSelectedTab = useSplitTabStore.use.currentSelectedTab();
+
+  const draweesSplitEqually = useSplitEquallyTabStore.use.drawees();
+  const draweesSplitByAmount =
+    useSplitByAmountTabStore.use.draweesSplitByAmount();
+  const draweesSplitByPercent =
+    useSplitByPercentTabStore.use.draweesSplitByPercent();
 
   const content = useMemo(() => {
     const activeTabContent = tabs.find((tab) => tab.id === activeTab)?.content;
@@ -134,7 +144,7 @@ function AddBillForm() {
         totalAmount: parseFloat(data.total_group_expense),
       });
       resetBillFormStores();
-      return toast.success("Bill added successfully");
+      return toast.success("Transaction added successfully");
     },
     onError: (error) => {
       console.log(error);
@@ -151,6 +161,7 @@ function AddBillForm() {
       toast.error("Bill Name should be atmost 32 characters");
       return setBillName("");
     }
+
     server_createTransaction({
       group_id: slug as string,
       name: billName,
@@ -158,7 +169,13 @@ function AddBillForm() {
       created_at: createdAt,
       notes: notes,
       payees: payees,
-      drawees: formatDrawees(drawees, payeeBill),
+      drawees: formatDrawees(
+        draweesSplitEqually,
+        draweesSplitByAmount,
+        draweesSplitByPercent,
+        payeesBill,
+        currentSelectedTab,
+      ),
     });
   };
 
@@ -202,7 +219,7 @@ function AddBillForm() {
             <Button
               className="w-[75px]"
               variant="default"
-              disabled={Object.keys(payees).length === 0 ? true : false}
+              disabled={isPending || Object.keys(payees).length === 0}
               onClick={() => {
                 if (activeTab + 1 < tabs.length) {
                   handleTabClick(activeTab + 1);
@@ -293,7 +310,7 @@ function AddBillForm() {
                   createTransaction();
                 }
               }}
-              disabled={Object.keys(payees).length === 0 ? true : false}
+              disabled={isPending || Object.keys(payees).length === 0}
             >
               {isPending && <Spinner className="mr-[0.35rem]" />}
               <motion.span

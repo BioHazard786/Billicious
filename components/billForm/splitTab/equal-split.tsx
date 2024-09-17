@@ -1,15 +1,26 @@
 import AnimatedCounter from "@/components/ui/animated-counter";
 import AnimatedNumber from "@/components/ui/animated-number";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { cn, removeDraweeAmount } from "@/lib/utils";
+import {
+  addDraweeAmount,
+  addDraweePercent,
+  cn,
+  removeDraweeAmount,
+  removeDraweePercent,
+} from "@/lib/utils";
+import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
-import useSplitTabStore from "@/store/split-tab-store";
+import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
+import useSplitByPercentTabStore from "@/store/split-by-percent-tab-store";
+import useSplitEquallyTabStore from "@/store/split-equally-tab-store";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check } from "lucide-react";
 
-const EqualSplit = ({ payeeBill }: { payeeBill: number }) => {
+const EqualSplit = () => {
   const members = useDashboardStore((group) => group.members);
-  const { drawees } = useSplitTabStore((state) => state);
+  const payeesBill = useContributionsTabStore.getState().payeesBill;
+  const drawees = useSplitEquallyTabStore.use.drawees();
+
   return (
     <>
       <div className="flex flex-wrap items-center justify-center gap-3 pb-8">
@@ -34,7 +45,7 @@ const EqualSplit = ({ payeeBill }: { payeeBill: number }) => {
         <span className="flex font-bold text-primary">
           <span className="mr-[0.1rem]">₹</span>
           <AnimatedCounter
-            value={payeeBill / drawees.length}
+            value={drawees.length > 0 ? payeesBill / drawees.length : 0}
             precision={2}
             className="font-mono"
           />
@@ -51,8 +62,19 @@ const ChooseDrawee = ({
   memberName: string;
   memberIndex: string;
 }) => {
-  const { drawees, addDrawees, draweeAmount, removeDrawees, setDraweeAmount } =
-    useSplitTabStore((state) => state);
+  const payeesBill = useContributionsTabStore.getState().payeesBill;
+  const draweesSplitByAmount =
+    useSplitByAmountTabStore.getState().draweesSplitByAmount;
+  const setDraweesSplitByAmount =
+    useSplitByAmountTabStore.getState().setDraweesSplitByAmount;
+  const draweesSplitByPercent =
+    useSplitByPercentTabStore.getState().draweesSplitByPercent;
+  const setDraweesSplitByPercent =
+    useSplitByPercentTabStore.getState().setDraweesSplitByPercent;
+
+  const drawees = useSplitEquallyTabStore.getState().drawees;
+  const addDrawees = useSplitEquallyTabStore.use.addDrawees();
+  const removeDrawees = useSplitEquallyTabStore.use.removeDrawees();
 
   const isSelected: boolean = drawees.includes(memberIndex);
 
@@ -60,9 +82,23 @@ const ChooseDrawee = ({
     if (isSelected) {
       if (drawees.length === 1) return;
       removeDrawees(memberIndex);
-      setDraweeAmount(removeDraweeAmount(memberIndex, draweeAmount));
-    } else addDrawees(memberIndex);
+      setDraweesSplitByAmount(
+        removeDraweeAmount(memberIndex, draweesSplitByAmount, payeesBill),
+      );
+      setDraweesSplitByPercent(
+        removeDraweePercent(memberIndex, draweesSplitByPercent),
+      );
+    } else {
+      addDrawees(memberIndex);
+      setDraweesSplitByAmount(
+        addDraweeAmount(memberIndex, draweesSplitByAmount, payeesBill),
+      );
+      setDraweesSplitByPercent(
+        addDraweePercent(memberIndex, draweesSplitByPercent),
+      );
+    }
   };
+
   return (
     <div
       className="flex cursor-pointer flex-col items-center gap-1"

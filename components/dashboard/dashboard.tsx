@@ -1,7 +1,7 @@
 "use client";
 
 import useDashboardStore from "@/store/dashboard-store";
-import useSplitTabStore from "@/store/split-tab-store";
+import useSplitEquallyTabStore from "@/store/split-equally-tab-store";
 import { useEffect } from "react";
 import EventName from "./event-name";
 import ExpenseChart from "./expense-chart";
@@ -10,7 +10,7 @@ import TotalExpense from "./total-expense";
 
 const Dashboard = () => {
   const members = useDashboardStore((state) => state.members);
-  const setInitialDraweeState = useSplitTabStore((state) => state.reset);
+  const setInitialDraweeState = useSplitEquallyTabStore((state) => state.reset);
 
   useEffect(() => {
     setInitialDraweeState(members);

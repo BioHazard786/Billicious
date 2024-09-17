@@ -186,7 +186,7 @@ const CreateGroupForm = () => {
                 key={`member-name-${index}`}
                 className="inline-flex h-8 cursor-default items-center rounded-sm bg-secondary pl-2 text-sm text-secondary-foreground"
               >
-                <p className="w-14 truncate">{name}</p>
+                {name}
                 <button
                   onClick={() => removeMembers(name)}
                   className="inline-flex h-full items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"

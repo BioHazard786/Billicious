@@ -256,7 +256,7 @@ const MemberAddDialog = () => {
           <Input
             id="name"
             placeholder="Member's name"
-            className="col-span-3"
+            className="col-span-3 text-base"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 addMembersToGroup();

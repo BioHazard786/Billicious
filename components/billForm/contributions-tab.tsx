@@ -13,16 +13,13 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { totalPayeeBill } from "@/lib/utils";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
-import { useMemo } from "react";
 import AnimatedCounter from "../ui/animated-counter";
 
 const ContributionsTab = () => {
   const members = useDashboardStore((group) => group.members);
-  const payees = useContributionsTabStore((state) => state.payees);
-  const payeeBill = useMemo(() => totalPayeeBill(payees), [payees]);
+  const payeesBill = useContributionsTabStore.use.payeesBill();
   return (
     <>
       <DialogHeader className="hidden pb-4 md:block">
@@ -32,7 +29,7 @@ const ContributionsTab = () => {
           <span className="flex">
             <span className="mr-[0.1rem]">₹</span>
             <AnimatedCounter
-              value={payeeBill}
+              value={payeesBill}
               precision={2}
               className="font-mono"
             />
@@ -46,14 +43,14 @@ const ContributionsTab = () => {
           <span className="flex">
             <span className="mr-[0.1rem]">₹</span>
             <AnimatedCounter
-              value={payeeBill}
+              value={payeesBill}
               precision={2}
               className="font-mono"
             />
           </span>
         </DrawerDescription>
       </DrawerHeader>
-      <ScrollArea className="h-[300px]">
+      <ScrollArea className="h-[40vh] md:h-[300px]">
         <div className="grid gap-4 p-4 md:px-0 md:pr-4">
           {members.map((member, index) => (
             <PayeeInputAmount
@@ -75,9 +72,9 @@ const PayeeInputAmount = ({
   memberName: string;
   memberIndex: string;
 }) => {
-  const { payees, setPayee, deletePayee } = useContributionsTabStore(
-    (state) => state,
-  );
+  const payees = useContributionsTabStore.use.payees();
+  const setPayee = useContributionsTabStore.use.setPayee();
+  const deletePayee = useContributionsTabStore.use.deletePayee();
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">

@@ -21,8 +21,8 @@ export default async function DashboardLayout({
   return (
     <section>
       <DashboardStoreProvider initialGroupData={groupData}>
-        <SideNavbar />
         <FloatingNavbar />
+        <SideNavbar />
         {children}
       </DashboardStoreProvider>
     </section>
