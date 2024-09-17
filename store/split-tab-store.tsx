@@ -1,46 +1,29 @@
-import { TMembers } from "@/lib/types";
 import { shallow } from "zustand/shallow";
 import { createWithEqualityFn } from "zustand/traditional";
+import createSelectors from "./selectors";
 
 type State = {
-  drawees: string[];
-  draweeAmount: { [key: string]: number };
-  currentSelectedTab: "equally" | "amount" | "percent" | "weights";
+  currentSelectedTab: string;
 };
 
 type Action = {
-  addDrawees: (draweeIndex: string) => void;
-  removeDrawees: (draweeIndex: string) => void;
-  setDraweeAmount: (draweeAmount: State["draweeAmount"]) => void;
-  setCurrentSelectedTab: (tabName: State["currentSelectedTab"]) => void;
-  reset: (groupMembers: TMembers[]) => void;
+  setCurrentSelectedTab: (tabName: string) => void;
+  reset: () => void;
 };
 
-const useSplitTabStore = createWithEqualityFn<State & Action>(
+const useSplitTabStoreBase = createWithEqualityFn<State & Action>(
   (set) => ({
-    drawees: [],
-    draweeAmount: {},
     currentSelectedTab: "equally",
-    addDrawees: (draweeIndex) =>
-      set((state) => ({
-        drawees: [...state.drawees, draweeIndex],
-      })),
-    removeDrawees: (draweeIndex) =>
-      set((state) => ({
-        drawees: state.drawees.filter((index) => index !== draweeIndex),
-      })),
-    setDraweeAmount: (draweeAmount) =>
-      set((state) => ({
-        draweeAmount: draweeAmount,
-      })),
     setCurrentSelectedTab: (tabName) =>
       set(() => ({ currentSelectedTab: tabName })),
-    reset: (groupMembers) =>
+    reset: () =>
       set(() => ({
-        drawees: groupMembers.map(({ memberIndex }) => memberIndex),
+        currentSelectedTab: "equally",
       })),
   }),
   shallow,
 );
+
+const useSplitTabStore = createSelectors(useSplitTabStoreBase);
 
 export default useSplitTabStore;

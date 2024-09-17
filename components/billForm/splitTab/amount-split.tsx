@@ -1,16 +1,25 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import {
+  modifyDraweeAmount,
+  recalculatePayeesBills,
+  removeDraweeAmount,
+  removeDraweePercent,
+} from "@/lib/utils";
+import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
-import useSplitTabStore from "@/store/split-tab-store";
-import React from "react";
+import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
+import useSplitByPercentTabStore from "@/store/split-by-percent-tab-store";
+import useSplitEquallyTabStore from "@/store/split-equally-tab-store";
+import { toast } from "sonner";
 
-const AmountSplit = ({ payeeBill }: { payeeBill: number }) => {
+const AmountSplit = () => {
   const members = useDashboardStore((group) => group.members);
   return (
     <div className="grid gap-4">
       {members.map((member, index) => (
         <DraweeInput
-          key={`drawee-list-${index}`}
+          key={`drawee-input-${index}`}
           memberName={member.name}
           memberIndex={member.memberIndex}
         />
@@ -26,7 +35,28 @@ const DraweeInput = ({
   memberName: string;
   memberIndex: string;
 }) => {
-  const { draweeAmount } = useSplitTabStore((state) => state);
+  const payeesBill = useContributionsTabStore.getState().payeesBill;
+  const payees = useContributionsTabStore.getState().payees;
+  const setMultiplePayees =
+    useContributionsTabStore.getState().setMultiplePayees;
+  const drawees = useSplitEquallyTabStore.getState().drawees;
+  const removeDrawees = useSplitEquallyTabStore.getState().removeDrawees;
+  const draweesSplitByPercent =
+    useSplitByPercentTabStore.getState().draweesSplitByPercent;
+  const setDraweesSplitByPercent =
+    useSplitByPercentTabStore.getState().setDraweesSplitByPercent;
+  const [
+    draweesSplitByAmount,
+    isErroredOut,
+    setDraweesSplitByAmount,
+    setIsError,
+  ] = useSplitByAmountTabStore((state) => [
+    state.draweesSplitByAmount,
+    state.isErroredOut,
+    state.setDraweesSplitByAmount,
+    state.setIsError,
+  ]);
+
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -40,8 +70,72 @@ const DraweeInput = ({
         <Input
           className="w-[70%]"
           type="number"
-          value={draweeAmount[memberIndex] ?? ""}
-          onChange={(e) => {}}
+          value={
+            draweesSplitByAmount.get(memberIndex)
+              ? Math.floor(
+                  draweesSplitByAmount.get(memberIndex)!.amount * 100,
+                ) / 100
+              : ""
+          }
+          onChange={(e) => {
+            if (e.target.value === "0" || e.target.value === "") {
+              if (draweesSplitByAmount.size <= 1) {
+                return toast.error("Drawee amount should not be empty");
+              }
+              if (drawees.includes(memberIndex)) {
+                removeDrawees(memberIndex);
+              }
+              if (draweesSplitByAmount.has(memberIndex)) {
+                setDraweesSplitByAmount(
+                  removeDraweeAmount(
+                    memberIndex,
+                    new Map(draweesSplitByAmount),
+                    payeesBill,
+                  ),
+                );
+              }
+              if (draweesSplitByPercent.has(memberIndex)) {
+                setDraweesSplitByPercent(
+                  removeDraweePercent(
+                    memberIndex,
+                    new Map(draweesSplitByPercent),
+                  ),
+                );
+              }
+            } else {
+              if (isErroredOut) {
+                const draweeAmountState = new Map(draweesSplitByAmount);
+                draweeAmountState.set(memberIndex, {
+                  amount: Number(e.target.value),
+                  isEdited: true,
+                });
+                recalculatePayeesBills(
+                  payees,
+                  draweeAmountState,
+                  payeesBill,
+                  setMultiplePayees,
+                );
+                setDraweesSplitByAmount(draweeAmountState);
+              } else {
+                const { draweeAmountState, error } = modifyDraweeAmount(
+                  memberIndex,
+                  Number(e.target.value),
+                  new Map(draweesSplitByAmount),
+                  payeesBill,
+                );
+                if (error) {
+                  recalculatePayeesBills(
+                    payees,
+                    draweeAmountState,
+                    payeesBill,
+                    setMultiplePayees,
+                  );
+                  setIsError();
+                }
+                setDraweesSplitByAmount(draweeAmountState);
+              }
+            }
+          }}
           onKeyDown={(e) => {
             if (
               e.key === "e" ||

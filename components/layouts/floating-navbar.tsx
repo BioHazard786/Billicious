@@ -1,9 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Activity, LayoutDashboard, PieChart, Plus, Users } from "lucide-react";
-
 import AddBillForm from "@/components/billForm/add-bill-form";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   Variants,
@@ -11,6 +9,7 @@ import {
   useMotionValueEvent,
   useScroll,
 } from "framer-motion";
+import { Activity, LayoutDashboard, PieChart, Users } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useRef, useState } from "react";
@@ -24,7 +23,7 @@ const FloatingNavbar = () => {
 
   useMotionValueEvent(scrollY, "change", (y) => {
     const difference = y - lastYRef.current;
-    if (Math.abs(difference) > 150) {
+    if (Math.abs(difference) > 50) {
       setHidden(difference > 0);
       lastYRef.current = y;
     }
@@ -42,7 +41,7 @@ const FloatingNavbar = () => {
         } as Variants
       }
       transition={{ duration: 0.2, ease: "easeInOut" }}
-      className="fixed inset-x-0 bottom-5 z-[75] mx-auto flex w-min items-center justify-center gap-4 rounded-lg border border-border bg-background p-2 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden"
+      className="fixed inset-x-0 bottom-5 z-[75] mx-auto flex w-min items-center justify-center gap-6 rounded-lg border border-border bg-background p-2 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden"
     >
       <Link href={`/group/${encodeURIComponent(slug as string)}`}>
         <Button

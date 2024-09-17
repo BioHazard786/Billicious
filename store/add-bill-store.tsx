@@ -1,5 +1,6 @@
 import { shallow } from "zustand/shallow";
 import { createWithEqualityFn } from "zustand/traditional";
+import createSelectors from "./selectors";
 
 type State = {
   activeTab: number;
@@ -14,7 +15,7 @@ type Action = {
   reset: () => void;
 };
 
-const useAddBillStore = createWithEqualityFn<State & Action>(
+const useAddBillStoreBase = createWithEqualityFn<State & Action>(
   (set) => ({
     activeTab: 0,
     direction: 0,
@@ -26,5 +27,7 @@ const useAddBillStore = createWithEqualityFn<State & Action>(
   }),
   shallow,
 );
+
+const useAddBillStore = createSelectors(useAddBillStoreBase);
 
 export default useAddBillStore;

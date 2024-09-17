@@ -29,10 +29,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { totalPayeeBill } from "@/lib/utils";
+import { formatDrawees, totalBill as totalPayeeBill } from "@/lib/utils";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
 import useDetailsTabStore from "@/store/details-tab-store";
+import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
+import useSplitByPercentTabStore from "@/store/split-by-percent-tab-store";
+import useSplitEquallyTabStore from "@/store/split-equally-tab-store";
 import useSplitTabStore from "@/store/split-tab-store";
 import {
   Bed,
@@ -48,14 +51,13 @@ import {
   UtensilsCrossed,
   Wallet,
 } from "lucide-react";
-import { useMemo } from "react";
 
 const DetailsTab = () => {
-  const payees = useContributionsTabStore((state) => state.payees);
-  const totalBill = useMemo(() => totalPayeeBill(payees), [payees]);
-  const { billName, setBillName, notes, setNotes } = useDetailsTabStore(
-    (state) => state,
-  );
+  const totalBill = useContributionsTabStore.getState().payeesBill;
+  const billName = useDetailsTabStore.use.billName();
+  const setBillName = useDetailsTabStore.use.setBillName();
+  const notes = useDetailsTabStore.use.notes();
+  const setNotes = useDetailsTabStore.use.setNotes();
 
   return (
     <>
@@ -79,7 +81,7 @@ const DetailsTab = () => {
           </span>
         </DrawerDescription>
       </DrawerHeader>
-      <ScrollArea className="h-[300px]">
+      <ScrollArea className="h-[40vh] md:h-[300px]">
         <div className="flex flex-col gap-5 p-4 md:px-0 md:pr-4">
           <div className="flex gap-2">
             <Popover modal>
@@ -115,23 +117,32 @@ const DetailsTab = () => {
             </div>
           </div>
           <Separator />
-          <DetailsTable payees={payees} totalBill={totalBill} />
+          <DetailsTable />
         </div>
       </ScrollArea>
     </>
   );
 };
 
-const DetailsTable = ({
-  payees,
-  totalBill,
-}: {
-  payees: { [key: string]: number };
-  totalBill: number;
-}) => {
+const DetailsTable = () => {
   const members = useDashboardStore((group) => group.members);
-  const drawees = useSplitTabStore((state) => state.drawees);
-  const billPerEachDrawee = totalBill / drawees.length;
+  const payees = useContributionsTabStore.getState().payees;
+  const payeesBill = useContributionsTabStore.getState().payeesBill;
+  const currentSelectedTab = useSplitTabStore.getState().currentSelectedTab;
+  const draweesSplitEqually = useSplitEquallyTabStore.getState().drawees;
+  const draweesSplitByAmount =
+    useSplitByAmountTabStore.getState().draweesSplitByAmount;
+  const draweesSplitByPercent =
+    useSplitByPercentTabStore.getState().draweesSplitByPercent;
+
+  const drawees = formatDrawees(
+    draweesSplitEqually,
+    draweesSplitByAmount,
+    draweesSplitByPercent,
+    payeesBill,
+    currentSelectedTab,
+  );
+
   return (
     <Table>
       <TableCaption>A list of credits and debits of members.</TableCaption>
@@ -159,8 +170,8 @@ const DetailsTable = ({
                 : "-"}
             </TableCell>
             <TableCell className="text-right text-destructive">
-              {drawees.some((draweeIndex) => draweeIndex === member.memberIndex)
-                ? `-₹${billPerEachDrawee.toFixed(2)}`
+              {drawees.hasOwnProperty(member.memberIndex)
+                ? `-₹${drawees[member.memberIndex].toFixed(2)}`
                 : "-"}
             </TableCell>
           </TableRow>
@@ -176,7 +187,7 @@ const CategoryPopover = () => (
       <Bus className="size-5 text-muted-foreground" />
       <span className="text-xs text-muted-foreground">Transport</span>
     </div>
-    <div className="rounded- flex cursor-pointer flex-col items-center rounded-md p-1 hover:bg-muted">
+    <div className="flex cursor-pointer flex-col items-center rounded-md p-1 hover:bg-muted">
       <Bed className="size-5 text-muted-foreground" />
       <span className="text-xs text-muted-foreground">Lodging</span>
     </div>

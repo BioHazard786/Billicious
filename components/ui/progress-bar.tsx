@@ -61,7 +61,7 @@ const ProgressBar = ({
       </Avatar>
       <div className="ml-4 flex flex-grow flex-col">
         <div className="mb-1 flex flex-row justify-between">
-          <p className="text-sm">
+          <p className="font-mono text-sm">
             {name.length > 7 ? name.slice(0, 5) + "..." : name}
             {balance !== 0 ? (
               <span
@@ -77,8 +77,9 @@ const ProgressBar = ({
               </span>
             ) : null}
           </p>
-          <p className="text-sm">
-            ₹<span ref={totalPaidRef}>{totalPaid}</span>
+          <p className="font-mono text-sm">
+            <span className="mr-[0.1rem]">₹</span>
+            <span ref={totalPaidRef}>{totalPaid}</span>
           </p>
         </div>
         <div className="flex h-[0.65rem] flex-col rounded-lg rounded-l-sm bg-muted">
