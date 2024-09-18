@@ -58,7 +58,7 @@ export const billsTable = pgTable(
     groupId: text("group_id").references(() => groupsTable.id),
     isPayment: boolean("is_payment").default(false),
     category: text("category").notNull(),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull(),
     updatedAt: timestamp("updated_at")
       .notNull()
       .$onUpdate(() => new Date()),
@@ -131,10 +131,6 @@ export const draweesInBillsTable = pgTable(
     billId: text("bill_id").references(() => billsTable.id),
     userIndex: integer("user_index").notNull(),
     amount: numeric("amount").notNull(),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at")
-      .notNull()
-      .$onUpdate(() => new Date()),
   },
   (table) => {
     return {
@@ -155,10 +151,6 @@ export const payeesInBillsTable = pgTable(
     billId: text("bill_id").references(() => billsTable.id),
     userIndex: integer("user_index").notNull(),
     amount: numeric("amount").notNull(),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at")
-      .notNull()
-      .$onUpdate(() => new Date()),
   },
   (table) => {
     return {
