@@ -83,12 +83,12 @@ export async function createBillInDB(requestData: any) {
       notes: requestData.notes,
       amount: totalAmount.toString(),
       category: requestData.category,
-      is_payment: requestData.hasOwnProperty("is_payment")
+      isPayment: requestData.hasOwnProperty("is_payment")
         ? requestData.is_payment
         : false,
-      created_at: requestData.hasOwnProperty("created_at")
-        ? requestData.created_at
-        : Date.now(),
+      createdAt: requestData.hasOwnProperty("created_at")
+        ? new Date(requestData.created_at)
+        : new Date(),
       groupId: groupId,
     };
     let bills = await transaction

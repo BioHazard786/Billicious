@@ -146,7 +146,7 @@ export async function deleteGroupInDB(requestData: any) {
 }
 
 export async function getGroupBillsFromDB(requestData: any) {
-  let bills;
+  let bills: any = [];
   await db.transaction(async (transaction) => {
     let groupId = requestData.group_id;
 
@@ -155,7 +155,7 @@ export async function getGroupBillsFromDB(requestData: any) {
       : 10;
     let page = requestData.hasOwnProperty("page") ? requestData.page : 1;
 
-    bills = await withPagination(
+    let billsFromDB = await withPagination(
       transaction
         .select()
         .from(billsTable)
@@ -165,6 +165,26 @@ export async function getGroupBillsFromDB(requestData: any) {
       page,
       pageSize,
     );
+
+    // console.log(billsFromDB);
+
+    for (let bill of billsFromDB) {
+      let drawees = await transaction
+        .select()
+        .from(draweesInBillsTable)
+        .where(eq(draweesInBillsTable.billId, bill.id));
+      let payees = await transaction
+        .select()
+        .from(payeesInBillsTable)
+        .where(eq(payeesInBillsTable.billId, bill.id));
+
+      bills.push({
+        ...bill,
+        drawees: drawees,
+        payees: payees,
+      });
+      // console.log(bills);
+    }
   });
   return bills;
 }
