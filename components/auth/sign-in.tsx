@@ -28,6 +28,7 @@ import {
   FormItem,
   FormMessage,
 } from "../ui/form";
+import { PasswordField } from "../ui/password-input";
 import Spinner from "../ui/spinner";
 
 export default function SignIn() {
@@ -118,24 +119,7 @@ export default function SignIn() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input
-                      autoComplete="current-password"
-                      type="password"
-                      id="password"
-                      placeholder="password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <PasswordField />
             <AnimatedButton
               type="submit"
               variant="default"

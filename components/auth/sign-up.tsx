@@ -27,6 +27,7 @@ import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 import { z } from "zod";
+import { PasswordField } from "../ui/password-input";
 import Spinner from "../ui/spinner";
 
 export default function SignUp() {
@@ -135,24 +136,7 @@ export default function SignUp() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input
-                      autoComplete="current-password"
-                      type="password"
-                      id="password"
-                      placeholder="password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <PasswordField />
             <AnimatePresence presenceAffectsLayout initial={false}>
               <Button
                 type="submit"
