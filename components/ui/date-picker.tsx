@@ -8,12 +8,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import useDetailstabStore from "@/store/details-tab-store";
+import useDetailsTabStore from "@/store/details-tab-store";
 import { format } from "date-fns";
 import { useState } from "react";
 
 export function DatePicker() {
-  const [date, setDate] = useDetailstabStore((state) => [
+  const [date, setDate] = useDetailsTabStore((state) => [
     state.createdAt,
     state.setCreatedAt,
   ]);
@@ -37,7 +37,7 @@ export function DatePicker() {
           mode="single"
           selected={date}
           onSelect={(e) => {
-            setDate(e);
+            setDate(e ?? new Date());
             setIsCalendarOpen(false);
           }}
           initialFocus

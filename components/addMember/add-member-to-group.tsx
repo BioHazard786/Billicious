@@ -28,7 +28,7 @@ import { addMembersToGroupInDB } from "@/server/fetchHelpers";
 import useDashboardStore from "@/store/dashboard-store";
 import { useMutation } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 
@@ -42,7 +42,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 import {
   Drawer,
@@ -54,10 +53,21 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { formatMemberData, titleCase } from "@/lib/utils";
-import { AnimatePresence, motion } from "framer-motion";
-import { useRef, useState } from "react";
-import Spinner from "../ui/spinner";
+import { addMemberFormSchema } from "@/lib/schema";
+import { cn, formatMemberData, isAppleDevice, titleCase } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import AnimatedButton from "../ui/animated-button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../ui/form";
 
 export default function AddMembers() {
   const members = useDashboardStore((state) => state.members);
@@ -89,21 +99,23 @@ export default function AddMembers() {
                     <Avatar className="size-8 md:size-10">
                       <AvatarFallback>{member.name[0]}</AvatarFallback>
                     </Avatar>
-                    <p className="w-14 truncate md:w-32 lg:w-full">
+                    <p className="max-w-14 truncate md:max-w-32 lg:w-full">
                       {member.name}
                     </p>
                   </span>
                 </TableCell>
                 <TableCell
                   className={
-                    member.balance >= 0 ? "text-primary" : "text-destructive"
+                    member.balance >= 0
+                      ? "font-mono text-primary"
+                      : "font-mono text-destructive"
                   }
                 >
                   {member.balance < 0
                     ? `-₹${(-member.balance).toFixed(2)}`
                     : `₹${member.balance.toFixed(2)}`}
                 </TableCell>
-                <TableCell className="hidden md:table-cell">
+                <TableCell className="hidden font-mono md:table-cell">
                   ₹{member.totalPaid}
                 </TableCell>
                 <TableCell>
@@ -134,38 +146,47 @@ export default function AddMembers() {
 }
 
 const MemberAddDialog = () => {
+  const isApple = isAppleDevice();
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const updateMembers = useDashboardStore((state) => state.addMember);
   const [isOpen, setIsOpen] = useState(false);
-  const memberRef = useRef<HTMLInputElement>(null);
   const { slug } = useParams();
 
-  const { isPending, mutate: server_addMembersToGroup } = useMutation({
-    mutationFn: addMembersToGroupInDB,
-    onSuccess: (data) => {
-      const newMember = formatMemberData(data);
-      updateMembers(newMember);
-      setIsOpen(false);
-      return toast.success("Member added successfully");
-    },
-    onError: (error) => {
-      console.log(error);
-      return toast.error("Error on adding Member");
+  const form = useForm<z.infer<typeof addMemberFormSchema>>({
+    resolver: zodResolver(addMemberFormSchema),
+    defaultValues: {
+      full_name: "",
     },
   });
 
-  const addMembersToGroup = () => {
-    if (memberRef.current!.value.length <= 2) {
-      return toast.error("Name must be atleast 3 characters");
-    }
-    if (memberRef.current!.value.length >= 32) {
-      toast.error("Member Name should be atmost 32 characters");
-      return (memberRef.current!.value = "");
-    }
+  const { isPending, mutate: server_addMembersToGroup } = useMutation({
+    mutationFn: addMembersToGroupInDB,
+    onMutate: () => {
+      const toastId = toast.loading("Adding Member...");
+      return { toastId };
+    },
+    onSuccess: (data, variables, context) => {
+      const newMember = formatMemberData(data);
+      updateMembers(newMember);
+      setIsOpen(false);
+      return toast.success("Member added successfully", {
+        id: context.toastId,
+      });
+    },
+    onError: (error, variables, context) => {
+      console.log(error);
+      return toast.error("Error on adding Member", {
+        id: context?.toastId,
+      });
+    },
+  });
 
+  const addMembersToGroup = async (
+    data: z.infer<typeof addMemberFormSchema>,
+  ) => {
     server_addMembersToGroup({
       group_id: slug as string,
-      members: [titleCase(memberRef.current!.value)],
+      members: [titleCase(data.full_name)],
     });
   };
 
@@ -182,56 +203,38 @@ const MemberAddDialog = () => {
               Add member to group. Click save when you're done.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Name
-              </Label>
-              <Input
-                id="name"
-                placeholder="Member's name"
-                className="col-span-3"
-                ref={memberRef}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    addMembersToGroup();
-                  }
-                }}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              className="w-[75px]"
-              variant="default"
-              disabled={isPending}
-              onClick={addMembersToGroup}
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(addMembersToGroup)}
+              className="flex flex-col gap-4"
             >
-              <AnimatePresence initial={false} mode="wait">
-                {isPending ? (
-                  <Spinner
-                    key="spinner"
-                    AnimationProps={{
-                      initial: { y: "100%", opacity: 0 },
-                      animate: { y: 0, opacity: 1 },
-                      exit: { y: "-100%", opacity: 0 },
-                      transition: { ease: "easeInOut", duration: 0.2 },
-                    }}
-                  />
-                ) : (
-                  <motion.span
-                    key="button-text"
-                    initial={{ y: "100%", opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: "-100%", opacity: 0 }}
-                    transition={{ ease: "easeInOut", duration: 0.2 }}
-                  >
-                    Add
-                  </motion.span>
+              <FormField
+                control={form.control}
+                name="full_name"
+                render={({ field }) => (
+                  <FormItem className="py-4 text-center">
+                    <div className="flex items-center gap-4">
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          autoComplete="name"
+                          id="name"
+                          placeholder="Zaid"
+                          {...field}
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </AnimatePresence>
-            </Button>
-          </DialogFooter>
+              />
+              <DialogFooter>
+                <AnimatedButton isLoading={isPending} variant="default">
+                  Add
+                </AnimatedButton>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     );
@@ -249,41 +252,39 @@ const MemberAddDialog = () => {
             Add member to group. Click save when you're done.
           </DrawerDescription>
         </DrawerHeader>
-        <div className="flex items-center gap-4 p-4">
-          <Label htmlFor="name" className="text-right">
-            Name
-          </Label>
-          <Input
-            id="name"
-            placeholder="Member's name"
-            className="col-span-3 text-base"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                addMembersToGroup();
-              }
-            }}
-            ref={memberRef}
-          />
-        </div>
-        <DrawerFooter>
-          <AnimatePresence presenceAffectsLayout initial={false}>
-            <Button
-              type="submit"
-              variant="default"
-              className="w-full"
-              onClick={addMembersToGroup}
-              disabled={isPending}
-            >
-              {isPending && <Spinner className="mr-[0.35rem]" />}
-              <motion.span
-                layout
-                transition={{ ease: "easeInOut", duration: 0.2 }}
-              >
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(addMembersToGroup)}
+            className="flex flex-col"
+          >
+            <FormField
+              control={form.control}
+              name="full_name"
+              render={({ field }) => (
+                <FormItem className="p-4 text-center">
+                  <div className="flex items-center gap-4">
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        className={cn("col-span-3", isApple ? "text-base" : "")}
+                        autoComplete="name"
+                        id="name"
+                        placeholder="Zaid"
+                        {...field}
+                      />
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DrawerFooter>
+              <AnimatedButton isLoading={isPending} variant="default">
                 Add
-              </motion.span>
-            </Button>
-          </AnimatePresence>
-        </DrawerFooter>
+              </AnimatedButton>
+            </DrawerFooter>
+          </form>
+        </Form>
       </DrawerContent>
     </Drawer>
   );

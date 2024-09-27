@@ -13,6 +13,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn, isAppleDevice } from "@/lib/utils";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
 import AnimatedCounter from "../ui/animated-counter";
@@ -72,6 +73,7 @@ const PayeeInputAmount = ({
   memberName: string;
   memberIndex: string;
 }) => {
+  const isApple = isAppleDevice();
   const payees = useContributionsTabStore.use.payees();
   const setPayee = useContributionsTabStore.use.setPayee();
   const deletePayee = useContributionsTabStore.use.deletePayee();
@@ -86,7 +88,7 @@ const PayeeInputAmount = ({
       <div className="flex items-center justify-end gap-2">
         <p className="w-min text-sm">₹</p>
         <Input
-          className="w-[70%]"
+          className={cn("w-[70%]", isApple ? "text-base" : "")}
           type="number"
           value={payees[memberIndex] || ""}
           onChange={(e) => {

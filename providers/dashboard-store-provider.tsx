@@ -18,6 +18,8 @@ export const DashboardStoreProvider = ({
   const storeRef = useRef<DashboardStore>();
   if (!storeRef.current) {
     storeRef.current = createDashboardStore(initialGroupData);
+  } else {
+    storeRef.current.setState(initialGroupData);
   }
 
   return (

@@ -1,11 +1,14 @@
 import { cn } from "@/lib/utils";
-import { AnimationProps, motion } from "framer-motion";
+import { type AnimationProps, motion } from "framer-motion";
 
-const getSpans = () => {
+const getSpans = (loadingSpanClassName?: string) => {
   return [...new Array(12)].map((_, index) => (
     <span
       key={`spinner-${index}`}
-      className="absolute left-[-10%] top-[-3.9%] h-[8%] w-[24%] rounded-[2px] bg-background"
+      className={cn(
+        "absolute left-[-10%] top-[-3.9%] h-[8%] w-[24%] rounded-[2px] bg-background",
+        loadingSpanClassName,
+      )}
     >
       <style jsx>{`
         span {
@@ -87,10 +90,12 @@ const getSpans = () => {
 
 const Spinner = ({
   className,
+  loadingSpanClassName,
   AnimationProps,
   ...props
 }: {
   className?: string;
+  loadingSpanClassName?: string;
   AnimationProps?: AnimationProps;
 }) => {
   return (
@@ -104,7 +109,7 @@ const Spinner = ({
       {...props}
     >
       <div className="relative left-[50%] top-[50%] h-full w-full">
-        {getSpans()}
+        {getSpans(loadingSpanClassName)}
       </div>
     </motion.div>
   );

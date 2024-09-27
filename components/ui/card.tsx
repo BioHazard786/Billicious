@@ -1,7 +1,5 @@
-import * as React from "react";
-
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import * as React from "react";
 
 const Card = React.forwardRef<
   HTMLDivElement,
@@ -70,16 +68,12 @@ const CardFooter = React.forwardRef<
   />
 ));
 CardFooter.displayName = "CardFooter";
-const CardMotion = motion(Card);
-const CardContentMotion = motion(CardHeader);
 
 export {
   Card,
   CardContent,
-  CardContentMotion,
   CardDescription,
   CardFooter,
   CardHeader,
-  CardMotion,
   CardTitle,
 };

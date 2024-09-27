@@ -10,14 +10,14 @@ import TotalExpense from "./total-expense";
 
 const Dashboard = () => {
   const members = useDashboardStore((state) => state.members);
-  const setInitialDraweeState = useSplitEquallyTabStore((state) => state.reset);
+  const setInitialDraweeState = useSplitEquallyTabStore.getState().reset;
 
   useEffect(() => {
     setInitialDraweeState(members);
   }, [members]);
 
   return (
-    <main className="relative grid h-dvh w-full grid-cols-1 gap-3 overflow-x-hidden p-3 pt-[4.2rem] md:grid-cols-2 lg:grid-cols-3 lg:grid-rows-[auto_1fr] lg:pl-[4.2rem]">
+    <main className="relative grid h-full w-full grid-cols-1 gap-3 overflow-x-hidden p-3 pt-[4.2rem] md:grid-cols-2 lg:h-dvh lg:grid-cols-3 lg:grid-rows-[auto_1fr] lg:pl-[4.2rem]">
       <EventName />
       <TotalExpense />
       <ExpenseChart />

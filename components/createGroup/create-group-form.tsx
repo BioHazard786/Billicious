@@ -2,28 +2,47 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  CardContentMotion,
   CardDescription,
   CardFooter,
   CardHeader,
-  CardMotion,
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import Spinner from "@/components/ui/spinner";
+import { createGroupFormSchema } from "@/lib/schema";
 import { titleCase } from "@/lib/utils";
 import { createGroupInDB } from "@/server/fetchHelpers";
 import useCreateGroup from "@/store/create-group-store";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { useRef } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
+import AnimatedButton from "../ui/animated-button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../ui/form";
+import { CardContentMotion, CardMotion } from "../ui/motion-card";
 
 const CreateGroupForm = () => {
+  const form = useForm<z.infer<typeof createGroupFormSchema>>({
+    resolver: zodResolver(createGroupFormSchema),
+    defaultValues: {
+      group_name: "",
+      member_name: "",
+    },
+  });
+
   const {
     memberNames,
     groupNameError,
@@ -112,14 +131,54 @@ const CreateGroupForm = () => {
   };
 
   return (
-    <CardMotion layout className="max-w-sm">
+    <CardMotion layout className="mx-4 max-w-sm md:mx-auto">
       <CardHeader>
         <CardTitle className="text-2xl">Create Group</CardTitle>
         <CardDescription>
           Enter group name and members to create group
         </CardDescription>
       </CardHeader>
-      <CardContentMotion layout className="grid gap-1">
+      <CardContentMotion layout>
+        {/* <Form {...form}>
+          <form className="space-y-6" onSubmit={form.handleSubmit(addMembers)}>
+            <FormField
+              control={form.control}
+              name="group_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Group Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      id="email"
+                      placeholder="billicious@popular.com"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="member_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Member Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      id="email"
+                      placeholder="billicious@popular.com"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </form>
+        </Form> */}
         <div className="grid gap-2">
           <Label
             htmlFor="groupName"
@@ -186,7 +245,9 @@ const CreateGroupForm = () => {
                 key={`member-name-${index}`}
                 className="inline-flex h-8 cursor-default items-center rounded-sm bg-secondary pl-2 text-sm text-secondary-foreground"
               >
-                {name}
+                <span className="max-w-14 truncate md:max-w-32 lg:w-full">
+                  {name}
+                </span>
                 <button
                   onClick={() => removeMembers(name)}
                   className="inline-flex h-full items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
@@ -199,23 +260,15 @@ const CreateGroupForm = () => {
         </ul>
       </CardContentMotion>
       <CardFooter>
-        <AnimatePresence presenceAffectsLayout initial={false}>
-          <Button
-            type="submit"
-            variant="default"
-            className="w-full"
-            onClick={createGroup}
-            disabled={isPending}
-          >
-            {isPending && <Spinner className="mr-[0.35rem]" />}
-            <motion.span
-              layout
-              transition={{ ease: "easeInOut", duration: 0.2 }}
-            >
-              Create Group
-            </motion.span>
-          </Button>
-        </AnimatePresence>
+        <AnimatedButton
+          isLoading={isPending}
+          type="submit"
+          variant="default"
+          className="w-full"
+          onClick={createGroup}
+        >
+          Create Group
+        </AnimatedButton>
       </CardFooter>
     </CardMotion>
   );

@@ -16,14 +16,15 @@ import { useRef, useState } from "react";
 
 const FloatingNavbar = () => {
   const [hidden, setHidden] = useState(false);
-  const { scrollY } = useScroll();
+  const { scrollY } = useScroll({});
   const lastYRef = useRef(0);
+  const navRef = useRef(null);
   const pathname = usePathname();
   const { slug } = useParams();
 
   useMotionValueEvent(scrollY, "change", (y) => {
     const difference = y - lastYRef.current;
-    if (Math.abs(difference) > 50) {
+    if (Math.abs(difference) > 10) {
       setHidden(difference > 0);
       lastYRef.current = y;
     }
@@ -31,6 +32,7 @@ const FloatingNavbar = () => {
 
   return (
     <motion.nav
+      ref={navRef}
       animate={hidden ? "hidden" : "visible"}
       initial="visible"
       onFocusCapture={hidden ? () => setHidden(false) : undefined}
@@ -40,7 +42,7 @@ const FloatingNavbar = () => {
           hidden: { y: "140%" },
         } as Variants
       }
-      transition={{ duration: 0.2, ease: "easeInOut" }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
       className="fixed inset-x-0 bottom-5 z-[75] mx-auto flex w-min items-center justify-center gap-6 rounded-lg border border-border bg-background p-2 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden"
     >
       <Link href={`/group/${encodeURIComponent(slug as string)}`}>

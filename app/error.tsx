@@ -20,13 +20,13 @@ export default function Error({ error, reset }: ErrorProps) {
   return (
     <div className="flex h-dvh flex-col items-center justify-center bg-background p-4 text-foreground">
       <div className="space-y-6 text-center">
-        <h1 className="flex items-center justify-center gap-2 text-7xl font-extrabold text-primary md:text-9xl">
+        <h1 className="flex items-center justify-center gap-2 text-8xl font-extrabold text-primary md:text-9xl">
           <span>4</span>
-          <Mascot className="size-[7rem]" />
+          <Mascot className="size-[4.5rem] md:size-[7rem]" />
           <span>4</span>
         </h1>
-        <h2 className="text-4xl font-semibold">Group Not Found</h2>
-        <p className="max-w-lg text-xl text-muted-foreground">
+        <h2 className="text-2xl font-semibold md:text-4xl">Group Not Found</h2>
+        <p className="max-w-lg text-muted-foreground md:text-xl">
           Oops! The group you are looking for might have been removed, had its
           name changed, or is temporarily unavailable.
         </p>

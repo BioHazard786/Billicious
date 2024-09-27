@@ -1,4 +1,3 @@
-import TotalExpense from "@/components/dashboard/total-expense";
 import { client, db } from "@/database/dbConnect";
 import {
   billsTable,
@@ -6,8 +5,8 @@ import {
   groupsTable,
   membersTable,
   payeesInBillsTable,
-  transactionsTable,
   requestTable,
+  transactionsTable,
 } from "@/database/schema";
 import { desc, eq } from "drizzle-orm";
 import { PgSelect } from "drizzle-orm/pg-core";

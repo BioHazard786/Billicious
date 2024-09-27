@@ -1,8 +1,8 @@
 import CreateGroupForm from "@/components/createGroup/create-group-form";
+import Loading from "./loading";
 // import { redpanda } from "@/database/kafka";
 
 const Page = () => {
-
   // const consumer = redpanda.consumer({ groupId: 'my-group-id' });
   // console.log("Consumer");
   // console.log(consumer);
@@ -21,9 +21,9 @@ const Page = () => {
   //     },
   //   })
   // }
-  
+
   // run().catch(console.error)
-  
+
   // process.once("SIGINT", async () => {
   //   try {
   //     await consumer.disconnect()

@@ -26,11 +26,12 @@ import {
 } from "@/components/ui/drawer";
 
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { formatDrawees } from "@/lib/split-tab-utils";
 import {
   cn,
-  formatDrawees,
   formatMemberData,
   resetBillFormStores,
+  titleCase,
 } from "@/lib/utils";
 import { addBillToGroupInDB } from "@/server/fetchHelpers";
 import useAddBillStore from "@/store/add-bill-store";
@@ -47,7 +48,7 @@ import { Plus } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import Spinner from "../ui/spinner";
+import AnimatedButton from "../ui/animated-button";
 import ContributionsTab from "./contributions-tab";
 import DetailsTab from "./details-tab";
 import SplitTab from "./split-tab";
@@ -101,6 +102,7 @@ function AddBillForm() {
   const setIsAnimating = useAddBillStore.use.setIsAnimating();
 
   const addBillToGroup = useDashboardStore((state) => state.addBill);
+  const addTransaction = useDashboardStore((state) => state.addTransaction);
 
   const payees = useContributionsTabStore.use.payees();
   const payeesBill = useContributionsTabStore.use.payeesBill();
@@ -108,7 +110,11 @@ function AddBillForm() {
   const billName = useDetailsTabStore.use.billName();
   const setBillName = useDetailsTabStore.use.setBillName();
   const notes = useDetailsTabStore.use.notes();
-  const createdAt = useDetailsTabStore((state) => state.createdAt);
+  const category = useDetailsTabStore.use.category();
+  const [createdAt, setDate] = useDetailsTabStore((state) => [
+    state.createdAt,
+    state.setCreatedAt,
+  ]);
 
   const currentSelectedTab = useSplitTabStore.use.currentSelectedTab();
 
@@ -143,6 +149,21 @@ function AddBillForm() {
         updatedMembers: formatMemberData(data.members),
         totalAmount: parseFloat(data.total_group_expense),
       });
+      addTransaction({
+        name: billName,
+        category: category,
+        createdAt: createdAt as Date,
+        notes: notes,
+        id: data.bill_id,
+        amount: payeesBill,
+        isPayment: false,
+        drawees: data.drawees.map(
+          (drawee: { userIndex: number }) => drawee.userIndex,
+        ),
+        payees: data.payees.map(
+          (payee: { userIndex: number }) => payee.userIndex,
+        ),
+      });
       resetBillFormStores();
       return toast.success("Transaction added successfully");
     },
@@ -164,9 +185,9 @@ function AddBillForm() {
 
     server_createTransaction({
       group_id: slug as string,
-      name: billName,
-      category: "Food",
-      created_at: createdAt,
+      name: titleCase(billName),
+      category: category,
+      created_at: createdAt.getTime(),
       notes: notes,
       payees: payees,
       drawees: formatDrawees(
@@ -216,10 +237,9 @@ function AddBillForm() {
           </div>
           <DialogFooter className="flex-row items-center sm:justify-between">
             <CustomBreadcrumb handleTabClick={handleTabClick} />
-            <Button
-              className="w-[75px]"
+            <AnimatedButton
+              type="submit"
               variant="default"
-              disabled={isPending || Object.keys(payees).length === 0}
               onClick={() => {
                 if (activeTab + 1 < tabs.length) {
                   handleTabClick(activeTab + 1);
@@ -227,31 +247,11 @@ function AddBillForm() {
                   createTransaction();
                 }
               }}
+              isDisabled={isPending || Object.keys(payees).length === 0}
+              isLoading={isPending}
             >
-              <AnimatePresence initial={false} mode="wait">
-                {isPending ? (
-                  <Spinner
-                    key="spinner"
-                    AnimationProps={{
-                      initial: { y: "100%", opacity: 0 },
-                      animate: { y: 0, opacity: 1 },
-                      exit: { y: "-100%", opacity: 0 },
-                      transition: { ease: "easeInOut", duration: 0.2 },
-                    }}
-                  />
-                ) : (
-                  <motion.span
-                    key="button-text"
-                    initial={{ y: "100%", opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: "-100%", opacity: 0 }}
-                    transition={{ ease: "easeInOut", duration: 0.2 }}
-                  >
-                    {activeTab + 1 === tabs.length ? "Create" : "Next"}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </Button>
+              {activeTab + 1 === tabs.length ? "Create" : "Next"}
+            </AnimatedButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -298,29 +298,22 @@ function AddBillForm() {
           </AnimatePresence>
         </div>
         <DrawerFooter className="flex-row items-center justify-stretch">
-          <AnimatePresence presenceAffectsLayout initial={false}>
-            <Button
-              type="submit"
-              variant="default"
-              className="w-full"
-              onClick={() => {
-                if (activeTab + 1 < tabs.length) {
-                  handleTabClick(activeTab + 1);
-                } else {
-                  createTransaction();
-                }
-              }}
-              disabled={isPending || Object.keys(payees).length === 0}
-            >
-              {isPending && <Spinner className="mr-[0.35rem]" />}
-              <motion.span
-                layout
-                transition={{ ease: "easeInOut", duration: 0.2 }}
-              >
-                {activeTab + 1 === tabs.length ? "Create" : "Next"}
-              </motion.span>
-            </Button>
-          </AnimatePresence>
+          <AnimatedButton
+            type="submit"
+            variant="default"
+            className="w-full"
+            onClick={() => {
+              if (activeTab + 1 < tabs.length) {
+                handleTabClick(activeTab + 1);
+              } else {
+                createTransaction();
+              }
+            }}
+            isDisabled={isPending || Object.keys(payees).length === 0}
+            isLoading={isPending}
+          >
+            {activeTab + 1 === tabs.length ? "Create" : "Next"}
+          </AnimatedButton>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

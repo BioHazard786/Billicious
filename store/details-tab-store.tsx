@@ -4,14 +4,16 @@ import createSelectors from "./selectors";
 
 type State = {
   billName: string;
-  createdAt?: Date;
+  createdAt: Date;
   notes: string;
+  category: string;
 };
 
 type Action = {
   setBillName: (billName: string) => void;
-  setCreatedAt: (creation_date?: Date) => void;
+  setCreatedAt: (createdAt: Date) => void;
   setNotes: (notes: string) => void;
+  setCategory: (category: string) => void;
   reset: () => void;
 };
 
@@ -20,10 +22,18 @@ const useDetailsTabStoreBase = createWithEqualityFn<State & Action>(
     billName: "",
     createdAt: new Date(),
     notes: "",
+    category: "Default",
     setBillName: (billName) => set({ billName: billName }),
-    setCreatedAt: (creation_date) => set({ createdAt: creation_date }),
+    setCreatedAt: (createdAt) => set({ createdAt: createdAt }),
     setNotes: (notes) => set({ notes: notes }),
-    reset: () => set({ billName: "", createdAt: new Date(), notes: "" }),
+    setCategory: (category) => set({ category: category }),
+    reset: () =>
+      set({
+        billName: "",
+        createdAt: new Date(),
+        notes: "",
+        category: "Default",
+      }),
   }),
   shallow,
 );
