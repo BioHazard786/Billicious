@@ -134,8 +134,8 @@ export async function createBillInDB(requestData: any) {
         amount: amt as string,
       });
     }
-    // bill.drawees = drawees;
-    // bill.payees = payees;
+    bill.drawees = drawees;
+    bill.payees = payees;
 
     // Create Drawees and Payees in DB
     await transaction.insert(draweesInBillsTable).values(drawees);

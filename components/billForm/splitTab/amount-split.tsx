@@ -5,7 +5,8 @@ import {
   recalculatePayeesBills,
   removeDraweeAmount,
   removeDraweePercent,
-} from "@/lib/utils";
+} from "@/lib/split-tab-utils";
+import { cn, isAppleDevice } from "@/lib/utils";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
 import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
@@ -35,6 +36,7 @@ const DraweeInput = ({
   memberName: string;
   memberIndex: string;
 }) => {
+  const isApple = isAppleDevice();
   const payeesBill = useContributionsTabStore.getState().payeesBill;
   const payees = useContributionsTabStore.getState().payees;
   const setMultiplePayees =
@@ -68,7 +70,7 @@ const DraweeInput = ({
       <div className="flex items-center justify-end gap-2">
         <p className="w-min text-sm">₹</p>
         <Input
-          className="w-[70%]"
+          className={cn("w-[70%]", isApple ? "text-base" : "")}
           type="number"
           value={
             draweesSplitByAmount.get(memberIndex)

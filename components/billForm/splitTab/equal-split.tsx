@@ -4,10 +4,10 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   addDraweeAmount,
   addDraweePercent,
-  cn,
   removeDraweeAmount,
   removeDraweePercent,
-} from "@/lib/utils";
+} from "@/lib/split-tab-utils";
+import { cn } from "@/lib/utils";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
 import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";

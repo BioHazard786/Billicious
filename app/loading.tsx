@@ -1,12 +1,25 @@
-import { Skeleton } from "@/components/ui/skeleton";
+// "use client";
+
+// import LoadingAnimationDark from "@/public/LoadingAnimDark.json";
+// import LoadingAnimationLight from "@/public/LoadingAnimLight.json";
+// import Lottie from "lottie-react";
+import { Loader } from "lucide-react";
+// import { useTheme } from "next-themes";
+// import { useMemo } from "react";
 
 const Loading = () => {
+  // const { resolvedTheme } = useTheme();
+
+  // const animationData = useMemo(
+  //   () =>
+  //     resolvedTheme === "light" ? LoadingAnimationLight : LoadingAnimationDark,
+  //   [resolvedTheme],
+  // );
+
   return (
-    <div className="grid h-dvh w-full grid-cols-1 gap-3 overflow-hidden p-3 pt-[4.2rem] md:grid-cols-2 lg:grid-cols-3 lg:grid-rows-[auto_1fr] lg:pl-[4.2rem]">
-      <Skeleton className="h-[160px] w-full rounded-xl" />
-      <Skeleton className="h-[160px] w-full rounded-xl" />
-      <Skeleton className="h-[400px] w-full rounded-xl md:col-span-2 lg:col-span-1 lg:row-span-2 lg:h-full" />
-      <Skeleton className="h-[400px] w-full rounded-xl md:col-span-2 lg:h-full" />
+    <div className="flex h-screen w-full items-center justify-center [@supports(height:100dvh)]:h-dvh">
+      {/* <Lottie animationData={animationData} loop={true} className="size-16" /> */}
+      <Loader className="size-8 animate-spin text-muted-foreground" />
     </div>
   );
 };

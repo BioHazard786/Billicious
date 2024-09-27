@@ -1,11 +1,15 @@
 import Header from "@/components/layouts/header";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { checkDevice } from "@/lib/utils";
 import QueryProvider from "@/providers/query-provider";
 import ThemeProvider from "@/providers/theme-provider";
+import UserInfoStoreProvider from "@/providers/user-info-provider";
+import { getUser } from "@/server/actions";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -51,14 +55,21 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = headers();
+  const userAgent = headersList.get("user-agent") || "";
+  const isApple = checkDevice(userAgent);
+  const user = await getUser();
+
   return (
-    <html lang="en" className="scroll-smooth">
-      <body className={`${GeistSans.className} ${GeistMono.variable}`}>
+    <html lang="en" className={isApple ? "apple-device" : ""}>
+      <body
+        className={`${GeistSans.className} ${GeistMono.variable} scroll-smooth`}
+      >
         <QueryProvider>
           <ThemeProvider
             attribute="class"
@@ -67,12 +78,14 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <TooltipProvider>
-              <Header />
-              <main>{children}</main>
+              <UserInfoStoreProvider user={user}>
+                <Header />
+                <Toaster richColors position="top-center" />
+                <main>{children}</main>
+              </UserInfoStoreProvider>
             </TooltipProvider>
           </ThemeProvider>
         </QueryProvider>
-        <Toaster richColors position="top-center" />
       </body>
     </html>
   );

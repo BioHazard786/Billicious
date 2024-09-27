@@ -2,7 +2,7 @@ import {
   formatDraweeSplitByAmount,
   formatDraweeSplitByPercent,
   totalBill,
-} from "@/lib/utils";
+} from "@/lib/split-tab-utils";
 import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
 import useSplitByPercentTabStore from "@/store/split-by-percent-tab-store";
 import useSplitEquallyTabStore from "@/store/split-equally-tab-store";
@@ -66,7 +66,7 @@ const useContributionsTabStoreBase = createWithEqualityFn<State & Action>(
           setDraweesSplitByPercent(formatDraweeSplitByPercent(drawees));
         }),
       ),
-    reset: () => set({ payees: {} }),
+    reset: () => set({ payees: {}, payeesBill: 0 }),
   }),
 
   shallow,

@@ -3,6 +3,7 @@ export type TGroupData = {
   name: string;
   totalBill: number;
   members: TMembers[];
+  transactions: TransactionT[];
 };
 
 export type TMembers = {
@@ -18,18 +19,21 @@ export type TBill = {
   updatedMembers: TMembers[];
 };
 
-export type DashboardAction = {
-  addBill: (bill: TBill) => void;
-  addMember: (member: TMembers[]) => void;
+export type TransactionT = {
+  id: string;
+  amount: number;
+  name: string;
+  notes?: string;
+  category: string;
+  isPayment: boolean;
+  drawees: number[];
+  payees: number[];
+  createdAt: Date;
 };
 
-export type TransactionT = {
-  _id?: string;
-  groupId: string;
-  amount: number;
-  transactionName: string;
-  notes?: string;
-  drawees: { draweeId: string; draweeName: string }[];
-  payees: { [key: string]: number };
-  creationDate: Date;
-};
+export type User = {
+  id: string;
+  full_name: string;
+  avatar_url?: string;
+  email: string;
+} | null;

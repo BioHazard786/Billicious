@@ -61,11 +61,17 @@ const ProgressBar = ({
       </Avatar>
       <div className="ml-4 flex flex-grow flex-col">
         <div className="mb-1 flex flex-row justify-between">
-          <p className="font-mono text-sm">
-            {name.length > 7 ? name.slice(0, 5) + "..." : name}
+          <p className="text-sm">
+            <span className="max-w-14 truncate md:max-w-32 lg:w-full">
+              {name}
+            </span>
             {balance !== 0 ? (
               <span
-                className={balance >= 0 ? "text-primary" : "text-destructive"}
+                className={
+                  balance >= 0
+                    ? "font-mono text-primary"
+                    : "font-mono text-destructive"
+                }
               >
                 <span className="ml-1">(</span>
                 <span ref={balanceRef}>
@@ -90,7 +96,7 @@ const ProgressBar = ({
               transition: { duration: 0.3, ease: "easeInOut" },
             }}
             initial={{ opacity: 0, width: 0 }}
-            className="flex h-[0.65rem] items-center justify-center rounded-lg rounded-l-sm bg-gradient-to-r from-[#22d3ee] to-primary"
+            className="flex h-full items-center justify-center rounded-lg rounded-l-sm bg-gradient-to-r from-[#22d3ee] to-primary"
           ></motion.div>
         </div>
       </div>
