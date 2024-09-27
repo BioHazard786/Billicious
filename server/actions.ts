@@ -57,21 +57,18 @@ export async function signUpUsingEmail(data: z.infer<typeof signUpFormSchema>) {
 
 export async function signInUsingGoogle() {
   const supabase = createClient();
+  const redirectUri =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000/auth/callback"
+      : "https://app-billicious.vercel.app/auth/callback";
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: {
-      redirectTo: "http://localhost:3000/auth/callback",
-    },
+    options: { redirectTo: redirectUri },
   });
 
-  if (error) {
-    throw error;
-  }
-
-  if (data.url) {
-    redirect(data.url);
-  }
+  if (error) throw error;
+  if (data.url) redirect(data.url);
 }
 
 export async function signOut() {
