@@ -13,8 +13,6 @@ export async function addUsersInDB(requestData: any) {
     const newUser = {
       id: requestData.id,
       name: requestData.name,
-      username: requestData.username,
-      platform: requestData.platform,
     };
 
     user = await transaction.insert(usersTable).values(newUser).returning();
@@ -61,9 +59,9 @@ export async function sendRequest(requestData: any) {
     users = await transaction
       .select()
       .from(usersTable)
-      .where(eq(usersTable.username, requestData.receiver_username));
+      .where(eq(usersTable.id, requestData.receiver_user_id));
     if (users.length === 0) {
-      throw new Error("Invalid Receiver's Username");
+      throw new Error("Invalid Receiver's UserId");
     }
     let receiver = users[0];
 

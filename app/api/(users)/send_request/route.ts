@@ -7,8 +7,8 @@ export const POST = async (request: Request) => {
     if (requestData.sender_user_id === undefined) {
       throw new Error("sender user id is required");
     }
-    if (requestData.receiver_username === undefined) {
-      throw new Error("receiver user name is required");
+    if (requestData.receiver_user_id === undefined) {
+      throw new Error("receiver user id is required");
     }
     if (requestData.group_id === undefined) {
       throw new Error("group id is required");

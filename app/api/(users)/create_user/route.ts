@@ -9,14 +9,8 @@ export const POST = async (request: Request) => {
     if (requestData.id === undefined) {
       throw new Error("Id is required");
     }
-    if (requestData.username === undefined) {
-      throw new Error("UserName is required");
-    }
     if (requestData.name === undefined) {
       throw new Error("Name is required");
-    }
-    if (requestData.platform === undefined) {
-      throw new Error("Platform is required");
     }
 
     user = await addUsersInDB(requestData);

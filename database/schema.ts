@@ -16,8 +16,6 @@ export const usersTable = pgTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => nanoid()),
-    username: text("username").notNull().unique(),
-    platform: text("platform").notNull(),
     name: text("name").notNull(),
     upiId: text("upi_id"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -25,13 +23,13 @@ export const usersTable = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => {
-    return {
-      usersTableUsernameIndex: index("users_table_username_index").on(
-        table.username,
-      ),
-    };
-  },
+  // (table) => {
+  //   return {
+  //     usersTableUsernameIndex: index("users_table_username_index").on(
+  //       table.username,
+  //     ),
+  //   };
+  // },
 );
 
 export const groupsTable = pgTable("groups_table", {
