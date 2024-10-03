@@ -6,6 +6,7 @@ import {
   pgTable,
   primaryKey,
   text,
+  uuid,
   timestamp,
 } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
@@ -13,12 +14,11 @@ import { nanoid } from "nanoid";
 export const usersTable = pgTable(
   "users_table",
   {
-    id: text("id")
-      .primaryKey()
-      .$defaultFn(() => nanoid()),
+    id: uuid("id").primaryKey().defaultRandom(),
     name: text("name").notNull(),
     upiId: text("upi_id"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
+    username: text("username").unique().notNull(),
     updatedAt: timestamp("updated_at")
       .notNull()
       .$onUpdate(() => new Date()),
@@ -166,7 +166,7 @@ export const payeesInBillsTable = pgTable(
 export const requestTable = pgTable(
   "request_table",
   {
-    userId: text("user_id").references(() => usersTable.id),
+    userId: uuid("user_id").references(() => usersTable.id),
     groupId: text("group_id").references(() => groupsTable.id),
     userIndex: integer("user_index"),
   },
