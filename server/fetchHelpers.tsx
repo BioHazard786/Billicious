@@ -18,6 +18,12 @@ type BillData = {
   payees: { [key: string]: number };
 };
 
+type ProfileData = {
+  userId: string;
+  name: string;
+  username: string;
+};
+
 const postFetchHelper = async (endPoint: string, body: string) => {
   const response = await fetch(endPoint, {
     method: "POST",
@@ -29,7 +35,7 @@ const postFetchHelper = async (endPoint: string, body: string) => {
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error!.error);
+    throw new Error(error!.error || "Something went wrong");
   }
 
   const data = await response.json();
@@ -46,4 +52,8 @@ export const addMembersToGroupInDB = async (memberData: MemberData) => {
 
 export const addBillToGroupInDB = async (billData: BillData) => {
   return postFetchHelper("/api/create_bill", JSON.stringify(billData));
+};
+
+export const updateProfile = async (profileData: ProfileData) => {
+  return postFetchHelper("/api/update_profile", JSON.stringify(profileData));
 };

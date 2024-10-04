@@ -28,7 +28,7 @@ import { addMembersToGroupInDB } from "@/server/fetchHelpers";
 import useDashboardStore from "@/store/dashboard-store";
 import { useMutation } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 
@@ -52,9 +52,10 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import { useAppleDevice } from "@/hooks/use-apple-device";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { addMemberFormSchema } from "@/lib/schema";
-import { cn, formatMemberData, isAppleDevice, titleCase } from "@/lib/utils";
+import { cn, formatMemberData } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -146,7 +147,7 @@ export default function AddMembers() {
 }
 
 const MemberAddDialog = () => {
-  const isApple = isAppleDevice();
+  const isApple = useAppleDevice().isAppleDevice;
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const updateMembers = useDashboardStore((state) => state.addMember);
   const [isOpen, setIsOpen] = useState(false);
@@ -155,7 +156,7 @@ const MemberAddDialog = () => {
   const form = useForm<z.infer<typeof addMemberFormSchema>>({
     resolver: zodResolver(addMemberFormSchema),
     defaultValues: {
-      full_name: "",
+      name: "",
     },
   });
 
@@ -186,7 +187,7 @@ const MemberAddDialog = () => {
   ) => {
     server_addMembersToGroup({
       group_id: slug as string,
-      members: [titleCase(data.full_name)],
+      members: [data.name],
     });
   };
 
@@ -210,7 +211,7 @@ const MemberAddDialog = () => {
             >
               <FormField
                 control={form.control}
-                name="full_name"
+                name="name"
                 render={({ field }) => (
                   <FormItem className="py-4 text-center">
                     <div className="flex items-center gap-4">
@@ -245,7 +246,7 @@ const MemberAddDialog = () => {
       <DrawerTrigger asChild>
         <Button className="w-full">Add Member</Button>
       </DrawerTrigger>
-      <DrawerContent className="z-[101]">
+      <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>Add Member</DrawerTitle>
           <DrawerDescription>
@@ -259,7 +260,7 @@ const MemberAddDialog = () => {
           >
             <FormField
               control={form.control}
-              name="full_name"
+              name="name"
               render={({ field }) => (
                 <FormItem className="p-4 text-center">
                   <div className="flex items-center gap-4">

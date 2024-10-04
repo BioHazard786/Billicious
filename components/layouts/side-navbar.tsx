@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, LayoutDashboard, PieChart, Plus, Users } from "lucide-react";
+import { Activity, LayoutDashboard, PieChart, Users } from "lucide-react";
 
 import AddBillForm from "@/components/billForm/add-bill-form";
 import { Button } from "@/components/ui/button";
@@ -11,12 +11,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import useUserInfoStore from "@/store/user-info-store";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 
 const SideNavbar = () => {
   const pathname = usePathname();
   const { slug } = useParams();
+  const user = useUserInfoStore((state) => state.user);
+
+  if (!user) return null;
 
   return (
     <aside className="fixed inset-y-0 left-0 z-[76] hidden h-full flex-col border-r border-border lg:flex">

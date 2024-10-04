@@ -1,18 +1,30 @@
 "use client";
 
 import { User } from "@/lib/types";
-import useUserInfoStore from "@/store/user-info-store";
-import { ReactNode } from "react";
+import {
+  createUserStore,
+  UserStore,
+  UserStoreContext,
+} from "@/store/user-info-store";
+import { useRef } from "react";
 
-export default function UserInfoStoreProvider({
-  user,
+export const UserInfoStoreProvider = ({
   children,
+  user,
 }: {
+  children: React.ReactNode;
   user: User;
-  children: ReactNode;
-}) {
-  useUserInfoStore.setState({
-    user,
-  });
-  return children;
-}
+}) => {
+  const storeRef = useRef<UserStore>();
+  if (!storeRef.current) {
+    storeRef.current = createUserStore(user);
+  } else {
+    storeRef.current.setState({ user });
+  }
+
+  return (
+    <UserStoreContext.Provider value={storeRef.current}>
+      {children}
+    </UserStoreContext.Provider>
+  );
+};

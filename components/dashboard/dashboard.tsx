@@ -1,8 +1,10 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import useDashboardStore from "@/store/dashboard-store";
 import useSplitEquallyTabStore from "@/store/split-equally-tab-store";
-import { useEffect } from "react";
+import useUserInfoStore from "@/store/user-info-store";
+import { useEffect, useMemo } from "react";
 import EventName from "./event-name";
 import ExpenseChart from "./expense-chart";
 import RecentTransactions from "./recent-transactions";
@@ -11,13 +13,23 @@ import TotalExpense from "./total-expense";
 const Dashboard = () => {
   const members = useDashboardStore((state) => state.members);
   const setInitialDraweeState = useSplitEquallyTabStore.getState().reset;
+  const user = useUserInfoStore((state) => state.user);
 
   useEffect(() => {
     setInitialDraweeState(members);
-  }, [members]);
+  }, [members, setInitialDraweeState]);
+
+  const mainClassName = useMemo(
+    () =>
+      cn(
+        "relative grid h-full w-full grid-cols-1 gap-3 overflow-x-hidden p-3 pt-[4.2rem] md:grid-cols-2 lg:h-dvh lg:grid-cols-3 lg:grid-rows-[auto_1fr]",
+        user ? "lg:pl-[4.2rem]" : "",
+      ),
+    [user],
+  );
 
   return (
-    <main className="relative grid h-full w-full grid-cols-1 gap-3 overflow-x-hidden p-3 pt-[4.2rem] md:grid-cols-2 lg:h-dvh lg:grid-cols-3 lg:grid-rows-[auto_1fr] lg:pl-[4.2rem]">
+    <main className={mainClassName}>
       <EventName />
       <TotalExpense />
       <ExpenseChart />

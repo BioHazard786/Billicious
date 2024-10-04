@@ -1,6 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const authRoutes = ["/auth/signin", "/auth/callback", "/auth/signup"];
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -37,18 +39,25 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith("/auth/signin") &&
-    !request.nextUrl.pathname.startsWith("/auth/callback") &&
-    !request.nextUrl.pathname.startsWith("/auth/signup")
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone();
+  const url = request.nextUrl.clone();
+  const isAuthRoute = authRoutes.some((route) =>
+    request.nextUrl.pathname.startsWith(route),
+  );
+
+  if (!user && !isAuthRoute) {
     url.pathname = "/auth/signin";
+    url.searchParams.set("next", request.nextUrl.pathname);
     return NextResponse.redirect(url);
   }
 
+  // if (
+  //   user &&
+  //   (request.nextUrl.pathname.startsWith("/auth/signin") ||
+  //     request.nextUrl.pathname.startsWith("/auth/signup"))
+  // ) {
+  //   url.pathname = "/";
+  //   return NextResponse.redirect(url);
+  // }
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
   // creating a new response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:

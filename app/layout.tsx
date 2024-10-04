@@ -2,9 +2,10 @@ import Header from "@/components/layouts/header";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { checkDevice } from "@/lib/utils";
+import { AppleDeviceProvider } from "@/providers/apple-device-provider";
 import QueryProvider from "@/providers/query-provider";
 import ThemeProvider from "@/providers/theme-provider";
-import UserInfoStoreProvider from "@/providers/user-info-provider";
+import { UserInfoStoreProvider } from "@/providers/user-info-provider";
 import { getUser } from "@/server/actions";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
@@ -62,11 +63,11 @@ export default async function RootLayout({
 }>) {
   const headersList = headers();
   const userAgent = headersList.get("user-agent") || "";
-  const isApple = checkDevice(userAgent);
+  const isAppleDevice = checkDevice(userAgent);
   const user = await getUser();
 
   return (
-    <html lang="en" className={isApple ? "apple-device" : ""}>
+    <html lang="en">
       <body
         className={`${GeistSans.className} ${GeistMono.variable} scroll-smooth`}
       >
@@ -79,9 +80,11 @@ export default async function RootLayout({
           >
             <TooltipProvider>
               <UserInfoStoreProvider user={user}>
-                <Header />
-                <Toaster richColors position="top-center" />
-                <main>{children}</main>
+                <AppleDeviceProvider isAppleDevice={isAppleDevice}>
+                  <Header />
+                  <Toaster richColors position="top-center" />
+                  <main>{children}</main>
+                </AppleDeviceProvider>
               </UserInfoStoreProvider>
             </TooltipProvider>
           </ThemeProvider>

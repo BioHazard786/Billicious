@@ -47,11 +47,6 @@ export function checkDevice(userAgent: string): boolean {
   return appleDevices.some((device) => userAgent.includes(device));
 }
 
-export function isAppleDevice(): boolean {
-  const element = document.querySelector("html");
-  return element ? element.classList.contains("apple-device") : false;
-}
-
 export function formatMemberData(data: any): TMembers[] {
   const members = data.map((user: any) => ({
     name: user.userNameInGroup,
@@ -139,4 +134,23 @@ export function formatBytes(
   return `${(bytes / Math.pow(1024, i)).toFixed(decimals)} ${
     sizeType === "accurate" ? accurateSizes[i] ?? "Bytest" : sizes[i] ?? "Bytes"
   }`;
+}
+
+export function convertToJpgExtension(filename?: string) {
+  if (!filename) return "unnamed.jpg";
+  const baseFilename = filename.split(/[/\\]/).pop() || "";
+
+  // Sanitize the filename: remove invalid characters and trim
+  const sanitized = baseFilename
+    .replace(/[^a-zA-Z0-9.-]/g, "_")
+    .replace(/_{2,}/g, "_")
+    .trim();
+
+  if (sanitized.length === 0) return "unnamed.jpg";
+
+  const lastDotIndex = sanitized.lastIndexOf(".");
+  const name = lastDotIndex > 0 ? sanitized.slice(0, lastDotIndex) : sanitized;
+  const ext = lastDotIndex > 0 ? sanitized.slice(lastDotIndex + 1) : "";
+  const newName = name.replace(/\s+/g, "%20");
+  return ext.toLowerCase() === "jpg" ? `${newName}.jpg` : `${newName}.jpg`;
 }

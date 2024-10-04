@@ -1,19 +1,10 @@
-import {
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-
-import {
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
-
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn, isAppleDevice } from "@/lib/utils";
+import { useAppleDevice } from "@/hooks/use-apple-device";
+import { cn } from "@/lib/utils";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
 import AnimatedCounter from "../ui/animated-counter";
@@ -25,7 +16,7 @@ const ContributionsTab = () => {
     <>
       <DialogHeader className="hidden pb-4 md:block">
         <DialogTitle>Contributions</DialogTitle>
-        <DialogDescription className="flex gap-1">
+        <div className="flex gap-1 text-sm text-muted-foreground">
           Total Contributions:{" "}
           <span className="flex">
             <span className="mr-[0.1rem]">₹</span>
@@ -35,11 +26,11 @@ const ContributionsTab = () => {
               className="font-mono"
             />
           </span>
-        </DialogDescription>
+        </div>
       </DialogHeader>
       <DrawerHeader className="pb-4 md:hidden">
         <DrawerTitle>Contributions</DrawerTitle>
-        <DrawerDescription className="flex justify-center gap-1">
+        <div className="flex justify-center gap-1 text-sm text-muted-foreground">
           Total Contributions:{" "}
           <span className="flex">
             <span className="mr-[0.1rem]">₹</span>
@@ -49,7 +40,7 @@ const ContributionsTab = () => {
               className="font-mono"
             />
           </span>
-        </DrawerDescription>
+        </div>
       </DrawerHeader>
       <ScrollArea className="h-[40vh] md:h-[300px]">
         <div className="grid gap-4 p-4 md:px-0 md:pr-4">
@@ -73,7 +64,7 @@ const PayeeInputAmount = ({
   memberName: string;
   memberIndex: string;
 }) => {
-  const isApple = isAppleDevice();
+  const isApple = useAppleDevice().isAppleDevice;
   const payees = useContributionsTabStore.use.payees();
   const setPayee = useContributionsTabStore.use.setPayee();
   const deletePayee = useContributionsTabStore.use.deletePayee();
@@ -94,7 +85,10 @@ const PayeeInputAmount = ({
           onChange={(e) => {
             if (e.target.value === "0" || e.target.value === "")
               deletePayee(memberIndex);
-            else setPayee(memberIndex, Number(e.target.value));
+            else {
+              if (/^\d+(\.\d{1,2})?$/.test(e.target.value.toString()))
+                setPayee(memberIndex, Number(e.target.value));
+            }
           }}
           onKeyDown={(e) => {
             if (

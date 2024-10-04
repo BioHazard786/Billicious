@@ -10,6 +10,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useAppleDevice } from "@/hooks/use-apple-device";
+import { cn } from "@/lib/utils";
 import { createElement, useState } from "react";
 
 type PasswordFieldProps = {
@@ -23,6 +25,7 @@ export function PasswordField({
   placeholder = "Enter password",
   description,
 }: PasswordFieldProps) {
+  const isApple = useAppleDevice().isAppleDevice;
   const { control, getFieldState } = useFormContext();
   const [passwordVisibility, setPasswordVisibility] = useState(false);
 
@@ -39,7 +42,11 @@ export function PasswordField({
                 type={passwordVisibility ? "text" : "password"}
                 autoComplete="on"
                 placeholder={placeholder}
-                className={`pr-12 ${getFieldState(name).error && "text-destructive"}`}
+                className={cn(
+                  "pr-12",
+                  `${getFieldState(name).error && "text-destructive"}`,
+                  isApple ? "text-base" : "",
+                )}
               />
               <Box
                 className="absolute inset-y-0 right-0 flex cursor-pointer items-center p-3 text-muted-foreground"

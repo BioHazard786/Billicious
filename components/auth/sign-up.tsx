@@ -16,13 +16,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useAppleDevice } from "@/hooks/use-apple-device";
 import { signUpFormSchema } from "@/lib/schema";
 import { signInUsingGoogle, signUpUsingEmail } from "@/server/actions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
-import { useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
@@ -31,10 +32,13 @@ import { PasswordField } from "../ui/password-input";
 import Spinner from "../ui/spinner";
 
 export default function SignUp() {
+  const isApple = useAppleDevice().isAppleDevice;
+  const searchParams = useSearchParams();
   const form = useForm<z.infer<typeof signUpFormSchema>>({
     resolver: zodResolver(signUpFormSchema),
     defaultValues: {
-      full_name: "",
+      name: "",
+      username: "",
       email: "",
       password: "",
     },
@@ -50,6 +54,17 @@ export default function SignUp() {
       return { toastId };
     },
     onSuccess: (data, variables, context) => {
+      if (data) {
+        if (data?.error.startsWith("Username")) {
+          form.setError("username", { message: data?.error });
+          return toast.error(`Username ${variables.username} already taken`, {
+            id: context?.toastId,
+          });
+        }
+        return toast.error(data?.error, {
+          id: context?.toastId,
+        });
+      }
       return toast.success("Signed In successfully", {
         id: context.toastId,
       });
@@ -59,6 +74,9 @@ export default function SignUp() {
         id: context?.toastId,
       });
     },
+    onSettled: () => {
+      form.reset();
+    },
   });
 
   const {
@@ -66,6 +84,11 @@ export default function SignUp() {
     mutate: server_signInUsingGoogle,
   } = useMutation({
     mutationFn: signInUsingGoogle,
+    onSuccess: (data) => {
+      if (data) {
+        return toast.error(data?.error);
+      }
+    },
     onError: (error) => {
       console.log(error);
       return toast.error(error.message);
@@ -77,7 +100,7 @@ export default function SignUp() {
   };
 
   const handleSignUpWithGoogle = () => {
-    server_signInUsingGoogle();
+    server_signInUsingGoogle(searchParams.get("next") ?? "/");
   };
 
   return (
@@ -104,14 +127,33 @@ export default function SignUp() {
           >
             <FormField
               control={form.control}
-              name="full_name"
+              name="name"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
                     <Input
+                      className={isApple ? "text-base" : ""}
                       autoComplete="name"
                       id="name"
                       placeholder="Zaid"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      className={isApple ? "text-base" : ""}
+                      autoComplete="userName"
+                      id="userName"
+                      placeholder="Unique Username"
                       {...field}
                     />
                   </FormControl>
@@ -126,6 +168,7 @@ export default function SignUp() {
                 <FormItem>
                   <FormControl>
                     <Input
+                      className={isApple ? "text-base" : ""}
                       autoComplete="email"
                       id="email"
                       placeholder="billicious@popular.com"

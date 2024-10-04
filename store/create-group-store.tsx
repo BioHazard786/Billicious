@@ -1,44 +1,38 @@
+import { produce } from "immer";
 import { shallow } from "zustand/shallow";
 import { createWithEqualityFn } from "zustand/traditional";
+import createSelectors from "./selectors";
 
 type State = {
   memberNames: string[];
-  groupNameError: string;
-  memberNameError: string;
 };
 
 type Action = {
-  setMemberNames: (newMemberNames: State["memberNames"]) => void;
-  setGroupNameError: (error: State["groupNameError"]) => void;
-  setMemberNameError: (error: State["memberNameError"]) => void;
-  setCreateGroupState: (
-    newMembersName: string[],
-    groupNameError: string,
-    memberNameError: string,
-  ) => void;
+  addMemberName: (name: string) => void;
+  removeMemberName: (name: string) => void;
+  reset: () => void;
 };
 
-const useCreateGroup = createWithEqualityFn<State & Action>(
+const useCreateGroupBase = createWithEqualityFn<State & Action>(
   (set) => ({
     memberNames: [],
-    groupNameError: "",
-    memberNameError: "",
-    setMemberNames: (newMemberNames: string[]) =>
-      set({ memberNames: newMemberNames }),
-    setGroupNameError: (error: string) => set({ groupNameError: error }),
-    setMemberNameError: (error: string) => set({ memberNameError: error }),
-    setCreateGroupState: (
-      newMembersName: string[],
-      groupNameError: string,
-      memberNameError: string,
-    ) =>
-      set({
-        memberNames: newMembersName,
-        groupNameError: groupNameError,
-        memberNameError: memberNameError,
-      }),
+    addMemberName: (name) =>
+      set(
+        produce((state: State) => {
+          state.memberNames.push(name);
+        }),
+      ),
+    removeMemberName: (name) =>
+      set(
+        produce((state: State) => {
+          state.memberNames = state.memberNames.filter((item) => item !== name);
+        }),
+      ),
+    reset: () => set(() => ({ memberNames: [] })),
   }),
   shallow,
 );
+
+const useCreateGroup = createSelectors(useCreateGroupBase);
 
 export default useCreateGroup;

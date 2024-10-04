@@ -2,13 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAppleDevice } from "@/hooks/use-apple-device";
 import { signInFormSchema } from "@/lib/schema";
 import { signInUsingEmail, signInUsingGoogle } from "@/server/actions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
-import { useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
@@ -32,6 +32,8 @@ import { PasswordField } from "../ui/password-input";
 import Spinner from "../ui/spinner";
 
 export default function SignIn() {
+  const searchParams = useSearchParams();
+  const isApple = useAppleDevice().isAppleDevice;
   const form = useForm<z.infer<typeof signInFormSchema>>({
     resolver: zodResolver(signInFormSchema),
     defaultValues: {
@@ -50,6 +52,11 @@ export default function SignIn() {
       return { toastId };
     },
     onSuccess: (data, variables, context) => {
+      if (data) {
+        return toast.error(data?.error, {
+          id: context?.toastId,
+        });
+      }
       return toast.success("Signed In successfully", {
         id: context.toastId,
       });
@@ -66,6 +73,11 @@ export default function SignIn() {
     mutate: server_signInUsingGoogle,
   } = useMutation({
     mutationFn: signInUsingGoogle,
+    onSuccess: (data) => {
+      if (data) {
+        return toast.error(data?.error);
+      }
+    },
     onError: (error) => {
       console.log(error);
       return toast.error(error.message);
@@ -73,11 +85,12 @@ export default function SignIn() {
   });
 
   const handleSignInWithEmail = (data: z.infer<typeof signInFormSchema>) => {
-    server_signInUsingEmail(data);
+    const dataWithNextUrl = { ...data, next: searchParams.get("next") ?? "/" };
+    server_signInUsingEmail(dataWithNextUrl);
   };
 
   const handleSignInWithGoogle = () => {
-    server_signInUsingGoogle();
+    server_signInUsingGoogle(searchParams.get("next") ?? "/");
   };
 
   return (
@@ -109,6 +122,7 @@ export default function SignIn() {
                 <FormItem>
                   <FormControl>
                     <Input
+                      className={isApple ? "text-base" : ""}
                       type="email"
                       id="email"
                       placeholder="billicious@popular.com"
@@ -155,9 +169,9 @@ export default function SignIn() {
             )}
             Sign in with Google
             {/* <div className="absolute left-full top-1/2 ml-8 -translate-y-1/2 whitespace-nowrap rounded-md bg-accent px-4 py-1 text-xs text-foreground/80">
-                <div className="absolute -left-5 top-0 border-[12px] border-background border-r-accent" />
-                Last used
-              </div> */}
+              <div className="absolute -left-5 top-0 border-[12px] border-background border-r-accent" />
+              Last used
+            </div> */}
           </Button>
         </div>
       </CardContent>
