@@ -1,13 +1,5 @@
-import {
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import useContributionsTabStore from "@/store/contributions-tab-store";
@@ -27,7 +19,7 @@ const SplitTab = () => {
     <>
       <DialogHeader className="hidden pb-4 md:block">
         <DialogTitle>Split By</DialogTitle>
-        <DialogDescription className="flex gap-1">
+        <div className="flex gap-1 text-sm text-muted-foreground">
           Total:{" "}
           <span className="flex">
             <span className="mr-[0.1rem]">₹</span>
@@ -37,11 +29,11 @@ const SplitTab = () => {
               className="font-mono"
             />
           </span>
-        </DialogDescription>
+        </div>
       </DialogHeader>
       <DrawerHeader className="pb-4 md:hidden">
         <DrawerTitle>Split By</DrawerTitle>
-        <DrawerDescription className="flex justify-center gap-1">
+        <div className="flex justify-center gap-1 text-sm text-muted-foreground">
           Total:{" "}
           <span className="flex">
             <span className="mr-[0.1rem]">₹</span>
@@ -51,7 +43,7 @@ const SplitTab = () => {
               className="font-mono"
             />
           </span>
-        </DrawerDescription>
+        </div>
       </DrawerHeader>
       <Tabs
         value={currentSelectedTab}

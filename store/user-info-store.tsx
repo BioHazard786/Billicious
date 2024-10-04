@@ -1,8 +1,9 @@
 import { User } from "@/lib/types";
 import { produce } from "immer";
+import { createContext, useContext } from "react";
+import { createStore } from "zustand";
 import { shallow } from "zustand/shallow";
-import { createWithEqualityFn } from "zustand/traditional";
-import createSelectors from "./selectors";
+import { useStoreWithEqualityFn } from "zustand/traditional";
 
 type State = {
   user: User;
@@ -10,28 +11,42 @@ type State = {
 
 type Action = {
   setAvatarUrl: (avatarUrl: string) => void;
-  setFullName: (fullName: string) => void;
+  setName: (name: string) => void;
+  setUserName: (username: string) => void;
 };
 
-const useUserInfoStoreBase = createWithEqualityFn<State & Action>(
-  (set) => ({
-    user: null,
+export type UserStore = ReturnType<typeof createUserStore>;
+
+export const createUserStore = (user: User) => {
+  return createStore<Action & State>()((set) => ({
+    user: user,
     setAvatarUrl: (avatarUrl) =>
       set(
         produce((state: State) => {
           state.user!.avatar_url = avatarUrl;
         }),
       ),
-    setFullName: (fullName) =>
+    setName: (fullName) =>
       set(
         produce((state: State) => {
-          state.user!.full_name = fullName;
+          state.user!.name = fullName;
         }),
       ),
-  }),
-  shallow,
-);
+    setUserName: (username) =>
+      set(
+        produce((state: State) => {
+          state.user!.username = username;
+        }),
+      ),
+  }));
+};
 
-const useUserInfoStore = createSelectors(useUserInfoStoreBase);
+export const UserStoreContext = createContext<UserStore | null>(null);
 
-export default useUserInfoStore;
+export default function useUserStore<T>(
+  selector: (state: Action & State) => T,
+): T {
+  const store = useContext(UserStoreContext);
+  if (!store) throw new Error("Missing UserStoreContext.Provider in the tree");
+  return useStoreWithEqualityFn(store, selector, shallow);
+}

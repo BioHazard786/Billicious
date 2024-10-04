@@ -29,8 +29,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { useAppleDevice } from "@/hooks/use-apple-device";
 import { formatDrawees } from "@/lib/split-tab-utils";
-import { categories, cn, isAppleDevice } from "@/lib/utils";
+import { categories, cn } from "@/lib/utils";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
 import useDetailsTabStore from "@/store/details-tab-store";
@@ -38,7 +39,13 @@ import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
 import useSplitByPercentTabStore from "@/store/split-by-percent-tab-store";
 import useSplitEquallyTabStore from "@/store/split-equally-tab-store";
 import useSplitTabStore from "@/store/split-tab-store";
-import { CalendarDays, LucideProps, MessageSquare, Tags } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronDown,
+  LucideProps,
+  MessageSquare,
+  Tags,
+} from "lucide-react";
 import {
   ForwardRefExoticComponent,
   memo,
@@ -57,7 +64,7 @@ type CategoryItemProps = {
 };
 
 const DetailsTab = () => {
-  const isApple = isAppleDevice();
+  const isApple = useAppleDevice().isAppleDevice;
   const totalBill = useContributionsTabStore.getState().payeesBill;
   const billName = useDetailsTabStore.use.billName();
   const setBillName = useDetailsTabStore.use.setBillName();
@@ -89,7 +96,9 @@ const DetailsTab = () => {
       <ScrollArea className="h-[40vh] md:h-[300px]">
         <div className="flex flex-col gap-5 p-4 md:px-0 md:pr-4">
           <div className="flex items-center gap-2">
-            <CategoryPopover />
+            <div className="flex items-center">
+              <CategoryPopover />
+            </div>
             <Input
               className={isApple ? "text-base" : ""}
               placeholder="Bill Name"
@@ -197,7 +206,10 @@ const CategoryPopover = () => {
     <Popover modal open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button variant="link" size="icon" className="px-2">
-          {getCategoryIcon(category)}
+          <div className="flex items-center">
+            {getCategoryIcon(category, "size-5")}
+            {category === "Default" && <ChevronDown className="size-4" />}
+          </div>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="z-[101] w-64">

@@ -3,6 +3,7 @@
 import AddBillForm from "@/components/billForm/add-bill-form";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import useUserInfoStore from "@/store/user-info-store";
 import {
   Variants,
   motion,
@@ -21,6 +22,7 @@ const FloatingNavbar = () => {
   const navRef = useRef(null);
   const pathname = usePathname();
   const { slug } = useParams();
+  const user = useUserInfoStore((state) => state.user);
 
   useMotionValueEvent(scrollY, "change", (y) => {
     const difference = y - lastYRef.current;
@@ -29,6 +31,8 @@ const FloatingNavbar = () => {
       lastYRef.current = y;
     }
   });
+
+  if (!user) return null;
 
   return (
     <motion.nav

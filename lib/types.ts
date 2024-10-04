@@ -33,7 +33,8 @@ export type TransactionT = {
 
 export type User = {
   id: string;
-  full_name: string;
+  name: string;
+  username: string;
   avatar_url?: string;
   email: string;
 } | null;

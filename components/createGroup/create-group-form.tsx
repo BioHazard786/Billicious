@@ -1,14 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useAppleDevice } from "@/hooks/use-apple-device";
 import { createGroupFormSchema } from "@/lib/schema";
 import { titleCase } from "@/lib/utils";
 import { createGroupInDB } from "@/server/fetchHelpers";
@@ -18,8 +13,7 @@ import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import * as React from "react";
-import { useRef } from "react";
+import React, { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -34,7 +28,7 @@ import {
 } from "../ui/form";
 import { CardContentMotion, CardMotion } from "../ui/motion-card";
 
-const CreateGroupForm = () => {
+const CreateGroupForm: React.FC = () => {
   const form = useForm<z.infer<typeof createGroupFormSchema>>({
     resolver: zodResolver(createGroupFormSchema),
     defaultValues: {
@@ -43,95 +37,91 @@ const CreateGroupForm = () => {
     },
   });
 
-  const {
-    memberNames,
-    groupNameError,
-    memberNameError,
-    setMemberNames,
-    setGroupNameError,
-    setMemberNameError,
-    setCreateGroupState,
-  } = useCreateGroup((state) => state);
+  const isApple = useAppleDevice().isAppleDevice;
+  const memberNames = useCreateGroup.use.memberNames();
+  const addMemberName = useCreateGroup.use.addMemberName();
+  const removeMemberName = useCreateGroup.use.removeMemberName();
+  const reset = useCreateGroup.use.reset();
 
-  const memberRef = useRef<HTMLInputElement>(null);
-  const groupNameRef = useRef<HTMLInputElement>(null);
-  const navigate = useRouter();
+  const router = useRouter();
 
-  const addMembers = () => {
-    if (memberRef.current!.value.length <= 2) {
-      return setMemberNameError("Member Name should be atleast 3 characters");
+  const addMembers = useCallback(() => {
+    const memberName = form.getValues("member_name");
+    if (!memberName || memberName.length < 2) {
+      return form.setError("member_name", {
+        type: "minLength",
+        message: "Name must contain at least 2 character(s)",
+      });
     }
 
-    if (memberRef.current!.value.length >= 32) {
-      setMemberNameError("Member Name should be atmost 32 characters");
-      return (memberRef.current!.value = "");
+    if (memberName.length > 32) {
+      form.setError("member_name", {
+        type: "maxLength",
+        message: "Name must contain at most 32 character(s)",
+      });
+      return form.setValue("member_name", "");
     }
 
     if (
       memberNames.some(
-        (name) => name.toLowerCase() === memberRef.current!.value.toLowerCase(),
+        (name) => name.toLowerCase() === memberName.toLowerCase(),
       )
     ) {
-      setMemberNameError("Member Name already exists");
-      return (memberRef.current!.value = "");
+      form.setError("member_name", {
+        type: "deps",
+        message: "Name already exists",
+      });
+      return form.setValue("member_name", "");
     }
 
-    const newNames: string[] = [
-      ...memberNames,
-      titleCase(memberRef.current!.value),
-    ];
-    setCreateGroupState(newNames, "", "");
-    memberRef.current!.value = "";
-  };
-
-  const removeMembers = (memberName: string) => {
-    const newMemberNames: string[] = memberNames.filter(
-      (item) => item !== memberName,
-    );
-    setMemberNames(newMemberNames);
-  };
+    addMemberName(titleCase(memberName));
+    form.resetField("member_name");
+  }, [form, memberNames, addMemberName]);
 
   const { isPending, mutate: server_createGroup } = useMutation({
     mutationFn: createGroupInDB,
     onSuccess: (data) => {
       const path = `/group/${encodeURIComponent(data.group.id)}`;
-      navigate.push(path);
+      router.replace(path);
+      reset();
     },
     onError: (error) => {
-      console.log(error);
-      return toast.error("Error occured on Database");
+      console.error(error);
+      toast.error(error.message);
     },
   });
 
-  const createGroup = () => {
-    if (groupNameRef.current!.value.length <= 2) {
-      return setCreateGroupState(
-        memberNames,
-        "Group Name should be atleast 3 characters",
-        "",
-      );
-    }
-    if (memberNames.length < 2) {
-      if (groupNameRef.current!.value.length <= 2)
-        return setCreateGroupState(
-          memberNames,
-          "Group Name should be atleast 3 characters",
-          "Add Atleast 2 Member",
-        );
-      else return setCreateGroupState(memberNames, "", "Add Atleast 2 Member");
-    }
+  const createGroup = useCallback(
+    (data: z.infer<typeof createGroupFormSchema>) => {
+      if (memberNames.length < 2) {
+        return form.setError("member_name", {
+          type: "manual",
+          message: "Add at least 2 members",
+        });
+      }
 
-    const groupBody = {
-      name: titleCase(groupNameRef.current!.value),
-      members: memberNames,
-    };
+      const groupBody = {
+        name: data.group_name,
+        members: memberNames,
+      };
 
-    server_createGroup(groupBody);
-    setGroupNameError("");
-  };
+      server_createGroup(groupBody);
+    },
+    [form, memberNames, server_createGroup],
+  );
+
+  const addMemberOnKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addMembers();
+      }
+    },
+    [addMembers],
+  );
 
   return (
-    <CardMotion layout className="mx-4 max-w-sm md:mx-auto">
+    <CardMotion layout className="mx-4 w-[24rem] md:mx-auto">
       <CardHeader>
         <CardTitle className="text-2xl">Create Group</CardTitle>
         <CardDescription>
@@ -139,8 +129,12 @@ const CreateGroupForm = () => {
         </CardDescription>
       </CardHeader>
       <CardContentMotion layout>
-        {/* <Form {...form}>
-          <form className="space-y-6" onSubmit={form.handleSubmit(addMembers)}>
+        <Form {...form}>
+          <form
+            className="space-y-6"
+            onSubmit={form.handleSubmit(createGroup)}
+            onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
+          >
             <FormField
               control={form.control}
               name="group_name"
@@ -149,9 +143,10 @@ const CreateGroupForm = () => {
                   <FormLabel>Group Name</FormLabel>
                   <FormControl>
                     <Input
-                      type="email"
-                      id="email"
-                      placeholder="billicious@popular.com"
+                      className={isApple ? "text-base" : ""}
+                      autoComplete="groupName"
+                      id="groupName"
+                      placeholder="Trip to India"
                       {...field}
                     />
                   </FormControl>
@@ -166,112 +161,83 @@ const CreateGroupForm = () => {
                 <FormItem>
                   <FormLabel>Member Name</FormLabel>
                   <FormControl>
-                    <Input
-                      type="email"
-                      id="email"
-                      placeholder="billicious@popular.com"
-                      {...field}
-                    />
+                    <div className="flex w-full items-center justify-center space-x-2">
+                      <Input
+                        className={isApple ? "text-base" : ""}
+                        autoComplete="name"
+                        id="memberName"
+                        placeholder="Zaid"
+                        onKeyDown={addMemberOnKeyDown}
+                        {...field}
+                      />
+                      <Button
+                        variant="default"
+                        type="button"
+                        size="icon"
+                        onClick={addMembers}
+                      >
+                        <Plus className="size-4" />
+                      </Button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            <ul className="flex flex-wrap gap-2">
+              <AnimatePresence presenceAffectsLayout>
+                {memberNames.map((name, index) => (
+                  <MemberItem
+                    key={`member-name-${index}`}
+                    name={name}
+                    onRemove={() => removeMemberName(name)}
+                  />
+                ))}
+              </AnimatePresence>
+            </ul>
+            <AnimatedButton
+              isLoading={isPending}
+              type="submit"
+              variant="default"
+              className="w-full"
+            >
+              Create Group
+            </AnimatedButton>
           </form>
-        </Form> */}
-        <div className="grid gap-2">
-          <Label
-            htmlFor="groupName"
-            className={groupNameError ? "text-destructive" : ""}
-          >
-            Group Name
-          </Label>
-          <Input
-            ref={groupNameRef}
-            name="groupName"
-            id="groupName"
-            type="text"
-            placeholder="Trip to India"
-          />
-          {groupNameError ? (
-            <span className="text-xs text-destructive">{groupNameError}</span>
-          ) : (
-            <span className="invisible text-xs text-destructive">
-              Group Name Error Placeholder
-            </span>
-          )}
-        </div>
-        <div className="grid gap-2">
-          <Label
-            htmlFor="memberName"
-            className={memberNameError ? "text-destructive" : ""}
-          >
-            Member Name
-          </Label>
-          <div className="flex w-full max-w-sm items-center space-x-2">
-            <Input
-              name="memberName"
-              id="memberName"
-              ref={memberRef}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  addMembers();
-                }
-              }}
-              type="text"
-              placeholder="Zaid"
-            />
-            <Button variant="default" size="icon" onClick={addMembers}>
-              <Plus className="size-4" />
-            </Button>
-          </div>
-          {memberNameError ? (
-            <span className="text-xs text-destructive">{memberNameError}</span>
-          ) : (
-            <span className="invisible text-xs text-destructive">
-              Member Name Error Placeholder
-            </span>
-          )}
-        </div>
-        <ul className="flex flex-wrap gap-2">
-          <AnimatePresence presenceAffectsLayout>
-            {memberNames.map((name, index) => (
-              <motion.li
-                animate={{ opacity: 1, scale: 1 }}
-                initial={{ opacity: 0, scale: 0 }}
-                exit={{ opacity: 0 }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                key={`member-name-${index}`}
-                className="inline-flex h-8 cursor-default items-center rounded-sm bg-secondary pl-2 text-sm text-secondary-foreground"
-              >
-                <span className="max-w-14 truncate md:max-w-32 lg:w-full">
-                  {name}
-                </span>
-                <button
-                  onClick={() => removeMembers(name)}
-                  className="inline-flex h-full items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                >
-                  <X className="size-[0.85rem]" />
-                </button>
-              </motion.li>
-            ))}
-          </AnimatePresence>
-        </ul>
+        </Form>
       </CardContentMotion>
-      <CardFooter>
-        <AnimatedButton
-          isLoading={isPending}
-          type="submit"
-          variant="default"
-          className="w-full"
-          onClick={createGroup}
-        >
-          Create Group
-        </AnimatedButton>
-      </CardFooter>
     </CardMotion>
   );
 };
+
+const MemberItem: React.FC<{ name: string; onRemove: () => void }> = React.memo(
+  ({ name, onRemove }) => (
+    <motion.li
+      animate={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0, scale: 0 }}
+      exit={{ opacity: 0 }}
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+      className="inline-flex h-8 cursor-default items-center rounded-sm bg-secondary pl-2 text-sm text-secondary-foreground"
+    >
+      <span className="max-w-14 truncate md:max-w-32 lg:w-full">{name}</span>
+      <button
+        type="button"
+        onClick={onRemove}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            onRemove();
+          }
+        }}
+        className="inline-flex h-full items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+      >
+        <X className="size-[0.85rem]" />
+      </button>
+    </motion.li>
+  ),
+);
+
+MemberItem.displayName = "MemberItem";
 
 export default CreateGroupForm;

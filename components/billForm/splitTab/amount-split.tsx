@@ -1,12 +1,13 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import { useAppleDevice } from "@/hooks/use-apple-device";
 import {
   modifyDraweeAmount,
   recalculatePayeesBills,
   removeDraweeAmount,
   removeDraweePercent,
 } from "@/lib/split-tab-utils";
-import { cn, isAppleDevice } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
 import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
@@ -36,7 +37,7 @@ const DraweeInput = ({
   memberName: string;
   memberIndex: string;
 }) => {
-  const isApple = isAppleDevice();
+  const isApple = useAppleDevice().isAppleDevice;
   const payeesBill = useContributionsTabStore.getState().payeesBill;
   const payees = useContributionsTabStore.getState().payees;
   const setMultiplePayees =

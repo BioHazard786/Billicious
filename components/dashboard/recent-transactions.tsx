@@ -83,6 +83,7 @@ export default function RecentTransactions() {
                 <TableCell className="hidden sm:table-cell">
                   <AvatarCircles
                     className="size-8"
+                    limit={4}
                     members={transaction.payees.map((payeeIndex) => ({
                       name: members[payeeIndex].name,
                     }))}
@@ -91,6 +92,7 @@ export default function RecentTransactions() {
                 <TableCell className="hidden sm:table-cell">
                   <AvatarCircles
                     className="size-8"
+                    limit={4}
                     members={transaction.drawees.map((draweeIndex) => ({
                       name: members[draweeIndex].name,
                     }))}

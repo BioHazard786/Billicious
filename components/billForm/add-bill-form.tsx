@@ -170,7 +170,7 @@ function AddBillForm() {
     onError: (error) => {
       console.log(error);
       setIsOpen(false);
-      return toast.error("Error occured on Database.");
+      return toast.error(error.message);
     },
   });
 
@@ -178,7 +178,7 @@ function AddBillForm() {
     if (!billName) {
       return toast.error("Bill Name should not be empty");
     }
-    if (billName.length >= 32) {
+    if (billName.length > 32) {
       toast.error("Bill Name should be atmost 32 characters");
       return setBillName("");
     }
