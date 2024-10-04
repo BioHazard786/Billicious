@@ -7,18 +7,18 @@ import {
 } from "@/database/schema";
 import { and, eq, or } from "drizzle-orm";
 
-export async function addUsersInDB(requestData: any) {
-  let user: any = {};
-  await db.transaction(async (transaction) => {
-    const newUser = {
-      id: requestData.id,
-      name: requestData.name,
-    };
+// export async function addUsersInDB(requestData: any) {
+//   let user: any = {};
+//   await db.transaction(async (transaction) => {
+//     const newUser = {
+//       id: requestData.id,
+//       name: requestData.name,
+//     };
 
-    user = await transaction.insert(usersTable).values(newUser).returning();
-  });
-  return user;
-}
+//     user = await transaction.insert(usersTable).values(newUser).returning();
+//   });
+//   return user;
+// }
 
 export async function getUserFromDB(requestData: any) {
   let user: any = {};
