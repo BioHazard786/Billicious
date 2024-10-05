@@ -1,16 +1,27 @@
 "use client";
 
+import { getUserID } from "@/auth-utils/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAppleDevice } from "@/hooks/use-apple-device";
 import { signInFormSchema } from "@/lib/schema";
-import { signInUsingEmail, signInUsingGoogle } from "@/server/actions";
+import {
+  signInUsingEmail,
+  signInUsingGoogle,
+  signInUsingPasskey,
+} from "@/server/actions";
+import {
+  finishServerPasskeyLogin,
+  startServerPasskeyLogin,
+} from "@/server/passkey_actions";
+import { get } from "@github/webauthn-json";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
+import { GoPasskeyFill } from "react-icons/go";
 import { toast } from "sonner";
 import { z } from "zod";
 import AnimatedButton from "../ui/animated-button";
@@ -31,7 +42,11 @@ import {
 import { PasswordField } from "../ui/password-input";
 import Spinner from "../ui/spinner";
 
-export default function SignIn() {
+export default function SignIn({
+  lastSignedInMethod,
+}: {
+  lastSignedInMethod?: string;
+}) {
   const searchParams = useSearchParams();
   const isApple = useAppleDevice().isAppleDevice;
   const form = useForm<z.infer<typeof signInFormSchema>>({
@@ -84,6 +99,45 @@ export default function SignIn() {
     },
   });
 
+  const {
+    isPending: isSignInWithPasskeyPending,
+    mutate: server_signInUsingPasskey,
+  } = useMutation({
+    mutationFn: async (next: string) => {
+      const assertion = await startServerPasskeyLogin();
+      const credential = await get(assertion as any);
+      const response = await finishServerPasskeyLogin(credential);
+      if (!response || !response.token) {
+        return { error: "Passkey not set" };
+      }
+      const { token } = response;
+      const userId = await getUserID(token);
+      if (!userId) {
+        return { error: "User id not found" };
+      }
+      await signInUsingPasskey(userId, next);
+    },
+    onMutate: () => {
+      const toastId = toast.loading("Signing In...");
+      return { toastId };
+    },
+    onSuccess: (data, variables, context) => {
+      if (data) {
+        return toast.error(data?.error, {
+          id: context?.toastId,
+        });
+      }
+      return toast.success("Signed In successfully", {
+        id: context.toastId,
+      });
+    },
+    onError: (error, variables, context) => {
+      return toast.error(error.message, {
+        id: context?.toastId,
+      });
+    },
+  });
+
   const handleSignInWithEmail = (data: z.infer<typeof signInFormSchema>) => {
     const dataWithNextUrl = { ...data, next: searchParams.get("next") ?? "/" };
     server_signInUsingEmail(dataWithNextUrl);
@@ -91,6 +145,10 @@ export default function SignIn() {
 
   const handleSignInWithGoogle = () => {
     server_signInUsingGoogle(searchParams.get("next") ?? "/");
+  };
+
+  const handleSignInWithPasskey = () => {
+    server_signInUsingPasskey(searchParams.get("next") ?? "/");
   };
 
   return (
@@ -137,11 +195,24 @@ export default function SignIn() {
             <AnimatedButton
               type="submit"
               variant="default"
-              className="w-full"
-              isDisabled={isSignInWithEmailPending || isSignInWithGooglePending}
+              className="relative w-full"
+              disabled={
+                isSignInWithEmailPending ||
+                isSignInWithGooglePending ||
+                isSignInWithPasskeyPending
+              }
               isLoading={isSignInWithEmailPending}
             >
-              Sign in
+              <span>Sign in</span>
+              {lastSignedInMethod === "email" && (
+                <span className="ml-2 inline md:hidden">(Last used)</span>
+              )}
+              {lastSignedInMethod === "email" && (
+                <div className="absolute left-full top-1/2 ml-8 hidden -translate-y-1/2 whitespace-nowrap rounded-md bg-accent px-4 py-1 text-xs text-foreground/80 md:block">
+                  <div className="absolute -left-5 top-0 border-[12px] border-background border-r-accent" />
+                  Last used
+                </div>
+              )}
             </AnimatedButton>
           </form>
         </Form>
@@ -155,23 +226,58 @@ export default function SignIn() {
             </span>
           </div>
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-4">
           <Button
             variant="outline"
-            className="relative flex w-full items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground/80 shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+            className="relative"
             onClick={handleSignInWithGoogle}
-            disabled={isSignInWithEmailPending || isSignInWithGooglePending}
+            disabled={
+              isSignInWithEmailPending ||
+              isSignInWithGooglePending ||
+              isSignInWithPasskeyPending
+            }
           >
             {isSignInWithGooglePending ? (
               <Spinner loadingSpanClassName="bg-primary" className="mr-2" />
             ) : (
               <FcGoogle className="mr-2 h-5 w-5" />
             )}
-            Sign in with Google
-            {/* <div className="absolute left-full top-1/2 ml-8 -translate-y-1/2 whitespace-nowrap rounded-md bg-accent px-4 py-1 text-xs text-foreground/80">
-              <div className="absolute -left-5 top-0 border-[12px] border-background border-r-accent" />
-              Last used
-            </div> */}
+            <span>Sign in with Google</span>
+            {lastSignedInMethod === "google" && (
+              <span className="ml-2 inline md:hidden">(Last used)</span>
+            )}
+            {lastSignedInMethod === "google" && (
+              <div className="absolute left-full top-1/2 ml-8 hidden -translate-y-1/2 whitespace-nowrap rounded-md bg-accent px-4 py-1 text-xs text-foreground/80 md:block">
+                <div className="absolute -left-5 top-0 border-[12px] border-background border-r-accent" />
+                Last used
+              </div>
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleSignInWithPasskey}
+            className="relative"
+            disabled={
+              isSignInWithEmailPending ||
+              isSignInWithGooglePending ||
+              isSignInWithPasskeyPending
+            }
+          >
+            {isSignInWithPasskeyPending ? (
+              <Spinner loadingSpanClassName="bg-primary" className="mr-2" />
+            ) : (
+              <GoPasskeyFill className="mr-2 h-5 w-5" />
+            )}
+            <span>Sign in with Passkey</span>
+            {lastSignedInMethod === "passkey" && (
+              <span className="ml-2 inline md:hidden">(Last used)</span>
+            )}
+            {lastSignedInMethod === "passkey" && (
+              <div className="absolute left-full top-1/2 ml-8 hidden -translate-y-1/2 whitespace-nowrap rounded-md bg-accent px-4 py-1 text-xs text-foreground/80 md:block">
+                <div className="absolute -left-5 top-0 border-[12px] border-background border-r-accent" />
+                Last used
+              </div>
+            )}
           </Button>
         </div>
       </CardContent>
