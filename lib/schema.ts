@@ -58,6 +58,7 @@ export const avatarUploadSchema = z.object({
 
 export const profileUpdateFormSchema = z.object({
   userId: z.string().optional(),
+  email: z.string().email(),
   name: z
     .string()
     .min(2, { message: "Name must contain at least 2 character(s)" })

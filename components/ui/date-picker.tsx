@@ -40,6 +40,9 @@ export function DatePicker() {
             setDate(e ?? new Date());
             setIsCalendarOpen(false);
           }}
+          disabled={(date) =>
+            date > new Date() || date < new Date("1900-01-01")
+          }
           initialFocus
         />
       </PopoverContent>

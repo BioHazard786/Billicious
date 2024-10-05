@@ -1,8 +1,10 @@
 "use server";
 
 import { createClient } from "@/auth-utils/server";
+import { generateJWT } from "@/auth-utils/utils";
 import { signInFormSchema, signUpFormSchema } from "@/lib/schema";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
@@ -14,7 +16,7 @@ export const getUser = async () => {
   // fetch user from database
   const dbUser = await supabase
     .from("profiles")
-    .select(`id, name, avatar_url, email, username`)
+    .select(`id, name, avatar_url, email, username, has_passkey`)
     .eq("id", authUser?.id)
     .single();
 
@@ -32,6 +34,9 @@ export async function signInUsingEmail(
   if (error) {
     return { error: error.message || "Something went wrong" };
   }
+
+  const cookieJar = cookies();
+  cookieJar.set("lastSignedInMethod", "email");
 
   revalidatePath("/", "layout");
   redirect(data.next);
@@ -85,7 +90,30 @@ export async function signInUsingGoogle(next: string) {
   });
 
   if (error) return { error: error.message || "Something went wrong" };
+
+  const cookieJar = cookies();
+  cookieJar.set("lastSignedInMethod", "google");
+
   if (data.url) redirect(data.url);
+}
+
+export async function signInUsingPasskey(userId: string, next: string) {
+  const supabase = createClient();
+  const token = generateJWT(userId);
+
+  // Use the JWT to get a Supabase session
+  const { error } = await supabase.auth.setSession({
+    access_token: token,
+    refresh_token: token, // In this case, it's the same as access_token
+  });
+
+  if (error) return { error: error.message || "Something went wrong" };
+
+  const cookieJar = cookies();
+  cookieJar.set("lastSignedInMethod", "passkey");
+
+  revalidatePath("/", "layout");
+  redirect(next);
 }
 
 export async function signOut() {
@@ -102,4 +130,17 @@ export async function signOut() {
 
   revalidatePath("/", "layout");
   return redirect("/auth/signin");
+}
+
+export async function passkeyRegistered(userId: string) {
+  const supabase = createClient();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ has_passkey: true }) // Set has_passkey to false or true
+    .eq("id", userId);
+
+  if (error) return { error: error.message || "Something went wrong" };
+
+  return revalidatePath("/", "layout");
 }
