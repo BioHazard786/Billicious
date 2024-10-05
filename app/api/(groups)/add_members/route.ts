@@ -9,7 +9,7 @@ export const POST = async (request: Request) => {
       throw new Error("Members are Required");
     }
 
-    members = await addMembersInDB(requestData);
+    members = await addMembersInDB(requestData, false, {});
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });

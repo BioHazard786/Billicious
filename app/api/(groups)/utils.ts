@@ -30,7 +30,11 @@ export async function createGroupInDB(requestData: any) {
   return group;
 }
 
-export async function addMembersInDB(requestData: any) {
+export async function addMembersInDB(
+  requestData: any,
+  isNewGroup: boolean,
+  owner: any,
+) {
   let newMembers: any = [];
   await db.transaction(async (transaction) => {
     let groupId = requestData.group_id;
@@ -47,6 +51,21 @@ export async function addMembersInDB(requestData: any) {
       throw new Error("Send Members List");
     }
 
+    // console.log(owner);
+
+    if (isNewGroup) {
+      newMembers.push({
+        userId: owner.id,
+        groupId: groupId,
+        userNameInGroup: owner.name,
+        isAdmin: true,
+        isTemporary: false,
+        userIndex: count++,
+        totalSpent: "0",
+        totalPaid: "0",
+      });
+    }
+
     for (let member of requestData.members) {
       newMembers.push({
         userId: groupId + " | " + count,
@@ -57,8 +76,12 @@ export async function addMembersInDB(requestData: any) {
         totalPaid: "0",
       });
     }
+    // console.log(newMembers);
 
-    await transaction.insert(membersTable).values(newMembers).returning();
+    newMembers = await transaction
+      .insert(membersTable)
+      .values(newMembers)
+      .returning();
   });
   return newMembers;
 }

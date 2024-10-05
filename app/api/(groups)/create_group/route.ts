@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { addMembersInDB, createGroupInDB } from "../utils";
+import { getUserFromDB } from "../../(users)/utils";
 
 export const POST = async (request: Request) => {
   let group: any = {};
@@ -12,6 +13,12 @@ export const POST = async (request: Request) => {
     if (requestData.members === undefined || requestData.members.length === 0) {
       throw new Error("Members are Required");
     }
+    if (requestData.user_id === undefined) {
+      throw new Error("UserId is required");
+    }
+
+    // just to check if the user is valid
+    let owner = await getUserFromDB(requestData);
 
     group.group = await createGroupInDB(requestData);
     let requestCopy = {
@@ -19,7 +26,7 @@ export const POST = async (request: Request) => {
       group_id: group.group.id,
     };
     // console.log(requestCopy);
-    group.members = await addMembersInDB(requestCopy);
+    group.members = await addMembersInDB(requestCopy, true, owner);
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });
