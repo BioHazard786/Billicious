@@ -8,6 +8,7 @@ import { createGroupFormSchema } from "@/lib/schema";
 import { titleCase } from "@/lib/utils";
 import { createGroupInDB } from "@/server/fetchHelpers";
 import useCreateGroup from "@/store/create-group-store";
+import useUserStore from "@/store/user-info-store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
@@ -42,6 +43,7 @@ const CreateGroupForm: React.FC = () => {
   const addMemberName = useCreateGroup.use.addMemberName();
   const removeMemberName = useCreateGroup.use.removeMemberName();
   const reset = useCreateGroup.use.reset();
+  const admin = useUserStore((state) => state.user);
 
   const router = useRouter();
 
@@ -58,6 +60,14 @@ const CreateGroupForm: React.FC = () => {
       form.setError("member_name", {
         type: "maxLength",
         message: "Name must contain at most 32 character(s)",
+      });
+      return form.setValue("member_name", "");
+    }
+
+    if (admin?.name.toLowerCase() === memberName.toLowerCase()) {
+      form.setError("member_name", {
+        type: "deps",
+        message: "This member is admin",
       });
       return form.setValue("member_name", "");
     }
@@ -93,16 +103,17 @@ const CreateGroupForm: React.FC = () => {
 
   const createGroup = useCallback(
     (data: z.infer<typeof createGroupFormSchema>) => {
-      if (memberNames.length < 2) {
+      if (memberNames.length === 0) {
         return form.setError("member_name", {
           type: "manual",
-          message: "Add at least 2 members",
+          message: "Add at least 1 members",
         });
       }
 
       const groupBody = {
         name: data.group_name,
         members: memberNames,
+        user_id: admin!.id,
       };
 
       server_createGroup(groupBody);

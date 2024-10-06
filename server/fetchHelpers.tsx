@@ -1,6 +1,7 @@
 type GroupData = {
   name: string;
   members: string[];
+  user_id: string;
 };
 
 type MemberData = {

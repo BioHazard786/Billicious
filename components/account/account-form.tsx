@@ -57,7 +57,7 @@ export default function AccountForm() {
   const [currentSelectedTab, setCurrentSelectedTab] = useState("info");
 
   return (
-    <Card className="mx-auto mt-12 w-full max-w-lg space-y-8 border-0 px-1">
+    <Card className="mx-auto mt-12 w-full max-w-lg border-0 px-1">
       <CardHeader>
         <CardTitle className="mt-6 text-center text-2xl font-bold tracking-tight text-foreground/90 md:text-3xl">
           Account Settings
@@ -66,7 +66,7 @@ export default function AccountForm() {
           Update your personal information here.
         </CardDescription>
       </CardHeader>
-      <CardContent className="w-full">
+      <CardContent className="w-full md:mt-4">
         <Tabs
           value={currentSelectedTab}
           onValueChange={(tabName) => setCurrentSelectedTab(tabName)}
@@ -88,7 +88,7 @@ export default function AccountForm() {
               </TabsTrigger>
             </TabsList>
           </div>
-          <div className="mt-14">
+          <div className="mt-6 md:mt-10">
             <TabsContent value="info">
               <UpdateUserInfo />
             </TabsContent>
