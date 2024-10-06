@@ -78,7 +78,7 @@ const RegisterPasskey = () => {
           <div>Register Passkey</div>
           <HoverCard>
             <HoverCardTrigger asChild>
-              <Info className="size-5 text-muted-foreground" />
+              <Info className="size-5 cursor-pointer text-muted-foreground" />
             </HoverCardTrigger>
             <HoverCardContent className="text-sm font-normal text-muted-foreground">
               Passkeys replace passwords and allow users to login with, e.g.
@@ -101,7 +101,7 @@ const RegisterPasskey = () => {
             disabled={isPending}
           >
             {isPending ? (
-              <Spinner loadingSpanClassName="bg-primary" className="mr-2" />
+              <Spinner className="mr-2" />
             ) : (
               <GoPasskeyFill className="mr-2 h-5 w-5" />
             )}

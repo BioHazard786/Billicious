@@ -26,7 +26,7 @@ const FloatingNavbar = () => {
 
   useMotionValueEvent(scrollY, "change", (y) => {
     const difference = y - lastYRef.current;
-    if (Math.abs(difference) > 10) {
+    if (Math.abs(difference) > 50) {
       setHidden(difference > 0);
       lastYRef.current = y;
     }
