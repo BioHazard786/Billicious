@@ -23,13 +23,13 @@ export const usersTable = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  // (table) => {
-  //   return {
-  //     usersTableUsernameIndex: index("users_table_username_index").on(
-  //       table.username,
-  //     ),
-  //   };
-  // },
+  (table) => {
+    return {
+      usersTableUsernameIndex: index("users_table_username_index").on(
+        table.username,
+      ),
+    };
+  },
 );
 
 export const groupsTable = pgTable("groups_table", {
@@ -77,7 +77,7 @@ export const membersTable = pgTable(
     groupId: text("group_id").references(() => groupsTable.id),
     userNameInGroup: text("username_in_group").notNull(),
     isAdmin: boolean("is_admin").default(false),
-    isTemporary: boolean("is_temporary").default(true),
+    status: integer("status").default(0),
     userIndex: integer("user_index"),
     totalSpent: numeric("total_spent").notNull().default("0"),
     totalPaid: numeric("total_paid").notNull().default("0"),
@@ -163,8 +163,8 @@ export const payeesInBillsTable = pgTable(
   },
 );
 
-export const requestTable = pgTable(
-  "request_table",
+export const inviteTable = pgTable(
+  "invite_table",
   {
     userId: uuid("user_id").references(() => usersTable.id),
     groupId: text("group_id").references(() => groupsTable.id),
@@ -173,9 +173,15 @@ export const requestTable = pgTable(
   (table) => {
     return {
       primaryKey: primaryKey({
-        name: "request_table_pk",
+        name: "invite_table_pk",
         columns: [table.userId, table.groupId],
       }),
+      inviteTableUserIdIndex: index("invite_table_user_id_index").on(
+        table.userId,
+      ),
+      inviteTableGroupIdIndex: index("invite_table_group_id_index").on(
+        table.groupId,
+      ),
     };
   },
 );

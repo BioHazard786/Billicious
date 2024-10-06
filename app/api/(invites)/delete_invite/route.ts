@@ -1,22 +1,19 @@
 import { NextResponse } from "next/server";
-import { sendRequest } from "../utils";
+import { deleteInvite } from "../utils";
 
 export const POST = async (request: Request) => {
   try {
     const requestData = await request.json();
-    if (requestData.sender_user_id === undefined) {
-      throw new Error("sender user id is required");
-    }
-    if (requestData.receiver_user_id === undefined) {
-      throw new Error("receiver user id is required");
+    if (requestData.user_index === undefined) {
+      throw new Error("user index is required");
     }
     if (requestData.group_id === undefined) {
       throw new Error("group id is required");
     }
-    if (requestData.user_index === undefined) {
-      throw new Error("user index is required");
+    if (requestData.user_id === undefined) {
+      throw new Error("user id is required");
     }
-    await sendRequest(requestData);
+    await deleteInvite(requestData);
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });
@@ -27,5 +24,5 @@ export const POST = async (request: Request) => {
     );
   }
 
-  return NextResponse.json({ message: "Request Sent" }, { status: 201 });
+  return NextResponse.json({ message: "Invite Deleted" }, { status: 201 });
 };
