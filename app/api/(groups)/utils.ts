@@ -5,7 +5,7 @@ import {
   groupsTable,
   membersTable,
   payeesInBillsTable,
-  requestTable,
+  inviteTable,
   transactionsTable,
 } from "@/database/schema";
 import { desc, eq } from "drizzle-orm";
@@ -59,7 +59,7 @@ export async function addMembersInDB(
         groupId: groupId,
         userNameInGroup: owner.name,
         isAdmin: true,
-        isTemporary: false,
+        status: 2,
         userIndex: count++,
         totalSpent: "0",
         totalPaid: "0",
@@ -219,24 +219,25 @@ function withPagination<T extends PgSelect>(
   return qb.limit(pageSize).offset((page - 1) * pageSize);
 }
 
-export async function getRequestFromDB(requestData: any) {
-  let groupRequests;
-  await db.transaction(async (transaction) => {
-    groupRequests = await transaction
-      .select()
-      .from(requestTable)
-      .where(eq(requestTable.groupId, requestData.group_id));
+// export async function getGroupInvitesFromDB(requestData: any) {
+//   let groupRequests;
+//   await db.transaction(async (transaction) => {
+//     groupRequests = await transaction
+//       .select()
+//       .from(inviteTable)
+//       .where(eq(inviteTable.groupId, requestData.group_id));
 
-    groupRequests = groupRequests.sort(
-      (i, j) => (i.userIndex as number) - (j.userIndex as number),
-    );
+//     if (groupRequests.length === 0) {
+//       throw new Error("No request exists");
+//     }
 
-    if (groupRequests.length === 0) {
-      throw new Error("No request exists");
-    }
-    return groupRequests;
-  });
-}
+//     groupRequests = groupRequests.sort(
+//       (i, j) => (i.userIndex as number) - (j.userIndex as number),
+//     );
+
+//     return groupRequests;
+//   });
+// }
 
 // export async function createKafkaTopic(groupId: string) {
 //   await admin.connect();
