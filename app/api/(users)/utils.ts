@@ -1,5 +1,5 @@
 import { client, db } from "@/database/dbConnect";
-import { usersTable } from "@/database/schema";
+import { membersTable, usersTable } from "@/database/schema";
 import { and, eq, or } from "drizzle-orm";
 
 export async function addUsersInDB(requestData: any) {
@@ -29,4 +29,19 @@ export async function getUserFromDB(requestData: any) {
     user = users[0];
   });
   return user;
+}
+
+export async function getUserGroupsFromDB(requestData: any) {
+  let groups;
+  await db.transaction(async (transaction) => {
+    groups = await transaction
+      .select()
+      .from(membersTable)
+      .where(eq(membersTable.userId, requestData.user_id));
+
+    if (groups.length === 0) {
+      throw new Error("user is not a part of any group");
+    }
+  });
+  return groups;
 }
