@@ -7,8 +7,9 @@ import {
   payeesInBillsTable,
   inviteTable,
   transactionsTable,
+  usersTable,
 } from "@/database/schema";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { PgSelect } from "drizzle-orm/pg-core";
 
 export async function createGroupInDB(requestData: any) {
@@ -106,24 +107,59 @@ export async function getGroupFromDB(requestData: any) {
 }
 
 export async function getMembersFromDB(requestData: any) {
-  let members;
+  let membersInGroup: any = [];
   await db.transaction(async (transaction) => {
     let groupId = requestData.group_id;
-    members = await transaction
+    let members = await transaction
       .select()
       .from(membersTable)
       .where(eq(membersTable.groupId, groupId));
 
     if (members.length == 0) {
-      throw new Error("No members In Group");
+      return members;
     }
 
     members = members.sort(
       (i, j) => (i.userIndex as number) - (j.userIndex as number),
     );
+
+    let regex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    let userIds = members
+      .filter((member) => regex.test(member.userId))
+      .map((member) => member.userId);
+    // console.log(userIds);
+
+    let userInfo = await transaction
+      .select()
+      .from(usersTable)
+      .where(inArray(usersTable.id, userIds));
+    // console.log(userInfo);
+
+    let userInfoMap = new Map();
+    for (let user of userInfo) {
+      userInfoMap.set(user.id, user);
+    }
+
+    for (let member of members) {
+      let user = userInfoMap.get(member.userId);
+      if (user !== undefined) {
+        membersInGroup.push({
+          ...member,
+          avatarUrl: user.avatar_url,
+          username: user.username,
+        });
+      } else {
+        membersInGroup.push({
+          ...member,
+          avatarUrl: null,
+          username: null,
+        });
+      }
+    }
   });
 
-  return members;
+  return membersInGroup;
 }
 
 export async function deleteGroupInDB(requestData: any) {
@@ -218,26 +254,6 @@ function withPagination<T extends PgSelect>(
 ) {
   return qb.limit(pageSize).offset((page - 1) * pageSize);
 }
-
-// export async function getGroupInvitesFromDB(requestData: any) {
-//   let groupRequests;
-//   await db.transaction(async (transaction) => {
-//     groupRequests = await transaction
-//       .select()
-//       .from(inviteTable)
-//       .where(eq(inviteTable.groupId, requestData.group_id));
-
-//     if (groupRequests.length === 0) {
-//       throw new Error("No request exists");
-//     }
-
-//     groupRequests = groupRequests.sort(
-//       (i, j) => (i.userIndex as number) - (j.userIndex as number),
-//     );
-
-//     return groupRequests;
-//   });
-// }
 
 // export async function createKafkaTopic(groupId: string) {
 //   await admin.connect();

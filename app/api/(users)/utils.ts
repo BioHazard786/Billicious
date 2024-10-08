@@ -1,6 +1,6 @@
 import { client, db } from "@/database/dbConnect";
-import { membersTable, usersTable } from "@/database/schema";
-import { and, eq, or } from "drizzle-orm";
+import { groupsTable, membersTable, usersTable } from "@/database/schema";
+import { and, eq, or, inArray } from "drizzle-orm";
 
 export async function addUsersInDB(requestData: any) {
   let user: any = {};
@@ -32,16 +32,45 @@ export async function getUserFromDB(requestData: any) {
 }
 
 export async function getUserGroupsFromDB(requestData: any) {
-  let groups;
+  let userGroups: any = [];
   await db.transaction(async (transaction) => {
-    groups = await transaction
+    let groups = await transaction
       .select()
       .from(membersTable)
       .where(eq(membersTable.userId, requestData.user_id));
 
     if (groups.length === 0) {
-      throw new Error("user is not a part of any group");
+      return groups;
+    }
+
+    let groupIds = groups.map((group) => group.groupId!);
+    // console.log(userIds);
+
+    let groupInfo = await transaction
+      .select()
+      .from(groupsTable)
+      .where(inArray(groupsTable.id, groupIds));
+    // console.log(userInfo);
+
+    let groupInfoMap = new Map();
+    for (let group of groupInfo) {
+      groupInfoMap.set(group.id, group.name);
+    }
+
+    for (let group of groups) {
+      let groupName = groupInfoMap.get(group.groupId);
+      if (groupName !== undefined) {
+        userGroups.push({
+          ...group,
+          groupName: groupName,
+        });
+      } else {
+        userGroups.push({
+          ...group,
+          groupName: null,
+        });
+      }
     }
   });
-  return groups;
+  return userGroups;
 }
