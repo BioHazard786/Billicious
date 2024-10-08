@@ -183,9 +183,9 @@ export async function acceptInvite(requestData: any) {
 }
 
 export async function getInvitesFromDB(requestData: any) {
-  let userInvites;
+  let invites: any = [];
   await db.transaction(async (transaction) => {
-    userInvites = await transaction
+    invites = await transaction
       .select()
       .from(inviteTable)
       .where(
@@ -200,10 +200,6 @@ export async function getInvitesFromDB(requestData: any) {
           ),
         ),
       );
-
-    if (userInvites.length === 0) {
-      throw new Error("No request exists");
-    }
   });
-  return userInvites;
+  return invites;
 }
