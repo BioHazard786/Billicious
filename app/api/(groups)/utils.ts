@@ -11,6 +11,7 @@ import {
 } from "@/database/schema";
 import { desc, eq, inArray } from "drizzle-orm";
 import { PgSelect } from "drizzle-orm/pg-core";
+import { sendInvite, receiverValidation } from "../(invites)/utils";
 
 export async function createGroupInDB(requestData: any) {
   let group;
@@ -61,6 +62,24 @@ export async function addMembersInDB(
         userNameInGroup: owner.name,
         isAdmin: true,
         status: 2,
+        userIndex: count++,
+        totalSpent: "0",
+        totalPaid: "0",
+      });
+    }
+
+    let receiverIds: any = [];
+    for (let username of requestData.usernames) {
+      let receiver = await receiverValidation(username, transaction);
+      await sendInvite(
+        { group_id: groupId, user_index: count },
+        true,
+        receiver.id,
+      );
+      newMembers.push({
+        userId: groupId + " | " + count,
+        groupId: groupId,
+        userNameInGroup: receiver.name,
         userIndex: count++,
         totalSpent: "0",
         totalPaid: "0",
