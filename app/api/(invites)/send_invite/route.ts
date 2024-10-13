@@ -16,7 +16,7 @@ export const POST = async (request: Request) => {
     if (requestData.user_index === undefined) {
       throw new Error("user index is required");
     }
-    await sendInvite(requestData);
+    await sendInvite(requestData, false, "");
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });
