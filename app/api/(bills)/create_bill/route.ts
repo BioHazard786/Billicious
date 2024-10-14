@@ -1,25 +1,44 @@
 import { NextResponse } from "next/server";
 import { createBillInDB } from "../utils";
+import { db } from "@/database/dbConnect";
 
 export const POST = async (request: Request) => {
   let bill;
   try {
     const requestData = await request.json();
 
-    if (requestData.group_id === undefined) {
-      throw new Error("GroupId is Required");
+    // REQUEST DATA VALIDATION
+    if (requestData.groupId === undefined) {
+      throw new Error("group id is required");
     }
     if (requestData.name === undefined) {
-      throw new Error("Bill Name is Required");
+      throw new Error("bill name is required");
     }
-    if (requestData.drawees === undefined || requestData.payees === undefined) {
-      throw new Error("Drawees and Payees Required");
+    if (requestData.drawees === undefined) {
+      throw new Error("drawees are required");
+    }
+    if (requestData.payees === undefined) {
+      throw new Error("payees are required");
     }
     if (requestData.category === undefined) {
-      throw new Error("Category is Required");
+      throw new Error("category is required");
     }
 
-    bill = await createBillInDB(requestData);
+    await db.transaction(async (transaction) => {
+      bill = await createBillInDB(
+        transaction,
+        requestData.groupId,
+        requestData.drawees,
+        requestData.payees,
+        requestData.name,
+        requestData.notes,
+        requestData.category,
+        requestData.isPayment === undefined ? false : requestData.isPayment,
+        requestData.createdAt === undefined
+          ? new Date()
+          : new Date(requestData.createdAt),
+      );
+    });
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });
