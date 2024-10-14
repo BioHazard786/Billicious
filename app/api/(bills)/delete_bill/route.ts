@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
 import { deleteBillInDB } from "../utils";
+import { db } from "@/database/dbConnect";
 
 export const DELETE = async (request: Request) => {
   let bill;
   try {
     const requestData = await request.json();
 
-    if (requestData.bill_id === undefined) {
+    if (requestData.billId === undefined) {
       throw new Error("BillId is Required");
     }
 
-    bill = await deleteBillInDB(requestData);
+    await db.transaction(async (transaction) => {
+      bill = await deleteBillInDB(transaction, requestData.billId);
+    });
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });

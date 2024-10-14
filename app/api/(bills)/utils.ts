@@ -7,13 +7,28 @@ import {
   payeesInBillsTable,
   transactionsTable,
 } from "@/database/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, ExtractTablesWithRelations, sql } from "drizzle-orm";
+import { PgTransaction } from "drizzle-orm/pg-core";
+import { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
 // import { CompressionTypes } from "kafkajs";
 // import { redpanda } from "@/database/kafka";
-
 // const producer = redpanda.producer();
 
-export async function createBillInDB(requestData: any) {
+export async function createBillInDB(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  groupId: string,
+  drawees: any[],
+  payees: any[],
+  name: string,
+  notes: string,
+  category: string,
+  isPayment: boolean,
+  createdAt: Date,
+) {
   let bill: any = {};
 
   // CREATE BILL FUNCTION
@@ -24,322 +39,332 @@ export async function createBillInDB(requestData: any) {
   // 5. UPDATE BALANCES IN TRANSACTIONS TABLE
   // 6. UPDATE THE TOTAL AMOUNT IN GROUP EXPENSES
 
-  await db.transaction(async (transaction) => {
-    let groupId = requestData.group_id;
+  // Validate Group Exists
+  let groups = await transaction
+    .select()
+    .from(groupsTable)
+    .where(eq(groupsTable.id, groupId));
 
-    // Validate Group Exists
-    let groups = await transaction
-      .select()
-      .from(groupsTable)
-      .where(eq(groupsTable.id, groupId));
+  if (groups.length === 0) {
+    throw new Error("No Such Group Exists");
+  }
 
-    if (groups.length === 0) {
-      throw new Error("No Such Group Exists");
-    }
+  const members = await transaction
+    .select()
+    .from(membersTable)
+    .where(eq(membersTable.groupId, groupId));
 
-    const members = await transaction
-      .select()
-      .from(membersTable)
-      .where(eq(membersTable.groupId, groupId));
+  let totalAmount = validateDraweesAndPayees(drawees, payees, members.length);
 
-    // Updating the Members based on the Drawees and Payees in Request
-    members.forEach((user) => {
-      if (user.userIndex != null) {
-        if (requestData.drawees[user.userIndex] !== undefined) {
-          user.totalSpent = (
-            parseFloat(user.totalSpent) + requestData.drawees[user.userIndex]
-          ).toString();
-        }
-        if (requestData.payees[user.userIndex] !== undefined) {
-          user.totalPaid = (
-            parseFloat(user.totalPaid) + requestData.payees[user.userIndex]
-          ).toString();
-        }
-      }
+  // Create a New Bill in the Database
+  const newBill = {
+    name: name,
+    notes: notes,
+    amount: totalAmount.toString(),
+    category: category,
+    isPayment: isPayment,
+    createdAt: createdAt,
+    groupId: groupId,
+  };
+  let bills = await transaction.insert(billsTable).values(newBill).returning();
+  bill.bill_id = bills[0].id;
+
+  bill.members = await updateMembersAndBalances(
+    transaction,
+    groupId as string,
+    members,
+    drawees,
+    payees,
+  );
+
+  // Update Drawees and Payees
+  let draweesInBill = [];
+  for (let [idx, amt] of Object.entries(drawees)) {
+    draweesInBill.push({
+      billId: bills[0].id,
+      userIndex: parseInt(idx),
+      amount: amt as string,
     });
+  }
+  let payeesInBill = [];
+  for (let [idx, amt] of Object.entries(payees)) {
+    payeesInBill.push({
+      billId: bills[0].id,
+      userIndex: parseInt(idx),
+      amount: amt as string,
+    });
+  }
 
-    // Create userExpenseMap which stores the amount for each user
-    let userExpenseMap = new Map();
-    let totalAmount = createUserExpenseMap(
-      userExpenseMap,
-      requestData,
-      members,
+  // Create Drawees and Payees in DB
+  bill.drawees = await transaction
+    .insert(draweesInBillsTable)
+    .values(draweesInBill)
+    .returning();
+  bill.payees = await transaction
+    .insert(payeesInBillsTable)
+    .values(payeesInBill)
+    .returning();
+
+  // Update GroupTotalExpense
+  if (bills[0].isPayment === false) {
+    bill.totalGroupExpense = await updateGroup(
+      transaction,
+      groupId,
+      totalAmount,
     );
+  }
 
-    // Update the Members for Group
-    members.forEach(async (user) => {
-      await transaction
-        .update(membersTable)
-        .set({ totalSpent: user.totalSpent, totalPaid: user.totalPaid })
-        .where(eq(membersTable.userId, user.userId));
-    });
-    bill.members = members.sort(
-      (i, j) => (i.userIndex as number) - (j.userIndex as number),
-    );
-
-    // Create a New Bill in the Database
-    const newBill = {
-      name: requestData.name,
-      notes: requestData.notes,
-      amount: totalAmount.toString(),
-      category: requestData.category,
-      isPayment: requestData.hasOwnProperty("is_payment")
-        ? requestData.is_payment
-        : false,
-      createdAt: requestData.hasOwnProperty("created_at")
-        ? new Date(requestData.created_at)
-        : new Date(),
-      groupId: groupId,
-    };
-    let bills = await transaction
-      .insert(billsTable)
-      .values(newBill)
-      .returning();
-    bill.bill_id = bills[0].id;
-
-    // Get all the balances for Users
-    const balances = createBalances(userExpenseMap, groupId);
-
-    // Update the balances for Users in DB
-    balances.forEach(async (balance) => {
-      await transaction
-        .insert(transactionsTable)
-        .values(balance)
-        .onConflictDoUpdate({
-          target: [
-            transactionsTable.groupId,
-            transactionsTable.user1Index,
-            transactionsTable.user2Index,
-          ],
-          set: {
-            balance: sql`${transactionsTable.balance} + ${balance.balance}`,
-          },
-        });
-    });
-
-    // Update Drawees and Payees
-    let drawees = [];
-    for (let [idx, amt] of Object.entries(requestData.drawees)) {
-      drawees.push({
-        billId: bills[0].id,
-        userIndex: parseInt(idx),
-        amount: amt as string,
-      });
-    }
-    let payees = [];
-    for (let [idx, amt] of Object.entries(requestData.payees)) {
-      payees.push({
-        billId: bills[0].id,
-        userIndex: parseInt(idx),
-        amount: amt as string,
-      });
-    }
-    bill.drawees = drawees;
-    bill.payees = payees;
-
-    // Create Drawees and Payees in DB
-    await transaction.insert(draweesInBillsTable).values(drawees);
-    await transaction.insert(payeesInBillsTable).values(payees);
-
-    // Update GroupTotalExpense
-    if (bills[0].isPayment === false) {
-      let groups = await transaction
-        .update(groupsTable)
-        .set({
-          totalExpense: sql`${groupsTable.totalExpense} + ${totalAmount.toString()}`,
-        })
-        .where(eq(groupsTable.id, groupId))
-        .returning();
-      bill.total_group_expense = groups[0].totalExpense;
-    }
-
-    // sendBillDataToKafka(bill, groupId);
-  });
+  // sendBillDataToKafka(bill, groupId);
 
   return bill;
 }
 
-export async function getBillFromDB(requestData: any) {
+export async function getBillFromDB(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  billId: string,
+) {
   let bill: any = {};
-  await db.transaction(async (transaction) => {
-    let billId = requestData.bill_id;
+  let bills = await transaction
+    .select()
+    .from(billsTable)
+    .where(eq(billsTable.id, billId));
 
-    let bills = await transaction
-      .select()
-      .from(billsTable)
-      .where(eq(billsTable.id, billId));
+  if (bills.length == 0) {
+    throw new Error("Invalid Bill Id");
+  }
 
-    if (bills.length == 0) {
-      throw new Error("Invalid Bill Id");
-    }
+  bill.drawees = await transaction
+    .select()
+    .from(draweesInBillsTable)
+    .where(eq(draweesInBillsTable.billId, billId));
+  bill.payees = await transaction
+    .select()
+    .from(payeesInBillsTable)
+    .where(eq(payeesInBillsTable.billId, billId));
 
-    bill.drawees = await transaction
-      .select()
-      .from(draweesInBillsTable)
-      .where(eq(draweesInBillsTable.billId, billId));
-    bill.payees = await transaction
-      .select()
-      .from(payeesInBillsTable)
-      .where(eq(payeesInBillsTable.billId, billId));
-
-    bill.bill = bills[0];
-  });
+  bill.bill = bills[0];
   return bill;
 }
 
-export async function deleteBillInDB(requestData: any) {
+export async function deleteBillInDB(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  billId: string,
+) {
   let bill: any = {};
-  await db.transaction(async (transaction) => {
-    let billId = requestData.bill_id;
+  let bills = await transaction
+    .select()
+    .from(billsTable)
+    .where(eq(billsTable.id, billId));
 
-    let bills = await transaction
-      .select()
-      .from(billsTable)
-      .where(eq(billsTable.id, billId));
+  if (bills.length == 0) {
+    throw new Error("Invalid Bill Id");
+  }
 
-    if (bills.length == 0) {
-      throw new Error("Invalid Bill Id");
-    }
+  let groupId = bills[0].groupId;
 
-    let groupId = bills[0].groupId;
+  const members = await transaction
+    .select()
+    .from(membersTable)
+    .where(eq(membersTable.groupId, groupId as string));
 
-    const members = await transaction
-      .select()
-      .from(membersTable)
-      .where(eq(membersTable.groupId, groupId as string));
+  let totalDrawn = 0,
+    totalPaid = 0;
 
-    requestData.drawees = {};
-    requestData.payees = {};
+  let draweesInBill = await transaction
+    .select()
+    .from(draweesInBillsTable)
+    .where(eq(draweesInBillsTable.billId, billId));
 
-    let drawees = await transaction
-      .select()
-      .from(draweesInBillsTable)
-      .where(eq(draweesInBillsTable.billId, billId));
+  let drawees: any = [];
+  for (let drawee of draweesInBill) {
+    drawees[drawee.userIndex] = "-" + drawee.amount;
+    totalDrawn -= parseFloat(drawee.amount as string);
+  }
 
-    for (let drawee of drawees) {
-      requestData.drawees[drawee.userIndex] = "-" + drawee.amount;
-    }
+  let payees: any = [];
+  let payeesInBill = await transaction
+    .select()
+    .from(payeesInBillsTable)
+    .where(eq(payeesInBillsTable.billId, billId));
 
-    let payees = await transaction
-      .select()
-      .from(payeesInBillsTable)
-      .where(eq(payeesInBillsTable.billId, billId));
+  for (let payee of payeesInBill) {
+    payees[payee.userIndex] = "-" + payee.amount;
+    totalPaid -= parseFloat(payee.amount as string);
+  }
 
-    for (let payee of payees) {
-      requestData.payees[payee.userIndex] = "-" + payee.amount;
-    }
+  let totalAmount = totalPaid;
 
-    // Updating the Members based on the Drawees and Payees in DB
-    members.forEach((user) => {
-      if (user.userIndex != null) {
-        if (requestData.drawees[user.userIndex] !== undefined) {
-          user.totalSpent = (
-            parseFloat(user.totalSpent) +
-            parseFloat(requestData.drawees[user.userIndex])
-          ).toString();
-        }
-        if (requestData.payees[user.userIndex] !== undefined) {
-          user.totalPaid = (
-            parseFloat(user.totalPaid) +
-            parseFloat(requestData.payees[user.userIndex])
-          ).toString();
-        }
-      }
-    });
+  bill.members = await updateMembersAndBalances(
+    transaction,
+    groupId as string,
+    members,
+    drawees,
+    payees,
+  );
 
-    // Create userExpenseMap which stores the amount for each user
-    let userExpenseMap = new Map();
-    let totalAmount = createUserExpenseMap(
-      userExpenseMap,
-      requestData,
-      membersTable,
+  // Delete Drawees and Payees in DB
+  await transaction
+    .delete(draweesInBillsTable)
+    .where(eq(draweesInBillsTable.billId, billId));
+  await transaction
+    .delete(payeesInBillsTable)
+    .where(eq(payeesInBillsTable.billId, billId));
+
+  // Delete the Bill
+  await transaction.delete(billsTable).where(eq(billsTable.id, billId));
+
+  // Update GroupTotalExpense
+  if (bills[0].isPayment === false) {
+    bill.totalGroupExpense = await updateGroup(
+      transaction,
+      groupId as string,
+      totalAmount,
     );
+  }
 
-    // Update the Members for Group
-    members.forEach(async (user) => {
-      await transaction
-        .update(membersTable)
-        .set({ totalSpent: user.totalSpent, totalPaid: user.totalPaid })
-        .where(eq(membersTable.userId, user.userId));
-    });
-    bill.members = members.sort(
-      (i, j) => (i.userIndex as number) - (j.userIndex as number),
-    );
-
-    // Get all the balances for Users
-    const balances = createBalances(userExpenseMap, groupId);
-
-    // Update the balances for Users in DB
-    balances.forEach(async (balance) => {
-      await transaction
-        .insert(transactionsTable)
-        .values(balance)
-        .onConflictDoUpdate({
-          target: [
-            transactionsTable.groupId,
-            transactionsTable.user1Index,
-            transactionsTable.user2Index,
-          ],
-          set: {
-            balance: sql`${transactionsTable.balance} + ${balance.balance}`,
-          },
-        });
-    });
-
-    // Delete Drawees and Payees in DB
-    await transaction
-      .delete(draweesInBillsTable)
-      .where(eq(draweesInBillsTable.billId, billId));
-    await transaction
-      .delete(payeesInBillsTable)
-      .where(eq(payeesInBillsTable.billId, billId));
-
-    // Delete the Bill
-    await transaction.delete(billsTable).where(eq(billsTable.id, billId));
-
-    // Update GroupTotalExpense
-    if (bills[0].isPayment === false) {
-      let groups = await transaction
-        .update(groupsTable)
-        .set({
-          totalExpense: sql`${groupsTable.totalExpense} + ${totalAmount.toString()}`,
-        })
-        .where(eq(groupsTable.id, groupId as string))
-        .returning();
-      bill.total_group_expense = groups[0].totalExpense;
-    }
-
-    // sendBillDataToKafka(bill, groupId as string);
-  });
+  // sendBillDataToKafka(bill, groupId as string);
 
   return bill;
 }
 
-function createUserExpenseMap(
-  userExpenseMap: Map<number, number>,
-  requestData: any,
-  members: any,
+async function updateGroup(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  groupId: string,
+  totalAmount: number,
+) {
+  let groups = await transaction
+    .update(groupsTable)
+    .set({
+      totalExpense: sql`${groupsTable.totalExpense} + ${totalAmount.toString()}`,
+    })
+    .where(eq(groupsTable.id, groupId))
+    .returning();
+  return groups[0].totalExpense;
+}
+
+async function updateMembersAndBalances(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  groupId: string,
+  members: any[],
+  drawees: any[],
+  payees: any[],
+) {
+  // Updating the Members based on the Drawees and Payees in DB
+  members.forEach((user) => {
+    if (user.userIndex != null) {
+      if (drawees[user.userIndex] !== undefined) {
+        user.totalSpent = (
+          parseFloat(user.totalSpent) + parseFloat(drawees[user.userIndex])
+        ).toString();
+      }
+      if (payees[user.userIndex] !== undefined) {
+        user.totalPaid = (
+          parseFloat(user.totalPaid) + parseFloat(payees[user.userIndex])
+        ).toString();
+      }
+    }
+  });
+
+  // Create userExpenseMap which stores the amount for each user
+  let userExpenseMap = createUserExpenseMap(drawees, payees);
+
+  // Update the Members for Group
+  members.forEach(async (user) => {
+    await transaction
+      .update(membersTable)
+      .set({ totalSpent: user.totalSpent, totalPaid: user.totalPaid })
+      .where(eq(membersTable.userId, user.userId));
+  });
+  members = members.sort(
+    (i, j) => (i.userIndex as number) - (j.userIndex as number),
+  );
+
+  // Get all the balances for Users
+  const balances = createBalances(userExpenseMap, groupId);
+
+  // Update the balances for Users in DB
+  balances.forEach(async (balance) => {
+    await transaction
+      .insert(transactionsTable)
+      .values(balance)
+      .onConflictDoUpdate({
+        target: [
+          transactionsTable.groupId,
+          transactionsTable.user1Index,
+          transactionsTable.user2Index,
+        ],
+        set: {
+          balance: sql`${transactionsTable.balance} + ${balance.balance}`,
+        },
+      });
+  });
+  return members;
+}
+
+function validateDraweesAndPayees(
+  drawees: any[],
+  payees: any[],
+  membersLength: number,
 ) {
   let totalDrawn = 0,
     totalPaid = 0;
 
-  for (let [idx, amt] of Object.entries(requestData.drawees)) {
+  // CHECK IF EACH DRAWEE INDEX IS LESS THAN MEMBERS' LENGTH
+  // ADD EACH DRAWEE AMOUNT TO TOTALDRAWN
+  for (let [idx, amt] of Object.entries(drawees)) {
     let index = parseFloat(idx),
       amount = parseFloat(amt as string);
-    if (index >= members.length) {
-      throw new Error("Drawees Index must be less than Member's Length");
+    if (index >= membersLength) {
+      throw new Error("drawees index must be less than member's length");
     }
     totalDrawn += amount;
+  }
+
+  // CHECK IF EACH PAYEE INDEX IS LESS THAN MEMBERS' LENGTH
+  // ADD EACH PAYEE AMOUNT TO TOTALPAID
+  for (let [idx, amt] of Object.entries(payees)) {
+    let index = parseFloat(idx),
+      amount = parseFloat(amt as string);
+    if (index >= membersLength) {
+      throw new Error("payees index must be less than member's length");
+    }
+    totalPaid += amount;
+  }
+
+  // CHECK IF TOTALPAID AMOUNT IS EQUAL TO TOTAL DRAWN AMOUNT
+  if (totalDrawn != totalPaid) {
+    throw new Error("drawn and paid amount mismatch");
+  }
+  return totalPaid;
+}
+
+function createUserExpenseMap(drawees: any[], payees: any[]) {
+  let userExpenseMap: Map<number, number> = new Map();
+  for (let [idx, amt] of Object.entries(drawees)) {
+    let index = parseFloat(idx),
+      amount = parseFloat(amt as string);
     userExpenseMap.set(index, -1 * amount);
   }
 
-  for (let [idx, amt] of Object.entries(requestData.payees)) {
+  for (let [idx, amt] of Object.entries(payees)) {
     let index = parseFloat(idx),
       amount = parseFloat(amt as string);
-    if (index >= members.length) {
-      throw new Error("Payees Index must be less than Member's Length");
-    }
-    totalPaid += amount;
     if (userExpenseMap.get(index) === undefined) {
       userExpenseMap.set(index, amount);
     } else {
@@ -347,14 +372,7 @@ function createUserExpenseMap(
     }
   }
 
-  // console.log(totalDrawn);
-  // console.log(totalPaid);
-
-  if (totalDrawn != totalPaid) {
-    throw new Error("Drawn and Paid Amount mismatch");
-  }
-
-  return totalPaid;
+  return userExpenseMap;
 }
 
 function createBalances(userExpenseMap: Map<number, number>, groupId: any) {
@@ -365,11 +383,6 @@ function createBalances(userExpenseMap: Map<number, number>, groupId: any) {
     if (amt < 0) negMap.set(idx, amt);
     else if (amt > 0) posMap.set(idx, amt);
   }
-
-  // console.log(negMap);
-  // console.log(posMap);
-  // console.log(negMap.size);
-  // console.log(posMap.size);
 
   let i = 0,
     j = 0;
