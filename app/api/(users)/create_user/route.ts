@@ -1,3 +1,4 @@
+import { db } from "@/database/dbConnect";
 import { NextResponse } from "next/server";
 import { addUsersInDB } from "../utils";
 
@@ -16,7 +17,14 @@ export const POST = async (request: Request) => {
       throw new Error("username is required");
     }
 
-    user = await addUsersInDB(requestData);
+    await db.transaction(async (transaction) => {
+      user = await addUsersInDB(
+        transaction,
+        requestData.id,
+        requestData.name,
+        requestData.username,
+      );
+    });
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });

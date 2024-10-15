@@ -1,6 +1,4 @@
 import { client, db } from "@/database/dbConnect";
-import { transactionsTable } from "@/database/schema";
-import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getUserBalancesFromDB } from "../utils";
 
@@ -9,14 +7,19 @@ export const POST = async (request: Request) => {
   try {
     const requestData = await request.json();
 
-    if (requestData.group_id === undefined) {
+    if (requestData.groupId === undefined) {
       throw new Error("Group Id is Required");
     }
-    if (requestData.user_index === undefined) {
+    if (requestData.userIndex === undefined) {
       throw new Error("User Index is Required");
     }
-
-    balances = await getUserBalancesFromDB(requestData);
+    await db.transaction(async (transaction) => {
+      balances = await getUserBalancesFromDB(
+        transaction,
+        requestData.groupId,
+        requestData.userIndex,
+      );
+    });
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });
