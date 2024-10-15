@@ -1,3 +1,4 @@
+import { db } from "@/database/dbConnect";
 import { NextResponse } from "next/server";
 import { getAllBalancesFromDB } from "../utils";
 
@@ -6,11 +7,13 @@ export const POST = async (request: Request) => {
   try {
     const requestData = await request.json();
 
-    if (requestData.group_id === undefined) {
+    if (requestData.groupId === undefined) {
       throw new Error("Group Id is Required");
     }
 
-    balances = await getAllBalancesFromDB(requestData);
+    await db.transaction(async (transaction) => {
+      balances = await getAllBalancesFromDB(transaction, requestData.groupId);
+    });
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });
