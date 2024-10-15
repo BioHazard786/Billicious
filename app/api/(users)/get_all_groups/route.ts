@@ -1,3 +1,4 @@
+import { db } from "@/database/dbConnect";
 import { NextResponse } from "next/server";
 import { getUserGroupsFromDB } from "../utils";
 
@@ -5,10 +6,13 @@ export const POST = async (request: Request) => {
   let groups;
   try {
     const requestData = await request.json();
-    if (requestData.user_id === undefined) {
+    if (requestData.userId === undefined) {
       throw new Error("User Id is undefined");
     }
-    groups = await getUserGroupsFromDB(requestData);
+
+    await db.transaction(async (transaction) => {
+      groups = await getUserGroupsFromDB(transaction, requestData.userId);
+    });
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });
