@@ -1,18 +1,24 @@
 import { NextResponse } from "next/server";
 import { getInvitesFromDB } from "../utils";
+import { db } from "@/database/dbConnect";
 
 export const POST = async (request: Request) => {
   let invites;
   try {
     const requestData = await request.json();
     if (
-      (requestData.user_id === undefined &&
-        requestData.group_id === undefined) ||
-      (requestData.user_id !== undefined && requestData.group_id !== undefined)
+      (requestData.userId === undefined && requestData.groupId === undefined) ||
+      (requestData.userId !== undefined && requestData.groupId !== undefined)
     ) {
       throw new Error("at least user or group id is required");
     }
-    invites = await getInvitesFromDB(requestData);
+    db.transaction(async (transaction) => {
+      invites = await getInvitesFromDB(
+        transaction,
+        requestData.userId,
+        requestData.groupId,
+      );
+    });
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });

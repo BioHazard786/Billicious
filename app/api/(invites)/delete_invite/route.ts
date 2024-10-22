@@ -1,19 +1,27 @@
 import { NextResponse } from "next/server";
 import { deleteInvite } from "../utils";
+import { db } from "@/database/dbConnect";
 
 export const POST = async (request: Request) => {
   try {
     const requestData = await request.json();
-    if (requestData.user_index === undefined) {
+    if (requestData.userIndex === undefined) {
       throw new Error("user index is required");
     }
-    if (requestData.group_id === undefined) {
+    if (requestData.groupId === undefined) {
       throw new Error("group id is required");
     }
-    if (requestData.user_id === undefined) {
+    if (requestData.userId === undefined) {
       throw new Error("user id is required");
     }
-    await deleteInvite(requestData);
+    db.transaction(async (transaction) => {
+      await deleteInvite(
+        requestData,
+        requestData.groupId,
+        requestData.userId,
+        requestData.userIndex,
+      );
+    });
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });
