@@ -1,83 +1,103 @@
-import { client, db } from "@/database/dbConnect";
 import {
   billsTable,
   draweesInBillsTable,
   groupsTable,
   membersTable,
   payeesInBillsTable,
-  inviteTable,
   transactionsTable,
-  usersTable,
 } from "@/database/schema";
-import { desc, eq, inArray } from "drizzle-orm";
-import { PgSelect } from "drizzle-orm/pg-core";
-import { sendInvite, receiverValidation } from "../(invites)/utils";
+import { desc, eq, ExtractTablesWithRelations } from "drizzle-orm";
+import { PgSelect, PgTransaction } from "drizzle-orm/pg-core";
+import { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
+import {
+  senderAndReceiverValidationInGroup,
+  sendMultipleInvites,
+} from "../(invites)/utils";
+import {
+  getMultipleUserFromDB,
+  getMultipleUserFromDBViaUsername,
+  getUserFromDB,
+} from "../(users)/utils";
 
-export async function createGroupInDB(requestData: any) {
-  let group;
-  await db.transaction(async (transaction) => {
-    const newGroup = {
-      name: requestData.name,
-    };
+export async function createGroupInDB(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  name: string,
+) {
+  const newGroup = {
+    name: name,
+  };
 
-    let groups = await transaction
-      .insert(groupsTable)
-      .values(newGroup)
-      .returning();
-    group = groups[0];
-
-    // createKafkaTopic(group.id);
-  });
+  let groups = await transaction
+    .insert(groupsTable)
+    .values(newGroup)
+    .returning();
+  let group = groups[0];
 
   return group;
 }
 
 export async function addMembersInDB(
-  requestData: any,
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  groupId: string,
   isNewGroup: boolean,
-  owner: any,
+  ownerId: string,
+  members: string[],
+  usernames: string[],
 ) {
   let newMembers: any = [];
-  await db.transaction(async (transaction) => {
-    let groupId = requestData.group_id;
 
-    const existingMembers = await transaction
-      .select()
-      .from(membersTable)
-      .where(eq(membersTable.groupId, groupId));
+  let owner = await getUserFromDB(transaction, ownerId);
 
-    let count = existingMembers.length === null ? 0 : existingMembers.length;
-    // console.log(requestData.users);
+  const existingMembers = await getMembersFromDB(transaction, groupId);
 
-    if (requestData.members === undefined) {
-      throw new Error("Send Members List");
-    }
+  let count = existingMembers.length === null ? 0 : existingMembers.length;
 
-    // console.log(owner);
+  // ADD OWNER IF A NEW GROUP IS GETTING CREATED
+  if (isNewGroup) {
+    newMembers.push({
+      userId: ownerId,
+      groupId: groupId,
+      userNameInGroup: owner.name,
+      isAdmin: true,
+      status: 2,
+      userIndex: count++,
+      totalSpent: "0",
+      totalPaid: "0",
+    });
+  } else {
+    await getGroupFromDB(transaction, groupId);
+  }
 
-    if (isNewGroup) {
-      newMembers.push({
-        userId: owner.id,
-        groupId: groupId,
-        userNameInGroup: owner.name,
-        isAdmin: true,
-        status: 2,
-        userIndex: count++,
-        totalSpent: "0",
-        totalPaid: "0",
-      });
-    }
-
-    let receiverIds: any = [];
-    for (let username of requestData.usernames) {
-      let receiver = await receiverValidation(username, transaction);
-      await sendInvite(
-        { group_id: groupId, user_index: count },
-        true,
+  // SEND INVITES TO THE MULTIPLE USERNAMES
+  let receiverIds: string[] = [];
+  let userIndexes: number[] = [];
+  let receivers = await getMultipleUserFromDBViaUsername(
+    transaction,
+    usernames,
+  );
+  for (let receiver of receivers) {
+    if (
+      await senderAndReceiverValidationInGroup(
+        transaction,
+        existingMembers,
+        ownerId,
         receiver.id,
-      );
+        count,
+        true,
+      )
+    ) {
+      receiverIds.push(receiver.id);
+      userIndexes.push(count);
       newMembers.push({
-        userId: groupId + " | " + count,
+        userId: receiver.id,
         groupId: groupId,
         userNameInGroup: receiver.name,
         userIndex: count++,
@@ -85,184 +105,197 @@ export async function addMembersInDB(
         totalPaid: "0",
       });
     }
+  }
+  await sendMultipleInvites(transaction, groupId, receiverIds, userIndexes);
 
-    for (let member of requestData.members) {
-      newMembers.push({
-        userId: groupId + " | " + count,
-        groupId: groupId,
-        userNameInGroup: member,
-        userIndex: count++,
-        totalSpent: "0",
-        totalPaid: "0",
-      });
-    }
-    // console.log(newMembers);
+  // CREATE TEMPORARY USERS
+  for (let member of members) {
+    newMembers.push({
+      userId: groupId + " | " + count,
+      groupId: groupId,
+      userNameInGroup: member,
+      userIndex: count++,
+      totalSpent: "0",
+      totalPaid: "0",
+    });
+  }
 
-    newMembers = await transaction
-      .insert(membersTable)
-      .values(newMembers)
-      .returning();
-  });
+  // ADD MEMBERS TO DB
+  newMembers = await transaction
+    .insert(membersTable)
+    .values(newMembers)
+    .returning();
+
+  newMembers = await addUserInfoToMembers(transaction, newMembers, receivers);
+
   return newMembers;
 }
 
-export async function getGroupFromDB(requestData: any) {
-  let group;
-  await db.transaction(async (transaction) => {
-    let groupId = requestData.group_id;
-    let groups = await transaction
-      .select()
-      .from(groupsTable)
-      .where(eq(groupsTable.id, groupId));
+export async function getGroupFromDB(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  groupId: string,
+) {
+  let groups = await transaction
+    .select()
+    .from(groupsTable)
+    .where(eq(groupsTable.id, groupId));
 
-    if (groups.length == 0) {
-      throw new Error("Invalid Group Id");
-    }
-
-    group = groups[0];
-  });
-
+  if (groups.length == 0) {
+    throw new Error("Invalid Group Id");
+  }
+  let group = groups[0];
   return group;
 }
 
-export async function getMembersFromDB(requestData: any) {
-  let membersInGroup: any = [];
-  await db.transaction(async (transaction) => {
-    let groupId = requestData.group_id;
-    let members = await transaction
-      .select()
-      .from(membersTable)
-      .where(eq(membersTable.groupId, groupId));
+export async function getMembersFromDB(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  groupId: string,
+) {
+  let members = await transaction
+    .select()
+    .from(membersTable)
+    .where(eq(membersTable.groupId, groupId));
 
-    if (members.length == 0) {
-      return members;
-    }
+  if (members.length == 0) {
+    return members;
+  }
 
-    members = members.sort(
-      (i, j) => (i.userIndex as number) - (j.userIndex as number),
-    );
+  members = members.sort(
+    (i, j) => (i.userIndex as number) - (j.userIndex as number),
+  );
 
-    let regex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    let userIds = members
-      .filter((member) => regex.test(member.userId))
-      .map((member) => member.userId);
-    // console.log(userIds);
+  let regex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  let userIds = members
+    .filter((member) => regex.test(member.userId))
+    .map((member) => member.userId);
 
-    let userInfo = await transaction
-      .select()
-      .from(usersTable)
-      .where(inArray(usersTable.id, userIds));
-    // console.log(userInfo);
+  let allUserInfo = await getMultipleUserFromDB(transaction, userIds);
 
-    let userInfoMap = new Map();
-    for (let user of userInfo) {
-      userInfoMap.set(user.id, user);
-    }
+  members = await addUserInfoToMembers(transaction, members, allUserInfo);
 
-    for (let member of members) {
-      let user = userInfoMap.get(member.userId);
-      if (user !== undefined) {
-        membersInGroup.push({
-          ...member,
-          avatarUrl: user.avatar_url,
-          username: user.username,
-        });
-      } else {
-        membersInGroup.push({
-          ...member,
-          avatarUrl: null,
-          username: null,
-        });
-      }
-    }
-  });
-
-  return membersInGroup;
+  return members;
 }
 
-export async function deleteGroupInDB(requestData: any) {
-  let groupId;
-  await db.transaction(async (transaction) => {
-    groupId = requestData.group_id;
+async function addUserInfoToMembers(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  members: any[],
+  allUserInfo: any[],
+) {
+  let membersWithUserInfo: any = [];
+  let userInfoMap = new Map();
+  for (let user of allUserInfo) {
+    userInfoMap.set(user.id, user);
+  }
 
-    // Delete Transactions
+  for (let member of members) {
+    let user = userInfoMap.get(member.userId);
+    membersWithUserInfo.push({
+      ...member,
+      avatarUrl: user != undefined ? user.avatar_url : null,
+      username: user != undefined ? user.username : null,
+    });
+  }
+
+  return membersWithUserInfo;
+}
+
+export async function deleteGroupInDB(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  groupId: string,
+) {
+  // Delete Transactions
+  await transaction
+    .delete(transactionsTable)
+    .where(eq(transactionsTable.groupId, groupId));
+
+  // delete drawees and payees
+  let bills = await transaction
+    .select()
+    .from(billsTable)
+    .where(eq(billsTable.groupId, groupId));
+
+  for (let bill of bills) {
     await transaction
-      .delete(transactionsTable)
-      .where(eq(transactionsTable.groupId, groupId));
-
-    // delete drawees and payees
-    let bills = await transaction
-      .select()
-      .from(billsTable)
-      .where(eq(billsTable.groupId, groupId));
-
-    for (let bill of bills) {
-      await transaction
-        .delete(draweesInBillsTable)
-        .where(eq(draweesInBillsTable.billId, bill.id));
-      await transaction
-        .delete(payeesInBillsTable)
-        .where(eq(payeesInBillsTable.billId, bill.id));
-    }
-
-    // delete usersInGroup
+      .delete(draweesInBillsTable)
+      .where(eq(draweesInBillsTable.billId, bill.id));
     await transaction
-      .delete(membersTable)
-      .where(eq(membersTable.groupId, groupId));
+      .delete(payeesInBillsTable)
+      .where(eq(payeesInBillsTable.billId, bill.id));
+  }
 
-    // Delete Bills
-    await transaction.delete(billsTable).where(eq(billsTable.groupId, groupId));
+  // delete usersInGroup
+  await transaction
+    .delete(membersTable)
+    .where(eq(membersTable.groupId, groupId));
 
-    // Delete Group
-    await transaction.delete(groupsTable).where(eq(groupsTable.id, groupId));
+  // Delete Bills
+  await transaction.delete(billsTable).where(eq(billsTable.groupId, groupId));
 
-    // deleteKafkaTopics(groupId);
-  });
+  // Delete Group
+  await transaction.delete(groupsTable).where(eq(groupsTable.id, groupId));
+
+  // deleteKafkaTopics(groupId);
   return groupId;
 }
 
-export async function getGroupBillsFromDB(requestData: any) {
+export async function getGroupBillsFromDB(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  groupId: string,
+  pageSize: number,
+  page: number,
+) {
   let bills: any = [];
-  await db.transaction(async (transaction) => {
-    let groupId = requestData.group_id;
+  let billsFromDB = await withPagination(
+    transaction
+      .select()
+      .from(billsTable)
+      .where(eq(billsTable.groupId, groupId))
+      .orderBy(desc(billsTable.createdAt))
+      .$dynamic(),
+    page,
+    pageSize,
+  );
 
-    let pageSize = requestData.hasOwnProperty("page_size")
-      ? requestData.page_size
-      : 10;
-    let page = requestData.hasOwnProperty("page") ? requestData.page : 1;
+  // console.log(billsFromDB);
 
-    let billsFromDB = await withPagination(
-      transaction
-        .select()
-        .from(billsTable)
-        .where(eq(billsTable.groupId, groupId))
-        .orderBy(desc(billsTable.createdAt))
-        .$dynamic(),
-      page,
-      pageSize,
-    );
+  for (let bill of billsFromDB) {
+    let drawees = await transaction
+      .select()
+      .from(draweesInBillsTable)
+      .where(eq(draweesInBillsTable.billId, bill.id));
+    let payees = await transaction
+      .select()
+      .from(payeesInBillsTable)
+      .where(eq(payeesInBillsTable.billId, bill.id));
 
-    // console.log(billsFromDB);
-
-    for (let bill of billsFromDB) {
-      let drawees = await transaction
-        .select()
-        .from(draweesInBillsTable)
-        .where(eq(draweesInBillsTable.billId, bill.id));
-      let payees = await transaction
-        .select()
-        .from(payeesInBillsTable)
-        .where(eq(payeesInBillsTable.billId, bill.id));
-
-      bills.push({
-        ...bill,
-        drawees: drawees,
-        payees: payees,
-      });
-      // console.log(bills);
-    }
-  });
+    bills.push({
+      ...bill,
+      drawees: drawees,
+      payees: payees,
+    });
+    // console.log(bills);
+  }
   return bills;
 }
 

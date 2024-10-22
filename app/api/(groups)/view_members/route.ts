@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
 import { getMembersFromDB } from "../utils";
+import { db } from "@/database/dbConnect";
 
 export const POST = async (request: Request) => {
   let members;
   try {
     const requestData = await request.json();
 
-    if (requestData.group_id === undefined) {
+    if (requestData.groupId === undefined) {
       throw new Error("Group Id is Required");
     }
 
-    members = await getMembersFromDB(requestData);
+    await db.transaction(async (transaction) => {
+      members = await getMembersFromDB(transaction, requestData.groupId);
+    });
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ message: err.message }, { status: 400 });

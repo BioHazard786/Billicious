@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
 import { deleteGroupInDB } from "../utils";
+import { db } from "@/database/dbConnect";
 
 export const DELETE = async (request: Request) => {
   let groupId;
   try {
     const requestData = await request.json();
 
-    if (requestData.group_id === undefined) {
+    if (requestData.groupId === undefined) {
       throw new Error("Group Id is Required");
     }
 
-    groupId = await deleteGroupInDB(requestData);
+    db.transaction(async (transaction) => {
+      groupId = await deleteGroupInDB(transaction, requestData.groupId);
+    });
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });

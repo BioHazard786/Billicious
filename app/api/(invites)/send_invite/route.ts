@@ -1,22 +1,50 @@
 import { NextResponse } from "next/server";
-import { sendInvite } from "../utils";
+import { sendInvite, senderAndReceiverValidationInGroup } from "../utils";
+import { db } from "@/database/dbConnect";
+import { getUserFromDB, getUserFromDBViaUsername } from "../../(users)/utils";
+import { getMembersFromDB } from "../../(groups)/utils";
 
 export const POST = async (request: Request) => {
   try {
     const requestData = await request.json();
-    if (requestData.sender_user_id === undefined) {
+    if (requestData.senderUserId === undefined) {
       throw new Error("sender user id is required");
     }
-    if (requestData.receiver_username === undefined) {
+    if (requestData.receiverUsername === undefined) {
       throw new Error("receiver user name is required");
     }
-    if (requestData.group_id === undefined) {
+    if (requestData.groupId === undefined) {
       throw new Error("group id is required");
     }
-    if (requestData.user_index === undefined) {
+    if (requestData.userIndex === undefined) {
       throw new Error("user index is required");
     }
-    await sendInvite(requestData, false, "");
+
+    db.transaction(async (transaction) => {
+      let sender = await getUserFromDB(transaction, requestData.senderUserId);
+      let receiver = await getUserFromDBViaUsername(
+        transaction,
+        requestData.receiverUsername,
+      );
+      let members = await getMembersFromDB(transaction, requestData.groupId);
+      if (
+        await senderAndReceiverValidationInGroup(
+          transaction,
+          members,
+          sender.id,
+          receiver.id,
+          requestData.userIndex,
+          false,
+        )
+      ) {
+        sendInvite(
+          transaction,
+          requestData.groupId,
+          receiver.id,
+          requestData.userIndex,
+        );
+      }
+    });
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });

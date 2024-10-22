@@ -10,6 +10,7 @@ import {
 import { eq, ExtractTablesWithRelations, sql } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
+import { getGroupFromDB, getMembersFromDB } from "../(groups)/utils";
 // import { CompressionTypes } from "kafkajs";
 // import { redpanda } from "@/database/kafka";
 // const producer = redpanda.producer();
@@ -40,19 +41,9 @@ export async function createBillInDB(
   // 6. UPDATE THE TOTAL AMOUNT IN GROUP EXPENSES
 
   // Validate Group Exists
-  let groups = await transaction
-    .select()
-    .from(groupsTable)
-    .where(eq(groupsTable.id, groupId));
+  await getGroupFromDB(transaction, groupId);
 
-  if (groups.length === 0) {
-    throw new Error("No Such Group Exists");
-  }
-
-  const members = await transaction
-    .select()
-    .from(membersTable)
-    .where(eq(membersTable.groupId, groupId));
+  const members = await getMembersFromDB(transaction, groupId);
 
   let totalAmount = validateDraweesAndPayees(drawees, payees, members.length);
 
@@ -170,10 +161,7 @@ export async function deleteBillInDB(
 
   let groupId = bills[0].groupId;
 
-  const members = await transaction
-    .select()
-    .from(membersTable)
-    .where(eq(membersTable.groupId, groupId as string));
+  const members = await getMembersFromDB(transaction, groupId as string);
 
   let totalDrawn = 0,
     totalPaid = 0;

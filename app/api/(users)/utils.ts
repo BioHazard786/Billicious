@@ -43,6 +43,55 @@ export async function getUserFromDB(
   return user;
 }
 
+export async function getMultipleUserFromDB(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  userId: string[],
+) {
+  let users = await transaction
+    .select()
+    .from(usersTable)
+    .where(inArray(usersTable.id, userId));
+  return users;
+}
+
+export async function getUserFromDBViaUsername(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  username: string,
+) {
+  let users = await transaction
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.username, username));
+  if (users.length === 0) {
+    throw new Error("Invalid UserId");
+  }
+  let user = users[0];
+  return user;
+}
+
+export async function getMultipleUserFromDBViaUsername(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  username: string[],
+) {
+  let users = await transaction
+    .select()
+    .from(usersTable)
+    .where(inArray(usersTable.username, username));
+  return users;
+}
+
 export async function getUserGroupsFromDB(
   transaction: PgTransaction<
     PostgresJsQueryResultHKT,
