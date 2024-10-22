@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getGroupBillsFromDB } from "../utils";
+import { db } from "@/database/dbConnect";
 
 export const POST = async (request: Request) => {
   let bills;
@@ -9,8 +10,14 @@ export const POST = async (request: Request) => {
     if (requestData.group_id === undefined) {
       throw new Error("Group Id is Required");
     }
-
-    bills = await getGroupBillsFromDB(requestData);
+    db.transaction(async (transaction) => {
+      bills = await getGroupBillsFromDB(
+        transaction,
+        requestData.getGroupId,
+        requestData.hasOwnProperty("pageSize") ? requestData.pageSize : 10,
+        requestData.hasOwnProperty("page") ? requestData.page : 1,
+      );
+    });
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });

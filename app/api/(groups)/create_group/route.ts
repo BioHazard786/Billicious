@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { addMembersInDB, createGroupInDB } from "../utils";
 import { getUserFromDB } from "../../(users)/utils";
+import { db } from "@/database/dbConnect";
 
 export const POST = async (request: Request) => {
   let group: any = {};
@@ -8,25 +9,27 @@ export const POST = async (request: Request) => {
     const requestData = await request.json();
 
     if (requestData.name === undefined) {
-      throw new Error("Group Name is Required");
+      throw new Error("group name is Required");
     }
-    if (requestData.members === undefined || requestData.members.length === 0) {
-      throw new Error("Members are Required");
-    }
-    if (requestData.user_id === undefined) {
-      throw new Error("UserId is required");
+    if (requestData.ownerId === undefined) {
+      throw new Error("ownerId is required");
     }
 
-    // just to check if the user is valid
-    let owner = await getUserFromDB(requestData);
-
-    group.group = await createGroupInDB(requestData);
-    let requestCopy = {
-      ...requestData,
-      group_id: group.group.id,
-    };
-    // console.log(requestCopy);
-    group.members = await addMembersInDB(requestCopy, true, owner);
+    await db.transaction(async (transaction) => {
+      let groupData = await createGroupInDB(transaction, requestData.name);
+      let members = await addMembersInDB(
+        transaction,
+        groupData.id,
+        false,
+        requestData.ownerId,
+        requestData.usernames,
+        requestData.members,
+      );
+      group = {
+        group: groupData,
+        members: members,
+      };
+    });
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });
