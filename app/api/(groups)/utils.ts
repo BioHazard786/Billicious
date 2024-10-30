@@ -85,14 +85,15 @@ export async function addMembersInDB(
   );
   for (let receiver of receivers) {
     if (
-      await senderAndReceiverValidationInGroup(
+      isNewGroup ||
+      (await senderAndReceiverValidationInGroup(
         transaction,
         existingMembers,
         ownerId,
         receiver.id,
         count,
         true,
-      )
+      ))
     ) {
       receiverIds.push(receiver.id);
       userIndexes.push(count);
@@ -101,6 +102,7 @@ export async function addMembersInDB(
         groupId: groupId,
         userNameInGroup: receiver.name,
         userIndex: count++,
+        status: 1, // invited
         totalSpent: "0",
         totalPaid: "0",
       });
@@ -109,15 +111,21 @@ export async function addMembersInDB(
   await sendMultipleInvites(transaction, groupId, receiverIds, userIndexes);
 
   // CREATE TEMPORARY USERS
-  for (let member of members) {
-    newMembers.push({
-      userId: groupId + " | " + count,
-      groupId: groupId,
-      userNameInGroup: member,
-      userIndex: count++,
-      totalSpent: "0",
-      totalPaid: "0",
-    });
+  if (members !== undefined) {
+    for (let member of members) {
+      newMembers.push({
+        userId: groupId + " | " + count,
+        groupId: groupId,
+        userNameInGroup: member,
+        userIndex: count++,
+        totalSpent: "0",
+        totalPaid: "0",
+      });
+    }
+  }
+
+  if (newMembers.length === 0) {
+    throw new Error("No new members to add");
   }
 
   // ADD MEMBERS TO DB
@@ -172,6 +180,17 @@ export async function getMembersFromDB(
     (i, j) => (i.userIndex as number) - (j.userIndex as number),
   );
 
+  return members;
+}
+
+export async function getUserInfoForMembers(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  members: any[],
+) {
   let regex =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   let userIds = members
@@ -179,13 +198,10 @@ export async function getMembersFromDB(
     .map((member) => member.userId);
 
   let allUserInfo = await getMultipleUserFromDB(transaction, userIds);
-
-  members = await addUserInfoToMembers(transaction, members, allUserInfo);
-
-  return members;
+  return allUserInfo;
 }
 
-async function addUserInfoToMembers(
+export async function addUserInfoToMembers(
   transaction: PgTransaction<
     PostgresJsQueryResultHKT,
     typeof import("@/database/schema"),

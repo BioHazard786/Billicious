@@ -14,9 +14,9 @@ export const POST = async (request: Request) => {
     if (requestData.userId === undefined) {
       throw new Error("user id is required");
     }
-    db.transaction(async (transaction) => {
+    await db.transaction(async (transaction) => {
       await deleteInvite(
-        requestData,
+        transaction,
         requestData.groupId,
         requestData.userId,
         requestData.userIndex,

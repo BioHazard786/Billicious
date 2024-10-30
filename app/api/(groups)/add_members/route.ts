@@ -17,10 +17,10 @@ export const POST = async (request: Request) => {
       throw new Error("GroupId is required");
     }
     if (requestData.userId === undefined) {
-      throw new Error("User Id is required");
+      throw new Error("user Id is required");
     }
 
-    db.transaction(async (transaction) => {
+    await db.transaction(async (transaction) => {
       members = await addMembersInDB(
         transaction,
         requestData.groupId,

@@ -20,10 +20,10 @@ export const POST = async (request: Request) => {
       let members = await addMembersInDB(
         transaction,
         groupData.id,
-        false,
+        true,
         requestData.ownerId,
-        requestData.usernames,
         requestData.members,
+        requestData.usernames,
       );
       group = {
         group: groupData,

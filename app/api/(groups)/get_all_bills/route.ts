@@ -7,13 +7,13 @@ export const POST = async (request: Request) => {
   try {
     const requestData = await request.json();
 
-    if (requestData.group_id === undefined) {
+    if (requestData.groupId === undefined) {
       throw new Error("Group Id is Required");
     }
-    db.transaction(async (transaction) => {
+    await db.transaction(async (transaction) => {
       bills = await getGroupBillsFromDB(
         transaction,
-        requestData.getGroupId,
+        requestData.groupId,
         requestData.hasOwnProperty("pageSize") ? requestData.pageSize : 10,
         requestData.hasOwnProperty("page") ? requestData.page : 1,
       );

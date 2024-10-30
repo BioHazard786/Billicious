@@ -2,7 +2,6 @@ import { membersTable, inviteTable } from "@/database/schema";
 import { and, eq, ExtractTablesWithRelations, or } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
-import { getGroupFromDB, getMembersFromDB } from "../(groups)/utils";
 
 export async function sendInvite(
   transaction: PgTransaction<
@@ -46,6 +45,18 @@ export async function sendMultipleInvites(
   // CREATE INVITE FOR RECEIVER
 
   let newInvites: any = [];
+  if (
+    receiverUserIds === undefined ||
+    receiverUserIds.length === 0 ||
+    userIndexes === undefined ||
+    userIndexes.length === 0
+  ) {
+    return;
+  }
+
+  if (receiverUserIds.length !== userIndexes.length) {
+    throw new Error("receiverIds and userIndexes should have same length");
+  }
 
   for (let i = 0; i < receiverUserIds.length; ++i) {
     newInvites.push({
@@ -217,21 +228,34 @@ export async function acceptInvite(
     );
 }
 
-export async function getInvitesFromDB(
+export async function getUserInvitesFromDB(
   transaction: PgTransaction<
     PostgresJsQueryResultHKT,
     typeof import("@/database/schema"),
     ExtractTablesWithRelations<typeof import("@/database/schema")>
   >,
   userId: string,
+) {
+  let invites: any = [];
+  invites = await transaction
+    .select()
+    .from(inviteTable)
+    .where(eq(inviteTable.userId, userId));
+  return invites;
+}
+
+export async function getGroupInvitesFromDB(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
   groupId: string,
 ) {
   let invites: any = [];
   invites = await transaction
     .select()
     .from(inviteTable)
-    .where(
-      or(eq(inviteTable.userId, userId), eq(inviteTable.groupId, groupId)),
-    );
+    .where(eq(inviteTable.groupId, groupId));
   return invites;
 }
