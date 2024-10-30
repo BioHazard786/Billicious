@@ -254,17 +254,30 @@ async function updateMembersAndBalances(
   payees: any[],
 ) {
   // Updating the Members based on the Drawees and Payees in DB
+  let updatedMembers: any[] = [];
   members.forEach((user) => {
-    if (user.userIndex != null) {
+    if (user.userIndex !== null) {
+      let isUpdated = false;
       if (drawees[user.userIndex] !== undefined) {
+        isUpdated = true;
         user.totalSpent = (
           parseFloat(user.totalSpent) + parseFloat(drawees[user.userIndex])
         ).toString();
       }
       if (payees[user.userIndex] !== undefined) {
+        isUpdated = true;
         user.totalPaid = (
           parseFloat(user.totalPaid) + parseFloat(payees[user.userIndex])
         ).toString();
+      }
+
+      if (isUpdated) {
+        updatedMembers.push({
+          userIndex: user.userIndex,
+          userId: user.userId,
+          totalSpent: user.totalSpent,
+          totalPaid: user.totalPaid,
+        });
       }
     }
   });
@@ -273,13 +286,13 @@ async function updateMembersAndBalances(
   let userExpenseMap = createUserExpenseMap(drawees, payees);
 
   // Update the Members for Group
-  members.forEach(async (user) => {
+  updatedMembers.forEach(async (user) => {
     await transaction
       .update(membersTable)
       .set({ totalSpent: user.totalSpent, totalPaid: user.totalPaid })
       .where(eq(membersTable.userId, user.userId));
   });
-  members = members.sort(
+  updatedMembers = updatedMembers.sort(
     (i, j) => (i.userIndex as number) - (j.userIndex as number),
   );
 
@@ -302,7 +315,7 @@ async function updateMembersAndBalances(
         },
       });
   });
-  return members;
+  return updatedMembers;
 }
 
 function validateDraweesAndPayees(

@@ -1,18 +1,16 @@
 import { NextResponse } from "next/server";
-import { deleteGroupInDB } from "../utils";
+import { getGroupInvitesFromDB } from "../utils";
 import { db } from "@/database/dbConnect";
 
-export const DELETE = async (request: Request) => {
-  let groupId;
+export const POST = async (request: Request) => {
+  let invites: any = [];
   try {
     const requestData = await request.json();
-
     if (requestData.groupId === undefined) {
-      throw new Error("Group Id is Required");
+      throw new Error("group id is required");
     }
-
     await db.transaction(async (transaction) => {
-      groupId = await deleteGroupInDB(transaction, requestData.groupId);
+      invites = await getGroupInvitesFromDB(transaction, requestData.groupId);
     });
   } catch (err) {
     if (err instanceof Error) {
@@ -23,8 +21,5 @@ export const DELETE = async (request: Request) => {
       { status: 500 },
     );
   }
-  return NextResponse.json(
-    { groupId: groupId + " is Deleted." },
-    { status: 200 },
-  );
+  return NextResponse.json({ invites }, { status: 201 });
 };

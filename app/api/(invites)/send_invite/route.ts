@@ -20,7 +20,7 @@ export const POST = async (request: Request) => {
       throw new Error("user index is required");
     }
 
-    db.transaction(async (transaction) => {
+    await db.transaction(async (transaction) => {
       let sender = await getUserFromDB(transaction, requestData.senderUserId);
       let receiver = await getUserFromDBViaUsername(
         transaction,

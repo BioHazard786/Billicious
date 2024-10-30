@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { getGroupFromDB, getMembersFromDB } from "../utils";
+import {
+  getGroupFromDB,
+  getMembersFromDB,
+  getUserInfoForMembers,
+  addUserInfoToMembers,
+} from "../utils";
 import { db } from "@/database/dbConnect";
 
 export const POST = async (request: Request) => {
@@ -14,13 +19,13 @@ export const POST = async (request: Request) => {
     await db.transaction(async (transaction) => {
       group.group = await getGroupFromDB(transaction, requestData.groupId);
       group.members = await getMembersFromDB(transaction, requestData.groupId);
+      let allUserInfo = await getUserInfoForMembers(transaction, group.members);
+      group.members = await addUserInfoToMembers(
+        transaction,
+        group.members,
+        allUserInfo,
+      );
     });
-
-    // let requestCopy = {
-    //   ...requestData,
-    //   group_id: group.group.id,
-    // };
-    // group.members = await getMembersFromDB(requestCopy);
   } catch (err) {
     if (err instanceof Error) {
       return NextResponse.json({ error: err.message }, { status: 400 });

@@ -83,12 +83,15 @@ export async function getMultipleUserFromDBViaUsername(
     typeof import("@/database/schema"),
     ExtractTablesWithRelations<typeof import("@/database/schema")>
   >,
-  username: string[],
+  usernames: string[],
 ) {
+  if (usernames === undefined || usernames.length === 0) {
+    return [];
+  }
   let users = await transaction
     .select()
     .from(usersTable)
-    .where(inArray(usersTable.username, username));
+    .where(inArray(usersTable.username, usernames));
   return users;
 }
 

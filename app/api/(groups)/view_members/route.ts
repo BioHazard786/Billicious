@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { getMembersFromDB } from "../utils";
+import {
+  getMembersFromDB,
+  getUserInfoForMembers,
+  addUserInfoToMembers,
+} from "../utils";
 import { db } from "@/database/dbConnect";
 
 export const POST = async (request: Request) => {
@@ -13,6 +17,8 @@ export const POST = async (request: Request) => {
 
     await db.transaction(async (transaction) => {
       members = await getMembersFromDB(transaction, requestData.groupId);
+      let allUserInfo = await getUserInfoForMembers(transaction, members);
+      members = await addUserInfoToMembers(transaction, members, allUserInfo);
     });
   } catch (err) {
     if (err instanceof Error) {

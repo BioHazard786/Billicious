@@ -12,7 +12,7 @@ export const POST = async (request: Request) => {
       throw new Error("group id is required");
     }
 
-    db.transaction(async (transaction) => {
+    await db.transaction(async (transaction) => {
       await acceptInvite(transaction, requestData.groupId, requestData.userId);
     });
   } catch (err) {
