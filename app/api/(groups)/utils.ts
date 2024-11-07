@@ -6,7 +6,7 @@ import {
   payeesInBillsTable,
   transactionsTable,
 } from "@/database/schema";
-import { desc, eq, ExtractTablesWithRelations } from "drizzle-orm";
+import { desc, eq, ExtractTablesWithRelations, inArray } from "drizzle-orm";
 import { PgSelect, PgTransaction } from "drizzle-orm/pg-core";
 import { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
 import {
@@ -157,6 +157,25 @@ export async function getGroupFromDB(
   }
   let group = groups[0];
   return group;
+}
+
+export async function getMultipleGroupsFromDB(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  groupIds: string[],
+) {
+  let groups = await transaction
+    .select()
+    .from(groupsTable)
+    .where(inArray(groupsTable.id, groupIds));
+
+  if (groups.length == 0) {
+    throw new Error("Invalid Group Id");
+  }
+  return groups;
 }
 
 export async function getMembersFromDB(

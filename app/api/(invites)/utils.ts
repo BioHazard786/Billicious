@@ -1,7 +1,9 @@
 import { membersTable, inviteTable } from "@/database/schema";
-import { and, eq, ExtractTablesWithRelations, or } from "drizzle-orm";
+import { and, eq, ExtractTablesWithRelations, inArray, or } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
+import { getMultipleGroupsFromDB } from "../(groups)/utils";
+import { getMultipleUserFromDB } from "../(users)/utils";
 
 export async function sendInvite(
   transaction: PgTransaction<
@@ -102,8 +104,8 @@ export async function senderAndReceiverValidationInGroup(
       }
     }
 
-    // USER INDEX IS NOT OF TEMPORARY MEMBER
-    if (member.userIndex === userIndex && member.status !== 0) {
+    // USER INDEX IS OF TEMPORARY MEMBER
+    if (member.userIndex === userIndex && member.status === 0) {
       isValidUserIndex = true;
     }
   }
@@ -236,12 +238,64 @@ export async function getUserInvitesFromDB(
   >,
   userId: string,
 ) {
-  let invites: any = [];
-  invites = await transaction
+  let userInvites: any = [];
+  let invites = await transaction
     .select()
     .from(inviteTable)
     .where(eq(inviteTable.userId, userId));
-  return invites;
+
+  let groupIds = invites.map((invite) => invite.groupId!);
+  let groupInfo = await getMultipleGroupsFromDB(transaction, groupIds);
+
+  let owners = await transaction
+    .select()
+    .from(membersTable)
+    .where(
+      and(
+        inArray(membersTable.groupId, groupIds),
+        eq(membersTable.userIndex, 0),
+      ),
+    );
+
+  let userIds = owners.map((owner) => owner.userId!);
+  let userInfo = await getMultipleUserFromDB(transaction, userIds);
+
+  let ownerAndUserInfoMap = new Map();
+  for (let user of userInfo) {
+    ownerAndUserInfoMap.set(user.id, {
+      ownerName: user.name,
+      avatarUrl: user.avatar_url,
+    });
+  }
+
+  let groupInfoMap = new Map();
+  for (let group of groupInfo) {
+    groupInfoMap.set(group.id, group.name);
+  }
+
+  // console.log(groupInfoMap);
+
+  let groupAndOwnerInfoMap = new Map();
+  for (let owner of owners) {
+    let groupName = groupInfoMap.get(owner.groupId);
+    let ownerInfo = ownerAndUserInfoMap.get(owner.userId);
+    groupAndOwnerInfoMap.set(owner.groupId, {
+      groupName: groupName,
+      ownerName: ownerInfo.ownerName,
+      avatarUrl: ownerInfo.avatarUrl,
+    });
+  }
+
+  for (let invite of invites) {
+    let groupAndOwnerInfo = groupAndOwnerInfoMap.get(invite.groupId);
+    userInvites.push({
+      ...groupAndOwnerInfo,
+      groupId: invite.groupId,
+      userIndex: invite.userIndex,
+    });
+  }
+
+  return userInvites;
 }
 
 export async function getGroupInvitesFromDB(
