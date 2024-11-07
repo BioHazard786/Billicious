@@ -3,6 +3,7 @@ import { groupsTable, membersTable, usersTable } from "@/database/schema";
 import { and, eq, or, inArray, ExtractTablesWithRelations } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
+import { getMultipleGroupsFromDB } from "../(groups)/utils";
 
 export async function addUsersInDB(
   transaction: PgTransaction<
@@ -114,13 +115,10 @@ export async function getUserGroupsFromDB(
   }
 
   let groupIds = groups.map((group) => group.groupId!);
-  // console.log(userIds);
+  // console.log(groupIds);
 
-  let groupInfo = await transaction
-    .select()
-    .from(groupsTable)
-    .where(inArray(groupsTable.id, groupIds));
-  // console.log(userInfo);
+  let groupInfo = await getMultipleGroupsFromDB(transaction, groupIds);
+  // console.log(groupInfo);
 
   let groupInfoMap = new Map();
   for (let group of groupInfo) {

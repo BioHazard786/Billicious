@@ -7,7 +7,7 @@ import {
   payeesInBillsTable,
   transactionsTable,
 } from "@/database/schema";
-import { eq, ExtractTablesWithRelations, sql } from "drizzle-orm";
+import { eq, and, ExtractTablesWithRelations, sql } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
 import { getGroupFromDB, getMembersFromDB } from "../(groups)/utils";
@@ -277,6 +277,7 @@ async function updateMembersAndBalances(
           userId: user.userId,
           totalSpent: user.totalSpent,
           totalPaid: user.totalPaid,
+          groupId: user.groupId,
         });
       }
     }
@@ -290,7 +291,12 @@ async function updateMembersAndBalances(
     await transaction
       .update(membersTable)
       .set({ totalSpent: user.totalSpent, totalPaid: user.totalPaid })
-      .where(eq(membersTable.userId, user.userId));
+      .where(
+        and(
+          eq(membersTable.userId, user.userId),
+          eq(membersTable.groupId, user.groupId),
+        ),
+      );
   });
   updatedMembers = updatedMembers.sort(
     (i, j) => (i.userIndex as number) - (j.userIndex as number),
