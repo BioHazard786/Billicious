@@ -264,7 +264,7 @@ export async function getUserInvitesFromDB(
   for (let user of userInfo) {
     ownerAndUserInfoMap.set(user.id, {
       ownerName: user.name,
-      avatarUrl: user.avatar_url,
+      avatarUrl: user.avatarUrl,
     });
   }
 
