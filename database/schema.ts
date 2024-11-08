@@ -19,7 +19,7 @@ export const usersTable = pgTable(
     upiId: text("upi_id"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     username: text("username").unique().notNull(),
-    avatar_url: text("avatar_url"),
+    avatarUrl: text("avatar_url"),
     email: text("email"),
     telegramId: text("telegram_id"),
     provider: text("provider"),
