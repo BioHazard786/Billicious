@@ -16,7 +16,12 @@ export const POST = async (request: Request) => {
     }
 
     await db.transaction(async (transaction) => {
-      let groupData = await createGroupInDB(transaction, requestData.name);
+      let groupData = await createGroupInDB(
+        transaction,
+        requestData.name,
+        requestData.backgroundUrl,
+        requestData.currencyCode,
+      );
       let members = await addMembersInDB(
         transaction,
         groupData.id,

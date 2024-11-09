@@ -1,18 +1,27 @@
 import { NextResponse } from "next/server";
-import { deleteInvite } from "../utils";
+import { removeAdmin } from "../utils";
 import { db } from "@/database/dbConnect";
 
 export const POST = async (request: Request) => {
   try {
     const requestData = await request.json();
     if (requestData.groupId === undefined) {
-      throw new Error("group id is required");
+      throw new Error("GroupId is required");
     }
-    if (requestData.userId === undefined) {
-      throw new Error("user id is required");
+    if (requestData.ownerId === undefined) {
+      throw new Error("owner Id is required");
     }
+    if (requestData.userIndex === undefined) {
+      throw new Error("user index is required");
+    }
+
     await db.transaction(async (transaction) => {
-      await deleteInvite(transaction, requestData.groupId, requestData.userId);
+      await removeAdmin(
+        transaction,
+        requestData.groupId,
+        requestData.ownerId,
+        requestData.userIndex,
+      );
     });
   } catch (err) {
     if (err instanceof Error) {
@@ -24,5 +33,5 @@ export const POST = async (request: Request) => {
     );
   }
 
-  return NextResponse.json({ message: "Invite Deleted" }, { status: 201 });
+  return NextResponse.json("Admin Removed", { status: 200 });
 };

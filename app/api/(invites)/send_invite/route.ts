@@ -35,11 +35,13 @@ export const POST = async (request: Request) => {
           receiver.id,
           requestData.userIndex,
           false,
+          false,
         )
       ) {
-        sendInvite(
+        await sendInvite(
           transaction,
           requestData.groupId,
+          requestData.senderUserId,
           receiver.id,
           requestData.userIndex,
         );
