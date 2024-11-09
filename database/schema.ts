@@ -43,6 +43,8 @@ export const groupsTable = pgTable("groups_table", {
     .$defaultFn(() => nanoid()),
   name: text("name").notNull(),
   totalExpense: numeric("total_expense").notNull().default("0"),
+  backgroundUrl: text("background_url"),
+  currencyCode: text("currency_code"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
