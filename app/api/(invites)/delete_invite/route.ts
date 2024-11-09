@@ -5,9 +5,6 @@ import { db } from "@/database/dbConnect";
 export const POST = async (request: Request) => {
   try {
     const requestData = await request.json();
-    if (requestData.userIndex === undefined) {
-      throw new Error("user index is required");
-    }
     if (requestData.groupId === undefined) {
       throw new Error("group id is required");
     }
@@ -15,12 +12,7 @@ export const POST = async (request: Request) => {
       throw new Error("user id is required");
     }
     await db.transaction(async (transaction) => {
-      await deleteInvite(
-        transaction,
-        requestData.groupId,
-        requestData.userId,
-        requestData.userIndex,
-      );
+      await deleteInvite(transaction, requestData.groupId, requestData.userId);
     });
   } catch (err) {
     if (err instanceof Error) {

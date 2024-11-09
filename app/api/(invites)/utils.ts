@@ -12,16 +12,29 @@ export async function sendInvite(
     ExtractTablesWithRelations<typeof import("@/database/schema")>
   >,
   groupId: string,
+  senderUserId: string,
   receiverUserId: string,
   userIndex: number,
 ) {
   // CREATE INVITE FOR RECEIVER
   let newInvite = {
-    userId: receiverUserId,
+    senderUserId: senderUserId,
+    receiverUserId: receiverUserId,
     groupId: groupId,
     userIndex: userIndex,
   };
   await transaction.insert(inviteTable).values(newInvite);
+
+  let member = await transaction
+    .select()
+    .from(membersTable)
+    .where(
+      and(
+        eq(membersTable.groupId, groupId),
+        eq(membersTable.userIndex, userIndex),
+      ),
+    );
+  console.log(member);
 
   await transaction
     .update(membersTable)
@@ -41,6 +54,7 @@ export async function sendMultipleInvites(
     ExtractTablesWithRelations<typeof import("@/database/schema")>
   >,
   groupId: string,
+  senderUserId: string,
   receiverUserIds: string[],
   userIndexes: number[],
 ) {
@@ -57,12 +71,13 @@ export async function sendMultipleInvites(
   }
 
   if (receiverUserIds.length !== userIndexes.length) {
-    throw new Error("receiverIds and userIndexes should have same length");
+    throw new Error("receiverUserIds and userIndexes should have same length");
   }
 
   for (let i = 0; i < receiverUserIds.length; ++i) {
     newInvites.push({
-      userId: receiverUserIds[i],
+      senderUserId: senderUserId,
+      receiverUserId: receiverUserIds[i],
       groupId: groupId,
       userIndex: userIndexes[i],
     });
@@ -80,17 +95,16 @@ export async function senderAndReceiverValidationInGroup(
   senderUserId: string,
   receiverUserId: string,
   userIndex: number,
-  isValidUserIndex: boolean,
+  isSenderValidated: boolean,
+  isUserIndexValidated: boolean,
 ) {
-  let senderInfo = null;
-
   for (let member of members) {
     // IF SENDER IS NOT AN ADMIN
     if (member.userId === senderUserId) {
       if (!member.isAdmin) {
         throw new Error("sender is not admin of the group");
       }
-      senderInfo = member;
+      isSenderValidated = true;
     }
 
     // RECEIVER IS ALREADY ADDED TO GROUP
@@ -106,16 +120,16 @@ export async function senderAndReceiverValidationInGroup(
 
     // USER INDEX IS OF TEMPORARY MEMBER
     if (member.userIndex === userIndex && member.status === 0) {
-      isValidUserIndex = true;
+      isUserIndexValidated = true;
     }
   }
 
   // SENDER IS NOT AN MEMBER OF GROUP
-  if (senderInfo === null) {
+  if (!isSenderValidated) {
     throw new Error("sender is not a member of the group");
   }
 
-  if (!isValidUserIndex) {
+  if (!isUserIndexValidated) {
     throw new Error("userIndex is not Valid: " + userIndex);
   }
 
@@ -130,7 +144,6 @@ export async function deleteInvite(
   >,
   groupId: string,
   userId: string,
-  userIndex: number,
 ) {
   let userInvites = await transaction
     .select()
@@ -138,7 +151,7 @@ export async function deleteInvite(
     .where(
       and(
         eq(inviteTable.groupId, groupId),
-        eq(inviteTable.userIndex, userIndex),
+        eq(inviteTable.receiverUserId, userId),
       ),
     );
 
@@ -148,12 +161,14 @@ export async function deleteInvite(
 
   let userInvite = userInvites[0];
 
-  let isUserAuthorized: boolean = userInvite.userId === userId;
+  let isUserAuthorized: boolean = userInvite.receiverUserId === userId;
   if (!isUserAuthorized) {
     let members = await transaction
       .select()
       .from(membersTable)
-      .where(eq(membersTable.userId, userId));
+      .where(
+        and(eq(membersTable.userId, userId), eq(membersTable.groupId, groupId)),
+      );
     if (members.length === 0) {
       throw new Error("only receiver or admins could delete invite");
     }
@@ -170,7 +185,7 @@ export async function deleteInvite(
 
   await transaction
     .update(membersTable)
-    .set({ userId: groupId + " | " + userIndex, status: 0 })
+    .set({ userId: groupId + " | " + userInvite.userIndex, status: 0 })
     .where(
       and(
         eq(membersTable.groupId, userInvite.groupId as string),
@@ -183,7 +198,7 @@ export async function deleteInvite(
     .where(
       and(
         eq(inviteTable.groupId, userInvite.groupId as string),
-        eq(inviteTable.userId, userInvite.userId as string),
+        eq(inviteTable.receiverUserId, userInvite.receiverUserId as string),
       ),
     );
 }
@@ -201,7 +216,10 @@ export async function acceptInvite(
     .select()
     .from(inviteTable)
     .where(
-      and(eq(inviteTable.groupId, groupId), eq(inviteTable.userId, userId)),
+      and(
+        eq(inviteTable.groupId, groupId),
+        eq(inviteTable.receiverUserId, userId),
+      ),
     );
 
   if (userInvites.length === 0) {
@@ -225,7 +243,7 @@ export async function acceptInvite(
     .where(
       and(
         eq(inviteTable.groupId, userInvite.groupId as string),
-        eq(inviteTable.userId, userInvite.userId as string),
+        eq(inviteTable.receiverUserId, userInvite.receiverUserId as string),
       ),
     );
 }
@@ -242,56 +260,41 @@ export async function getUserInvitesFromDB(
   let invites = await transaction
     .select()
     .from(inviteTable)
-    .where(eq(inviteTable.userId, userId));
+    .where(eq(inviteTable.receiverUserId, userId));
 
   let groupIds = invites.map((invite) => invite.groupId!);
   let groupInfo = await getMultipleGroupsFromDB(transaction, groupIds);
 
-  let owners = await transaction
-    .select()
-    .from(membersTable)
-    .where(
-      and(
-        inArray(membersTable.groupId, groupIds),
-        eq(membersTable.userIndex, 0),
-      ),
-    );
+  let senderUserIds = invites.map((invite) => invite.senderUserId!);
+  let senderUserInfo = await getMultipleUserFromDB(transaction, senderUserIds);
 
-  let userIds = owners.map((owner) => owner.userId!);
-  let userInfo = await getMultipleUserFromDB(transaction, userIds);
-
-  let ownerAndUserInfoMap = new Map();
-  for (let user of userInfo) {
-    ownerAndUserInfoMap.set(user.id, {
-      ownerName: user.name,
-      avatarUrl: user.avatarUrl,
+  let senderUserInfoMap = new Map();
+  for (let user of senderUserInfo) {
+    senderUserInfoMap.set(user.id, {
+      senderName: user.name,
+      senderAvatarUrl: user.avatarUrl,
     });
   }
 
   let groupInfoMap = new Map();
   for (let group of groupInfo) {
-    groupInfoMap.set(group.id, group.name);
-  }
-
-  // console.log(groupInfoMap);
-
-  let groupAndOwnerInfoMap = new Map();
-  for (let owner of owners) {
-    let groupName = groupInfoMap.get(owner.groupId);
-    let ownerInfo = ownerAndUserInfoMap.get(owner.userId);
-    groupAndOwnerInfoMap.set(owner.groupId, {
-      groupName: groupName,
-      ownerName: ownerInfo.ownerName,
-      avatarUrl: ownerInfo.avatarUrl,
+    groupInfoMap.set(group.id, {
+      groupName: group.name,
+      groupBackgroundUrl: group.backgroundUrl,
     });
   }
 
+  // console.log(groupInfoMap);
   for (let invite of invites) {
-    let groupAndOwnerInfo = groupAndOwnerInfoMap.get(invite.groupId);
+    let groupInfo = groupInfoMap.get(invite.groupId);
+    let senderInfo = senderUserInfoMap.get(invite.senderUserId);
+
     userInvites.push({
-      ...groupAndOwnerInfo,
-      groupId: invite.groupId,
-      userIndex: invite.userIndex,
+      ...invite,
+      groupName: groupInfo.groupName,
+      groupBackgroundUrl: groupInfo.groupBackgroundUrl,
+      senderName: senderInfo.senderName,
+      senderAvatarUrl: senderInfo.senderAvatarUrl,
     });
   }
 

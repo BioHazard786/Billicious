@@ -173,19 +173,21 @@ export const payeesInBillsTable = pgTable(
 export const inviteTable = pgTable(
   "invite_table",
   {
-    userId: uuid("user_id").references(() => usersTable.id),
+    senderUserId: uuid("sender_user_id").references(() => usersTable.id),
+    receiverUserId: uuid("receiver_user_id").references(() => usersTable.id),
     groupId: text("group_id").references(() => groupsTable.id),
     userIndex: integer("user_index"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => {
     return {
       primaryKey: primaryKey({
         name: "invite_table_pk",
-        columns: [table.userId, table.groupId],
+        columns: [table.receiverUserId, table.groupId],
       }),
-      inviteTableUserIdIndex: index("invite_table_user_id_index").on(
-        table.userId,
-      ),
+      inviteTableReceiverUserIdIndex: index(
+        "invite_table_receiver_user_id_index",
+      ).on(table.receiverUserId),
       inviteTableGroupIdIndex: index("invite_table_group_id_index").on(
         table.groupId,
       ),

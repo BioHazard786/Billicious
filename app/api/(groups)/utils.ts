@@ -103,6 +103,7 @@ export async function addMembersInDB(
         receiver.id,
         count,
         true,
+        true,
       ))
     ) {
       receiverIds.push(receiver.id);
@@ -118,7 +119,13 @@ export async function addMembersInDB(
       });
     }
   }
-  await sendMultipleInvites(transaction, groupId, receiverIds, userIndexes);
+  await sendMultipleInvites(
+    transaction,
+    groupId,
+    ownerId,
+    receiverIds,
+    userIndexes,
+  );
 
   // CREATE TEMPORARY USERS
   if (members !== undefined) {
