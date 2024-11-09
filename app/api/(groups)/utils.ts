@@ -32,9 +32,13 @@ export async function createGroupInDB(
     ExtractTablesWithRelations<typeof import("@/database/schema")>
   >,
   name: string,
+  backgroundUrl: string,
+  currencyCode: string,
 ) {
   const newGroup = {
     name: name,
+    backgroundUrl: backgroundUrl,
+    currencyCode: currencyCode,
   };
 
   let groups = await transaction
