@@ -6,7 +6,13 @@ import {
   payeesInBillsTable,
   transactionsTable,
 } from "@/database/schema";
-import { desc, eq, ExtractTablesWithRelations, inArray } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  ExtractTablesWithRelations,
+  inArray,
+} from "drizzle-orm";
 import { PgSelect, PgTransaction } from "drizzle-orm/pg-core";
 import { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
 import {
@@ -157,6 +163,80 @@ export async function getGroupFromDB(
   }
   let group = groups[0];
   return group;
+}
+
+export async function createAdmin(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  groupId: string,
+  ownerId: string,
+  userIndex: number,
+) {
+  let membersInGroup = await getMembersFromDB(transaction, groupId);
+
+  if (userIndex >= membersInGroup.length) {
+    throw new Error("invalid user index");
+  }
+
+  for (let member of membersInGroup) {
+    if (member.userIndex === 0 && member.userId !== ownerId) {
+      throw new Error("only owner can add admins to group");
+    }
+    if (member.userIndex === userIndex) {
+      if (member.status !== 2) {
+        throw new Error("only permanent members can be made admins");
+      } else {
+        transaction
+          .update(membersTable)
+          .set({ isAdmin: true })
+          .where(
+            and(
+              eq(membersTable.groupId, groupId),
+              eq(membersTable.userId, ownerId),
+            ),
+          );
+      }
+    }
+  }
+}
+
+export async function removeAdmin(
+  transaction: PgTransaction<
+    PostgresJsQueryResultHKT,
+    typeof import("@/database/schema"),
+    ExtractTablesWithRelations<typeof import("@/database/schema")>
+  >,
+  groupId: string,
+  ownerId: string,
+  userIndex: number,
+) {
+  let membersInGroup = await getMembersFromDB(transaction, groupId);
+
+  if (userIndex >= membersInGroup.length) {
+    throw new Error("invalid user index");
+  }
+
+  for (let member of membersInGroup) {
+    if (member.userIndex === 0 && member.userId !== ownerId) {
+      throw new Error("only owner can remove admins from group");
+    }
+    if (member.userIndex === userIndex) {
+      if (member.isAdmin) {
+        transaction
+          .update(membersTable)
+          .set({ isAdmin: false })
+          .where(
+            and(
+              eq(membersTable.groupId, groupId),
+              eq(membersTable.userId, ownerId),
+            ),
+          );
+      }
+    }
+  }
 }
 
 export async function getMultipleGroupsFromDB(
