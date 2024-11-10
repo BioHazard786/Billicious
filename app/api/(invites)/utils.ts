@@ -263,6 +263,10 @@ export async function getUserInvitesFromDB(
     .from(inviteTable)
     .where(eq(inviteTable.receiverUserId, userId));
 
+  if (invites.length === 0) {
+    return [];
+  }
+
   let groupIds = invites.map((invite) => invite.groupId!);
   let groupInfo = await getMultipleGroupsFromDB(transaction, groupIds);
 
