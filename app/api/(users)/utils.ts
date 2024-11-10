@@ -105,16 +105,17 @@ export async function getUserGroupsFromDB(
   userId: string,
 ) {
   let userGroups: any = [];
-  let groups = await transaction
+  let memberGroups = await transaction
     .select()
     .from(membersTable)
     .where(eq(membersTable.userId, userId));
 
-  if (groups.length === 0) {
-    return groups;
+  memberGroups = memberGroups.filter((group) => group.status === 2);
+  if (memberGroups.length === 0) {
+    return [];
   }
 
-  let groupIds = groups.map((group) => group.groupId!);
+  let groupIds = memberGroups.map((group) => group.groupId!);
   // console.log(groupIds);
 
   let groupInfo = await getMultipleGroupsFromDB(transaction, groupIds);
@@ -122,20 +123,30 @@ export async function getUserGroupsFromDB(
 
   let groupInfoMap = new Map();
   for (let group of groupInfo) {
-    groupInfoMap.set(group.id, group.name);
+    groupInfoMap.set(group.id, group);
   }
 
-  for (let group of groups) {
-    let groupName = groupInfoMap.get(group.groupId);
-    if (groupName !== undefined) {
+  for (let memberGroup of memberGroups) {
+    let group = groupInfoMap.get(memberGroup.groupId);
+    if (group !== undefined) {
       userGroups.push({
-        ...group,
-        groupName: groupName,
+        groupId: memberGroup.groupId,
+        userNameInGroup: memberGroup.userNameInGroup,
+        totalSpent: memberGroup.totalSpent,
+        totalPaid: memberGroup.totalPaid,
+        groupName: group.name,
+        totalExpense: group.totalExpense,
+        backgroundUrl: group.backgroundUrl,
+        currencyCode: group.currencyCode,
+        createdAt: group.createdAt,
+        updatedAt: group.updatedAt,
       });
     } else {
       userGroups.push({
-        ...group,
-        groupName: null,
+        groupId: memberGroup.groupId,
+        userNameInGroup: memberGroup.userNameInGroup,
+        totalSpent: memberGroup.totalSpent,
+        totalPaid: memberGroup.totalPaid,
       });
     }
   }
