@@ -330,7 +330,7 @@ export async function addUserInfoToMembers(
     let user = userInfoMap.get(member.userId);
     membersWithUserInfo.push({
       ...member,
-      avatarUrl: user != undefined ? user.avatar_url : null,
+      avatarUrl: user != undefined ? user.avatarUrl : null,
       username: user != undefined ? user.username : null,
     });
   }
