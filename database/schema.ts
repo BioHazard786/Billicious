@@ -191,6 +191,9 @@ export const inviteTable = pgTable(
       inviteTableGroupIdIndex: index("invite_table_group_id_index").on(
         table.groupId,
       ),
+      inviteTableUserIndexAndGroupIdIndex: index(
+        "invite_table_user_index_and_group_id_index",
+      ).on(table.userIndex, table.groupId),
     };
   },
 );

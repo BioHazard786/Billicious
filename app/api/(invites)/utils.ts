@@ -144,14 +144,15 @@ export async function deleteInvite(
   >,
   groupId: string,
   userId: string,
+  userIndex: number,
 ) {
   let userInvites = await transaction
     .select()
     .from(inviteTable)
     .where(
       and(
+        eq(inviteTable.userIndex, userIndex),
         eq(inviteTable.groupId, groupId),
-        eq(inviteTable.receiverUserId, userId),
       ),
     );
 

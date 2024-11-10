@@ -11,8 +11,16 @@ export const POST = async (request: Request) => {
     if (requestData.userId === undefined) {
       throw new Error("user id is required");
     }
+    if (requestData.userIndex === undefined) {
+      throw new Error("user index is required");
+    }
     await db.transaction(async (transaction) => {
-      await deleteInvite(transaction, requestData.groupId, requestData.userId);
+      await deleteInvite(
+        transaction,
+        requestData.groupId,
+        requestData.userId,
+        requestData.userIndex,
+      );
     });
   } catch (err) {
     if (err instanceof Error) {
