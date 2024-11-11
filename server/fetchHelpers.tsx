@@ -1,28 +1,40 @@
 type GroupData = {
   name: string;
   members: string[];
-  user_id: string;
+  usernames: string[];
+  ownerId: string;
+  currecyCode: string;
+  backgroundUrl?: string;
 };
 
 type MemberData = {
-  group_id: string;
-  members: string[];
+  name?: string;
+  groupId: string;
+  members?: string[];
+  usernames?: string[];
+  userId: string;
 };
 
 type BillData = {
-  group_id: string;
+  groupId: string;
   name: string;
   category: string;
-  created_at?: number;
+  createdAt?: number;
   notes?: string;
   drawees: { [key: string]: number };
   payees: { [key: string]: number };
 };
 
 type ProfileData = {
+  email: string;
   userId: string;
   name: string;
   username: string;
+};
+
+type InviteData = {
+  groupId: string | null;
+  userId: string | null;
 };
 
 const postFetchHelper = async (endPoint: string, body: string) => {
@@ -57,4 +69,22 @@ export const addBillToGroupInDB = async (billData: BillData) => {
 
 export const updateProfile = async (profileData: ProfileData) => {
   return postFetchHelper("/api/update_profile", JSON.stringify(profileData));
+};
+
+export const searchUsername = async (username: string) => {
+  return postFetchHelper("/api/search_username", JSON.stringify({ username }));
+};
+
+export const acceptInvite = async (acceptInviteData: InviteData) => {
+  return postFetchHelper(
+    "/api/accept_invite",
+    JSON.stringify(acceptInviteData),
+  );
+};
+
+export const declineInvite = async (declineInviteData: InviteData) => {
+  return postFetchHelper(
+    "/api/delete_invite",
+    JSON.stringify(declineInviteData),
+  );
 };

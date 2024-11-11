@@ -1,13 +1,12 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
-import { useAppleDevice } from "@/hooks/use-apple-device";
 import {
   modifyDraweeAmount,
   recalculatePayeesBills,
   removeDraweeAmount,
   removeDraweePercent,
-} from "@/lib/split-tab-utils";
-import { cn } from "@/lib/utils";
+} from "@/components/billForm/splitTab/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input, InputWithCurrency } from "@/components/ui/input";
+import { useAppleDevice } from "@/hooks/use-apple-device";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
 import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
@@ -24,6 +23,7 @@ const AmountSplit = () => {
           key={`drawee-input-${index}`}
           memberName={member.name}
           memberIndex={member.memberIndex}
+          avatarUrl={member.avatarUrl}
         />
       ))}
     </div>
@@ -33,9 +33,11 @@ const AmountSplit = () => {
 const DraweeInput = ({
   memberName,
   memberIndex,
+  avatarUrl,
 }: {
   memberName: string;
   memberIndex: string;
+  avatarUrl?: string;
 }) => {
   const isApple = useAppleDevice().isAppleDevice;
   const payeesBill = useContributionsTabStore.getState().payeesBill;
@@ -64,98 +66,97 @@ const DraweeInput = ({
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
         <Avatar>
+          <AvatarImage src={avatarUrl} alt={memberName} />
           <AvatarFallback>{memberName[0]}</AvatarFallback>
         </Avatar>
         <p className="w-14 truncate text-sm md:w-32">{memberName}</p>
       </div>
-      <div className="flex items-center justify-end gap-2">
-        <p className="w-min text-sm">₹</p>
-        <Input
-          className={cn("w-[70%]", isApple ? "text-base" : "")}
-          type="number"
-          value={
-            draweesSplitByAmount.get(memberIndex)
-              ? Math.floor(
-                  draweesSplitByAmount.get(memberIndex)!.amount * 100,
-                ) / 100
-              : ""
-          }
-          onChange={(e) => {
-            if (e.target.value === "0" || e.target.value === "") {
-              if (draweesSplitByAmount.size <= 1) {
-                return toast.error("Drawee amount should not be empty");
-              }
-              if (drawees.includes(memberIndex)) {
-                removeDrawees(memberIndex);
-              }
-              if (draweesSplitByAmount.has(memberIndex)) {
-                setDraweesSplitByAmount(
-                  removeDraweeAmount(
-                    memberIndex,
-                    new Map(draweesSplitByAmount),
-                    payeesBill,
-                  ),
-                );
-              }
-              if (draweesSplitByPercent.has(memberIndex)) {
-                setDraweesSplitByPercent(
-                  removeDraweePercent(
-                    memberIndex,
-                    new Map(draweesSplitByPercent),
-                  ),
-                );
-              }
+      <InputWithCurrency
+        currencyCode="INR"
+        currencySymbol="₹"
+        className={isApple ? "text-base" : ""}
+        type="number"
+        value={
+          draweesSplitByAmount.get(memberIndex)
+            ? Math.floor(draweesSplitByAmount.get(memberIndex)!.amount * 100) /
+              100
+            : ""
+        }
+        onChange={(e) => {
+          if (e.target.value === "0" || e.target.value === "") {
+            if (draweesSplitByAmount.size <= 1) {
+              return toast.error("Drawee amount should not be empty");
+            }
+            if (drawees.includes(memberIndex)) {
+              removeDrawees(memberIndex);
+            }
+            if (draweesSplitByAmount.has(memberIndex)) {
+              setDraweesSplitByAmount(
+                removeDraweeAmount(
+                  memberIndex,
+                  new Map(draweesSplitByAmount),
+                  payeesBill,
+                ),
+              );
+            }
+            if (draweesSplitByPercent.has(memberIndex)) {
+              setDraweesSplitByPercent(
+                removeDraweePercent(
+                  memberIndex,
+                  new Map(draweesSplitByPercent),
+                ),
+              );
+            }
+          } else {
+            if (isErroredOut) {
+              const draweeAmountState = new Map(draweesSplitByAmount);
+              draweeAmountState.set(memberIndex, {
+                amount: Number(e.target.value),
+                isEdited: true,
+              });
+              recalculatePayeesBills(
+                payees,
+                draweeAmountState,
+                payeesBill,
+                setMultiplePayees,
+              );
+              setDraweesSplitByAmount(draweeAmountState);
             } else {
-              if (isErroredOut) {
-                const draweeAmountState = new Map(draweesSplitByAmount);
-                draweeAmountState.set(memberIndex, {
-                  amount: Number(e.target.value),
-                  isEdited: true,
-                });
+              const { draweeAmountState, error } = modifyDraweeAmount(
+                memberIndex,
+                Number(e.target.value),
+                new Map(draweesSplitByAmount),
+                payeesBill,
+              );
+              if (error) {
                 recalculatePayeesBills(
                   payees,
                   draweeAmountState,
                   payeesBill,
                   setMultiplePayees,
                 );
-                setDraweesSplitByAmount(draweeAmountState);
-              } else {
-                const { draweeAmountState, error } = modifyDraweeAmount(
-                  memberIndex,
-                  Number(e.target.value),
-                  new Map(draweesSplitByAmount),
-                  payeesBill,
-                );
-                if (error) {
-                  recalculatePayeesBills(
-                    payees,
-                    draweeAmountState,
-                    payeesBill,
-                    setMultiplePayees,
-                  );
-                  setIsError();
-                }
-                setDraweesSplitByAmount(draweeAmountState);
+                setIsError();
               }
+              setDraweesSplitByAmount(draweeAmountState);
             }
-          }}
-          onKeyDown={(e) => {
-            if (
-              e.key === "e" ||
-              e.key === "E" ||
-              e.key === "+" ||
-              e.key === "-"
-            ) {
-              e.preventDefault();
-            }
-          }}
-          onWheel={(e) => (e.target as HTMLElement).blur()}
-          inputMode="numeric"
-          pattern="\d*"
-          placeholder="0"
-          name="drawee-split-by-amount"
-        />
-      </div>
+          }
+        }}
+        onKeyDown={(e) => {
+          if (
+            e.key === "e" ||
+            e.key === "E" ||
+            e.key === "+" ||
+            e.key === "-"
+          ) {
+            e.preventDefault();
+          }
+        }}
+        onWheel={(e) => (e.target as HTMLElement).blur()}
+        inputMode="numeric"
+        pattern="\d*"
+        placeholder="0"
+        name="drawee-split-by-amount"
+      />
     </div>
   );
 };

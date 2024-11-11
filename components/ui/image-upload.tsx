@@ -29,7 +29,7 @@ import ReactCrop, {
   type PixelCrop,
 } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import Spinner from "./spinner";
+import { Spinner } from "./spinner";
 
 type FileWithPreview = File & { preview: string };
 
@@ -153,6 +153,7 @@ export function ImageUploader(props: FileUploaderProps) {
     },
     onError: (error, variables, context) => {
       setFiles([]);
+      console.error(error);
       return toast.error(error.message, {
         id: context?.toastId,
       });

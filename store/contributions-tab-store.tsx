@@ -2,7 +2,7 @@ import {
   formatDraweeSplitByAmount,
   formatDraweeSplitByPercent,
   totalBill,
-} from "@/lib/split-tab-utils";
+} from "@/components/billForm/splitTab/utils";
 import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
 import useSplitByPercentTabStore from "@/store/split-by-percent-tab-store";
 import useSplitEquallyTabStore from "@/store/split-equally-tab-store";

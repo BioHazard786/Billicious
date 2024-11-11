@@ -15,15 +15,19 @@ type Action = {
   reset: () => void;
 };
 
+const initialState: State = {
+  activeTab: 0,
+  direction: 0,
+  isAnimating: false,
+};
+
 const useAddBillStoreBase = createWithEqualityFn<State & Action>(
   (set) => ({
-    activeTab: 0,
-    direction: 0,
-    isAnimating: false,
+    ...initialState,
     setActiveTab: (tabIndex) => set({ activeTab: tabIndex }),
     setDirection: (direction) => set({ direction: direction }),
     setIsAnimating: (animationStatus) => set({ isAnimating: animationStatus }),
-    reset: () => set({ activeTab: 0, direction: 0, isAnimating: false }),
+    reset: () => set(initialState),
   }),
   shallow,
 );

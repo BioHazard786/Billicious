@@ -13,7 +13,7 @@ export async function POST(request: Request) {
 
     // Check for unique username
     const { data: existingUser, error: existingUserError } = await supabase
-      .from("profiles")
+      .from("users_table")
       .select("id")
       .eq("username", username)
       .neq("id", userId) // Exclude the current user
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
     // Update profiles
     const { error: updateError } = await supabase
-      .from("profiles")
+      .from("users_table")
       .update({ name, username })
       .eq("id", userId);
 

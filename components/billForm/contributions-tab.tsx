@@ -1,7 +1,7 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { Input } from "@/components/ui/input";
+import { Input, InputWithCurrency } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAppleDevice } from "@/hooks/use-apple-device";
 import { cn } from "@/lib/utils";
@@ -49,6 +49,7 @@ const ContributionsTab = () => {
               key={`payee-list-${index}`}
               memberName={member.name}
               memberIndex={member.memberIndex}
+              avatarUrl={member.avatarUrl}
             />
           ))}
         </div>
@@ -60,9 +61,11 @@ const ContributionsTab = () => {
 const PayeeInputAmount = ({
   memberName,
   memberIndex,
+  avatarUrl,
 }: {
   memberName: string;
   memberIndex: string;
+  avatarUrl?: string;
 }) => {
   const isApple = useAppleDevice().isAppleDevice;
   const payees = useContributionsTabStore.use.payees();
@@ -72,41 +75,41 @@ const PayeeInputAmount = ({
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
         <Avatar>
+          <AvatarImage src={avatarUrl} alt={memberName} />
           <AvatarFallback>{memberName[0]}</AvatarFallback>
         </Avatar>
         <p className="w-14 truncate text-sm md:w-32">{memberName}</p>
       </div>
-      <div className="flex items-center justify-end gap-2">
-        <p className="w-min text-sm">₹</p>
-        <Input
-          className={cn("w-[70%]", isApple ? "text-base" : "")}
-          type="number"
-          value={payees[memberIndex] || ""}
-          onChange={(e) => {
-            if (e.target.value === "0" || e.target.value === "")
-              deletePayee(memberIndex);
-            else {
-              if (/^\d+(\.\d{1,2})?$/.test(e.target.value.toString()))
-                setPayee(memberIndex, Number(e.target.value));
-            }
-          }}
-          onKeyDown={(e) => {
-            if (
-              e.key === "e" ||
-              e.key === "E" ||
-              e.key === "+" ||
-              e.key === "-"
-            ) {
-              e.preventDefault();
-            }
-          }}
-          onWheel={(e) => (e.target as HTMLElement).blur()}
-          inputMode="numeric"
-          pattern="\d*"
-          placeholder="0"
-          name="payee-contribution"
-        />
-      </div>
+      <InputWithCurrency
+        currencyCode="INR"
+        currencySymbol="₹"
+        className={isApple ? "text-base" : ""}
+        type="number"
+        value={payees[memberIndex] || ""}
+        onChange={(e) => {
+          if (e.target.value === "0" || e.target.value === "")
+            deletePayee(memberIndex);
+          else {
+            if (/^\d+(\.\d{1,2})?$/.test(e.target.value.toString()))
+              setPayee(memberIndex, Number(e.target.value));
+          }
+        }}
+        onKeyDown={(e) => {
+          if (
+            e.key === "e" ||
+            e.key === "E" ||
+            e.key === "+" ||
+            e.key === "-"
+          ) {
+            e.preventDefault();
+          }
+        }}
+        onWheel={(e) => (e.target as HTMLElement).blur()}
+        inputMode="numeric"
+        pattern="\d*"
+        placeholder="0"
+        name="payee-contribution"
+      />
     </div>
   );
 };

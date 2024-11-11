@@ -1,11 +1,11 @@
+import { db } from "@/database/dbConnect";
 import { NextResponse } from "next/server";
 import {
+  addUserInfoToMembers,
   getGroupFromDB,
   getMembersFromDB,
   getUserInfoForMembers,
-  addUserInfoToMembers,
 } from "../utils";
-import { db } from "@/database/dbConnect";
 
 export const POST = async (request: Request) => {
   let group: any = {};
@@ -18,11 +18,11 @@ export const POST = async (request: Request) => {
 
     await db.transaction(async (transaction) => {
       group.group = await getGroupFromDB(transaction, requestData.groupId);
-      group.members = await getMembersFromDB(transaction, requestData.groupId);
-      let allUserInfo = await getUserInfoForMembers(transaction, group.members);
+      const members = await getMembersFromDB(transaction, requestData.groupId);
+      const allUserInfo = await getUserInfoForMembers(transaction, members);
       group.members = await addUserInfoToMembers(
         transaction,
-        group.members,
+        members,
         allUserInfo,
       );
     });

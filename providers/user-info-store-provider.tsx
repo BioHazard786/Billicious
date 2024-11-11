@@ -19,7 +19,11 @@ export const UserInfoStoreProvider = ({
   if (!storeRef.current) {
     storeRef.current = createUserStore(user);
   } else {
-    storeRef.current.setState({ user });
+    const currentState = storeRef.current.getState();
+    const actions = Object.entries(currentState)
+      .filter(([_, value]) => typeof value === "function")
+      .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
+    storeRef.current.setState({ user, ...actions }, true);
   }
 
   return (

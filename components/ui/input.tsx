@@ -22,4 +22,61 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 );
 Input.displayName = "Input";
 
-export { Input };
+export interface InputWithLimitProps extends InputProps {
+  characterCount: number;
+}
+
+const InputWithLimit = React.forwardRef<HTMLInputElement, InputWithLimitProps>(
+  ({ characterCount, maxLength, ...props }, ref) => {
+    return (
+      <div className="relative w-full">
+        <Input
+          maxLength={maxLength}
+          aria-describedby="character-count"
+          {...props}
+          ref={ref}
+        />
+        <div
+          id="character-count"
+          className="pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-xs tabular-nums text-muted-foreground peer-disabled:opacity-50"
+          aria-live="polite"
+          role="status"
+        >
+          {characterCount}/{maxLength}
+        </div>
+      </div>
+    );
+  },
+);
+
+InputWithLimit.displayName = "InputWithLimit";
+
+export interface InputWithCurrencyProps extends InputProps {
+  currencyCode: string;
+  currencySymbol: string;
+}
+
+const InputWithCurrency = React.forwardRef<
+  HTMLInputElement,
+  InputWithCurrencyProps
+>(({ currencyCode, currencySymbol, className, ...props }, ref) => {
+  return (
+    <div className="relative w-[50%]">
+      <Input
+        {...props}
+        className={cn("peer pe-12 ps-6", className)}
+        ref={ref}
+      />
+      <span className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-sm text-muted-foreground peer-disabled:opacity-50">
+        {currencySymbol}
+      </span>
+      <span className="pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-sm text-muted-foreground peer-disabled:opacity-50">
+        {currencyCode}
+      </span>
+    </div>
+  );
+});
+
+InputWithCurrency.displayName = "InputWithCurrency";
+
+export { Input, InputWithCurrency, InputWithLimit };

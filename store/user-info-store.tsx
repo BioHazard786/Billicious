@@ -50,7 +50,7 @@ export const createUserStore = (user: User) => {
 
 export const UserStoreContext = createContext<UserStore | null>(null);
 
-export default function useUserStore<T>(
+export default function useUserInfoStore<T>(
   selector: (state: Action & State) => T,
 ): T {
   const store = useContext(UserStoreContext);

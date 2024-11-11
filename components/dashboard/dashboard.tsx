@@ -22,7 +22,7 @@ const Dashboard = () => {
   const mainClassName = useMemo(
     () =>
       cn(
-        "relative grid h-full w-full grid-cols-1 gap-3 overflow-x-hidden p-3 pt-[4.2rem] md:grid-cols-2 lg:h-dvh lg:grid-cols-3 lg:grid-rows-[auto_1fr]",
+        "gap-3 relative grid h-full w-full grid-cols-1 overflow-x-hidden p-3 pt-16 pb-[5.25rem] md:grid-cols-2 md:pb-3 lg:h-dvh lg:grid-cols-3 lg:grid-rows-[auto_1fr] ",
         user ? "lg:pl-[4.2rem]" : "",
       ),
     [user],

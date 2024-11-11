@@ -1,4 +1,5 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { formatDrawees } from "@/components/billForm/splitTab/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
@@ -11,7 +12,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Input } from "@/components/ui/input";
+import { Input, InputWithLimit } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -30,7 +31,6 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppleDevice } from "@/hooks/use-apple-device";
-import { formatDrawees } from "@/lib/split-tab-utils";
 import { categories, cn } from "@/lib/utils";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
@@ -99,11 +99,15 @@ const DetailsTab = () => {
             <div className="flex items-center">
               <CategoryPopover />
             </div>
-            <Input
-              className={isApple ? "text-base" : ""}
-              placeholder="Bill Name"
+            <InputWithLimit
+              maxLength={32}
+              characterCount={billName.length}
               value={billName}
               onChange={(e) => setBillName(e.target.value)}
+              className={isApple ? "text-base" : ""}
+              autoComplete="bullName"
+              id="billName"
+              placeholder="Bill Name"
             />
           </div>
           <Separator />
@@ -165,6 +169,7 @@ const DetailsTable = () => {
             <TableCell>
               <span className="flex items-center gap-2">
                 <Avatar className="size-8">
+                  <AvatarImage src={member.avatarUrl} alt={member.name} />
                   <AvatarFallback>{member.name[0]}</AvatarFallback>
                 </Avatar>
                 {member.name}

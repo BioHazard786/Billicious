@@ -40,7 +40,7 @@ import {
   FormMessage,
 } from "../ui/form";
 import { PasswordField } from "../ui/password-input";
-import Spinner from "../ui/spinner";
+import { Spinner } from "../ui/spinner";
 
 export default function SignIn({
   lastSignedInMethod,
@@ -192,28 +192,30 @@ export default function SignIn({
               )}
             />
             <PasswordField />
-            <AnimatedButton
-              type="submit"
-              variant="default"
-              className="relative w-full"
-              disabled={
-                isSignInWithEmailPending ||
-                isSignInWithGooglePending ||
-                isSignInWithPasskeyPending
-              }
-              isLoading={isSignInWithEmailPending}
-            >
-              <span>Sign in</span>
-              {lastSignedInMethod === "email" && (
-                <span className="ml-2 inline md:hidden">(Last used)</span>
-              )}
+            <div className="relative">
+              <AnimatedButton
+                type="submit"
+                variant="default"
+                className="w-full"
+                isDisabled={
+                  isSignInWithEmailPending ||
+                  isSignInWithGooglePending ||
+                  isSignInWithPasskeyPending
+                }
+                isLoading={isSignInWithEmailPending}
+              >
+                <span>Sign in</span>
+                {lastSignedInMethod === "email" && (
+                  <span className="ml-2 inline md:hidden">(Last used)</span>
+                )}
+              </AnimatedButton>
               {lastSignedInMethod === "email" && (
                 <div className="absolute left-full top-1/2 ml-8 hidden -translate-y-1/2 whitespace-nowrap rounded-md bg-accent px-4 py-1 text-xs text-foreground/80 md:block">
                   <div className="absolute -left-5 top-0 border-[12px] border-background border-r-accent" />
                   Last used
                 </div>
               )}
-            </AnimatedButton>
+            </div>
           </form>
         </Form>
         <div className="relative">

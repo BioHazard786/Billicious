@@ -43,10 +43,145 @@
     --secondary-foreground: 147 2% 26%;
     --accent: 147 2% 86%;
     --accent-foreground: 147 2% 26%;
-    --destructive: 19 96% 24%;
-    --destructive-foreground: 19 96% 84%;
+    --destructive: 358 65% 49%;
+    --destructive-foreground: 357 90% 96%;
     --ring: 152.95 100% 37.84%;
     --radius: 0.5rem;
+  }
+
+  [data-accent-color="gray"] {
+    --accent-bg: #f0f0f0;
+    --accent-fg: #646464;
+  }
+
+  [data-accent-color="gold"] {
+    --accent-bg: #f2f0e7;
+    --accent-fg: #71624b;
+  }
+
+  [data-accent-color="bronze"] {
+    --accent-bg: #f6edea;
+    --accent-fg: #7d5e54;
+  }
+
+  [data-accent-color="brown"] {
+    --accent-bg: #f6eee7;
+    --accent-fg: #815e46;
+  }
+
+  [data-accent-color="yellow"] {
+    --accent-bg: #fffab8;
+    --accent-fg: #9e6c00;
+  }
+
+  [data-accent-color="amber"] {
+    --accent-bg: #fff7c2;
+    --accent-fg: #ab6400;
+  }
+
+  [data-accent-color="orange"] {
+    --accent-bg: #ffefd6;
+    --accent-fg: #cc4e00;
+  }
+
+  [data-accent-color="tomato"] {
+    --accent-bg: #feebe7;
+    --accent-fg: #d13415;
+  }
+
+  [data-accent-color="red"] {
+    --accent-bg: #feebec;
+    --accent-fg: #ce2c31;
+  }
+
+  [data-accent-color="ruby"] {
+    --accent-bg: #feeaed;
+    --accent-fg: #ca244d;
+  }
+
+  [data-accent-color="crimson"] {
+    --accent-bg: #ffe9f0;
+    --accent-fg: #cb1d63;
+  }
+
+  [data-accent-color="pink"] {
+    --accent-bg: #fee9f5;
+    --accent-fg: #c2298a;
+  }
+
+  [data-accent-color="plum"] {
+    --accent-bg: #fbebfb;
+    --accent-fg: #953ea3;
+  }
+
+  [data-accent-color="purple"] {
+    --accent-bg: #f7edfe;
+    --accent-fg: #8145b5;
+  }
+
+  [data-accent-color="violet"] {
+    --accent-bg: #f4f0fe;
+    --accent-fg: #6550b9;
+  }
+
+  [data-accent-color="iris"] {
+    --accent-bg: #f0f1fe;
+    --accent-fg: #5753c6;
+  }
+
+  [data-accent-color="indigo"] {
+    --accent-bg: #edf2fe;
+    --accent-fg: #3a5bc7;
+  }
+
+  [data-accent-color="blue"] {
+    --accent-bg: #e6f4fe;
+    --accent-fg: #0d74ce;
+  }
+
+  [data-accent-color="cyan"] {
+    --accent-bg: #def7f9;
+    --accent-fg: #107d98;
+  }
+
+  [data-accent-color="teal"] {
+    --accent-bg: #e0f8f3;
+    --accent-fg: #008573;
+  }
+
+  [data-accent-color="jade"] {
+    --accent-bg: #e6f7ed;
+    --accent-fg: #208368;
+  }
+
+  [data-accent-color="green"] {
+    --accent-bg: #e6f6eb;
+    --accent-fg: #218358;
+  }
+
+  [data-accent-color="grass"] {
+    --accent-bg: #e9f6e9;
+    --accent-fg: #2a7e3b;
+  }
+
+  [data-accent-color="lime"] {
+    --accent-bg: #eef6d6;
+    --accent-fg: #5c7c2f;
+  }
+
+  [data-accent-color="mint"] {
+    --accent-bg: #ddf9f2;
+    --accent-fg: #027864;
+  }
+
+  [data-accent-color="sky"] {
+    --accent-bg: #e1f6fd;
+    --accent-fg: #00749e;
+  }
+
+  [data-accent-color="olive"] {
+    --accent-bg: #eff1ef;
+    --accent-fg: #60655f;
   }
 
   .dark {
@@ -66,9 +201,145 @@
     --secondary-foreground: 220 13.04% 90.98%;
     --accent: 215 27.91% 16.86%;
     --accent-foreground: 220 13.04% 90.98%;
-    --destructive: 0 90.6% 70.78%;
-    --destructive-foreground: 220.91 39.29% 10.98%;
+    --destructive: 2 100% 79%;
+    --destructive-foreground: 350 53% 15%;
     --ring: 152.95 100% 37.84%;
+
+    [data-accent-color="gray"] {
+      --accent-bg: #222222;
+      --accent-fg: #b4b4b4;
+    }
+
+    [data-accent-color="gold"] {
+      --accent-bg: #24231f;
+      --accent-fg: #cbb99f;
+    }
+
+    [data-accent-color="bronze"] {
+      --accent-bg: #262220;
+      --accent-fg: #d4b3a5;
+    }
+
+    [data-accent-color="brown"] {
+      --accent-bg: #28211d;
+      --accent-fg: #dbb594;
+    }
+
+    [data-accent-color="yellow"] {
+      --accent-bg: #2d2305;
+      --accent-fg: #f5e147;
+    }
+
+    [data-accent-color="amber"] {
+      --accent-bg: #302008;
+      --accent-fg: #ffca16;
+    }
+
+    [data-accent-color="orange"] {
+      --accent-bg: #331e0b;
+      --accent-fg: #ffa057;
+    }
+
+    [data-accent-color="tomato"] {
+      --accent-bg: #391714;
+      --accent-fg: #ff977d;
+    }
+
+    [data-accent-color="red"] {
+      --accent-bg: #3b1219;
+      --accent-fg: #ff9592;
+    }
+
+    [data-accent-color="ruby"] {
+      --accent-bg: #3a141e;
+      --accent-fg: #ff949d;
+    }
+
+    [data-accent-color="crimson"] {
+      --accent-bg: #381525;
+      --accent-fg: #ff92ad;
+    }
+
+    [data-accent-color="pink"] {
+      --accent-bg: #37172f;
+      --accent-fg: #ff8dcc;
+    }
+
+    [data-accent-color="plum"] {
+      --accent-bg: #351a35;
+      --accent-fg: #e796f3;
+    }
+
+    [data-accent-color="purple"] {
+      --accent-bg: #301c3b;
+      --accent-fg: #d19dff;
+    }
+
+    [data-accent-color="violet"] {
+      --accent-bg: #291f43;
+      --accent-fg: #baa7ff;
+    }
+
+    [data-accent-color="iris"] {
+      --accent-bg: #202248;
+      --accent-fg: #b1a9ff;
+    }
+
+    [data-accent-color="indigo"] {
+      --accent-bg: #182449;
+      --accent-fg: #9eb1ff;
+    }
+
+    [data-accent-color="blue"] {
+      --accent-bg: #0d2847;
+      --accent-fg: #70b8ff;
+    }
+
+    [data-accent-color="cyan"] {
+      --accent-bg: #082c36;
+      --accent-fg: #4ccce6;
+    }
+
+    [data-accent-color="teal"] {
+      --accent-bg: #0d2d2a;
+      --accent-fg: #0bd8b6;
+    }
+
+    [data-accent-color="jade"] {
+      --accent-bg: #0f2e22;
+      --accent-fg: #1fd8a4;
+    }
+
+    [data-accent-color="green"] {
+      --accent-bg: #132d21;
+      --accent-fg: #3dd68c;
+    }
+
+    [data-accent-color="grass"] {
+      --accent-bg: #1b2a1e;
+      --accent-fg: #71d083;
+    }
+
+    [data-accent-color="lime"] {
+      --accent-bg: #1f2917;
+      --accent-fg: #bde56c;
+    }
+
+    [data-accent-color="mint"] {
+      --accent-bg: #092c2b;
+      --accent-fg: #58d5ba;
+    }
+
+    [data-accent-color="sky"] {
+      --accent-bg: #112840;
+      --accent-fg: #75c7f0;
+    }
+
+    [data-accent-color="olive"] {
+      --accent-bg: #212220;
+      --accent-fg: #afb5ad;
+    }
+
   }
 }
 
@@ -89,30 +360,25 @@
   background: hsl(var(--primary));
 }
 
-.custom-scrollbars ::-webkit-scrollbar {
+.custom-scrollbar::-webkit-scrollbar {
   background-color: transparent;
-  height: .6em;
-  width: .6em
+  width: .4em
 }
 
-.custom-scrollbars ::-webkit-scrollbar-track {
-  --tw-bg-opacity: 1;
-  background-color: hsl(var(--muted)/1);
-  background-color: hsl(var(--muted)/var(--tw-bg-opacity))
+.custom-scrollbar::-webkit-scrollbar-track {
+  background-color: transparent
 }
 
-.custom-scrollbars ::-webkit-scrollbar-thumb {
-  border-radius: .6em;
-  --tw-bg-opacity: 0.2;
-  background-color: hsl(var(--muted-foreground)/0.2);
-  background-color: hsl(var(--muted-foreground)/var(--tw-bg-opacity))
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background-color: hsl(var(--border))
 }
 
-.custom-scrollbars ::-webkit-scrollbar-thumb:hover {
+/* .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   --tw-bg-opacity: 0.4;
   background-color: hsl(var(--muted-foreground)/0.4);
   background-color: hsl(var(--muted-foreground)/var(--tw-bg-opacity))
-}
+} */
 
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
@@ -130,8 +396,25 @@ input[type="number"] {
   height: calc(40vh - 44px);
 }
 
+@keyframes spinner {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+
 @media only screen and (min-width: 786px) {
   .split-tab {
     height: 256px;
+  }
+}
+
+@media only screen and (max-width: 786px) {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 0.3em;
   }
 }

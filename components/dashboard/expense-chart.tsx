@@ -28,6 +28,7 @@ const ExpenseChart = () => {
             {members.map((member, index) => (
               <ProgressBar
                 name={member.name}
+                avatarUrl={member.avatarUrl}
                 balance={member.balance}
                 totalPaid={member.totalPaid}
                 totalBill={totalBill}

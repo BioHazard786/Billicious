@@ -1,6 +1,6 @@
 import { client, db } from "@/database/dbConnect";
 import { groupsTable, membersTable, usersTable } from "@/database/schema";
-import { and, eq, or, inArray, ExtractTablesWithRelations } from "drizzle-orm";
+import { and, eq, ExtractTablesWithRelations, inArray, or } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
 import { getMultipleGroupsFromDB } from "../(groups)/utils";

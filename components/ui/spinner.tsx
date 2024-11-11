@@ -1,118 +1,79 @@
 import { cn } from "@/lib/utils";
-import { type AnimationProps, motion } from "framer-motion";
+import { motion, type AnimationProps } from "framer-motion";
+import React from "react";
 
-const getSpans = (loadingSpanClassName?: string) => {
-  return [...new Array(12)].map((_, index) => (
+const SPINNER_COUNT = 12;
+
+const SpinnerSpan: React.FC<{ index: number; className?: string }> = React.memo(
+  ({ index, className }) => (
     <span
-      key={`spinner-${index}`}
       className={cn(
-        "absolute left-[-10%] top-[-3.9%] h-[8%] w-[24%] rounded-[2px] bg-background",
-        loadingSpanClassName,
+        "absolute left-[-10%] top-[-3.9%] h-[8%] w-[24%] rounded-[2.5px] bg-background",
+        className,
       )}
-    >
-      <style jsx>{`
-        span {
-          animation: spinner 1.2s linear 0s infinite normal none running;
-        }
+      style={{
+        animation: `spinner 1.2s linear ${-1.2 + index * 0.1}s infinite normal none running`,
+        transform: `rotate(${index * 30}deg) translate(146%)`,
+      }}
+    />
+  ),
+);
 
-        span:nth-child(1) {
-          animation-delay: -1.2s;
-          transform: rotate(0deg) translate(146%);
-        }
-
-        span:nth-child(2) {
-          animation-delay: -1.1s;
-          transform: rotate(30deg) translate(146%);
-        }
-
-        span:nth-child(3) {
-          animation-delay: -1s;
-          transform: rotate(60deg) translate(146%);
-        }
-
-        span:nth-child(4) {
-          animation-delay: -0.9s;
-          transform: rotate(90deg) translate(146%);
-        }
-
-        span:nth-child(5) {
-          animation-delay: -0.8s;
-          transform: rotate(120deg) translate(146%);
-        }
-
-        span:nth-child(6) {
-          animation-delay: -0.7s;
-          transform: rotate(150deg) translate(146%);
-        }
-
-        span:nth-child(7) {
-          animation-delay: -0.6s;
-          transform: rotate(180deg) translate(146%);
-        }
-
-        span:nth-child(8) {
-          animation-delay: -0.5s;
-          transform: rotate(210deg) translate(146%);
-        }
-
-        span:nth-child(9) {
-          animation-delay: -0.4s;
-          transform: rotate(240deg) translate(146%);s
-        }
-
-        span:nth-child(10) {
-          animation-delay: -0.3s;
-          transform: rotate(270deg) translate(146%);
-        }
-
-        span:nth-child(11) {
-          animation-delay: -0.2s;
-          transform: rotate(300deg) translate(146%);
-        }
-
-        span:nth-child(12) {
-          animation-delay: -0.1s;
-          transform: rotate(330deg) translate(146%);
-        }
-
-        @keyframes spinner {
-          0% {
-            opacity: 1;
-          }
-          100% {
-            opacity: 0.15;
-          }
-        }
-      `}</style>
-    </span>
-  ));
-};
-
-const Spinner = ({
-  className,
-  loadingSpanClassName,
-  AnimationProps,
-  ...props
-}: {
+type SpinnerProps = {
   className?: string;
   loadingSpanClassName?: string;
-  AnimationProps?: AnimationProps;
-}) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ ease: "easeInOut", duration: 0.2 }}
-      className={cn("block h-5 w-5", className)}
-      {...AnimationProps}
-      {...props}
-    >
-      <div className="relative left-[50%] top-[50%] h-full w-full">
-        {getSpans(loadingSpanClassName)}
-      </div>
-    </motion.div>
-  );
 };
 
-export default Spinner;
+const Spinner: React.FC<SpinnerProps> = React.memo(
+  ({ className, loadingSpanClassName, ...props }) => {
+    return (
+      <div className={cn("block size-5", className)} {...props}>
+        <div className="relative left-[50%] top-[50%] h-full w-full">
+          {[...Array(SPINNER_COUNT)].map((_, index) => (
+            <SpinnerSpan
+              key={`spinner-${index}`}
+              index={index}
+              className={loadingSpanClassName}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  },
+);
+
+Spinner.displayName = "Spinner";
+
+type AnimatedSpinnerProps = SpinnerProps & {
+  AnimationProps?: AnimationProps;
+};
+
+const AnimatedSpinner: React.FC<AnimatedSpinnerProps> = React.memo(
+  ({ className, loadingSpanClassName, AnimationProps, ...props }) => {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ ease: "easeInOut", duration: 0.2 }}
+        className={cn("block size-5", className)}
+        {...AnimationProps}
+        {...props}
+      >
+        <div className="relative left-[50%] top-[50%] h-full w-full">
+          {[...Array(SPINNER_COUNT)].map((_, index) => (
+            <SpinnerSpan
+              key={`animated-spinner-${index}`}
+              index={index}
+              className={loadingSpanClassName}
+            />
+          ))}
+        </div>
+      </motion.div>
+    );
+  },
+);
+
+AnimatedSpinner.displayName = "AnimatedSpinner";
+
+export { AnimatedSpinner, Spinner };

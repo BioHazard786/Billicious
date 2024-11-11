@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -14,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { categories } from "@/lib/utils";
+import { categories, cn } from "@/lib/utils";
 import useDashboardStore from "@/store/dashboard-store";
 import { format } from "date-fns";
 import { Tags } from "lucide-react";
@@ -84,18 +83,18 @@ export default function RecentTransactions() {
                   <AvatarCircles
                     className="size-8"
                     limit={4}
-                    members={transaction.payees.map((payeeIndex) => ({
-                      name: members[payeeIndex].name,
-                    }))}
+                    members={transaction.payees.map(
+                      (payeeIndex) => members[payeeIndex],
+                    )}
                   />
                 </TableCell>
                 <TableCell className="hidden sm:table-cell">
                   <AvatarCircles
                     className="size-8"
                     limit={4}
-                    members={transaction.drawees.map((draweeIndex) => ({
-                      name: members[draweeIndex].name,
-                    }))}
+                    members={transaction.drawees.map(
+                      (draweeIndex) => members[draweeIndex],
+                    )}
                   />
                 </TableCell>
                 <TableCell className="text-right font-mono text-destructive">
@@ -113,7 +112,12 @@ export default function RecentTransactions() {
 const getCategoryIcon = (category: string, className?: string) => {
   const { icon: Icon, color } = categories[category] || {
     icon: Tags,
-    color: "hsl(var(--primary))",
+    color: "cyan",
   };
-  return <Icon className={className} style={{ color }} />;
+  return (
+    <Icon
+      data-accent-color={color}
+      className={cn("text-[--accent-fg]", className)}
+    />
+  );
 };

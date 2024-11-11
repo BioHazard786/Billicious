@@ -41,14 +41,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { ImageUploader } from "../ui/image-upload";
 import { Input } from "../ui/input";
-import PasskeyAnimation from "../ui/passkey_animation";
-import Spinner from "../ui/spinner";
+import PasskeyLogo from "../ui/passkey-logo";
+import { Spinner } from "../ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
 type ProfileUpdateFormData = z.infer<typeof profileUpdateFormSchema>;
 
 export default function AccountForm() {
-  const user = useUserInfoStore((state) => state);
+  const user = useUserInfoStore((state) => state.user);
 
   if (!user) {
     return <div>No User exists</div>;
@@ -106,13 +106,15 @@ export default function AccountForm() {
 }
 
 const UpdateUserInfo = () => {
-  const user = useUserInfoStore((state) => state);
+  const user = useUserInfoStore((state) => state.user);
+  const setName = useUserInfoStore((state) => state.setName);
+  const setUserName = useUserInfoStore((state) => state.setUserName);
   const form = useForm<ProfileUpdateFormData>({
     resolver: zodResolver(profileUpdateFormSchema),
     defaultValues: {
-      email: user.user?.email,
-      name: user.user?.name,
-      username: user.user?.username,
+      email: user?.email,
+      name: user?.name,
+      username: user?.username,
     },
   });
 
@@ -123,8 +125,8 @@ const UpdateUserInfo = () => {
       return { toastId };
     },
     onSuccess: (data, variables, context) => {
-      user.setName(variables.name);
-      user.setUserName(variables.username);
+      setName(variables.name);
+      setUserName(variables.username);
       return toast.success("Profile updated", {
         id: context.toastId,
       });
@@ -144,7 +146,8 @@ const UpdateUserInfo = () => {
 
   const handleUpdateProfile = (data: ProfileUpdateFormData) => {
     server_handleUpdateProfile({
-      userId: user!.user!.id,
+      email: data.email,
+      userId: user!.id,
       name: data.name,
       username: data.username,
     });
@@ -212,8 +215,8 @@ const UpdateUserInfo = () => {
           type="submit"
           variant="default"
           isDisabled={
-            form.getValues("name") === user.user?.name &&
-            form.getValues("username") === user.user?.username
+            form.getValues("name") === user?.name &&
+            form.getValues("username") === user?.username
           }
         >
           Save Changes
@@ -224,36 +227,34 @@ const UpdateUserInfo = () => {
 };
 
 const UpdateUserAvatar = () => {
-  const user = useUserInfoStore((state) => state);
+  const user = useUserInfoStore((state) => state.user);
+  const setAvatarUrl = useUserInfoStore((state) => state.setAvatarUrl);
   const supabase = useMemo(() => createClient(), []);
   const handleImageUpload = async (image: File) => {
     const { error } = await supabase.storage
       .from("avatars")
-      .upload(`${user.user?.id}/${image.name}`, image, { upsert: true });
+      .upload(`${user?.id}/${image.name}`, image, { upsert: true });
 
     if (error) throw error;
 
     const { data: imageData } = supabase.storage
       .from("avatars")
-      .getPublicUrl(`${user.user?.id}/${image.name}`);
+      .getPublicUrl(`${user?.id}/${image.name}`);
 
     await supabase
-      .from("profiles")
+      .from("users_table")
       .update({ avatar_url: imageData.publicUrl })
-      .eq("id", user.user?.id);
+      .eq("id", user?.id);
 
-    user.setAvatarUrl(imageData.publicUrl);
+    setAvatarUrl(imageData.publicUrl);
   };
 
   return (
     <div className="w-full space-y-2">
-      {user.user?.avatar_url ? (
+      {user?.avatar_url ? (
         <div className="flex w-full flex-col items-center justify-center gap-4">
           <Avatar className="size-36 ring-2 ring-muted-foreground/25 ring-offset-2 ring-offset-background">
-            <AvatarImage
-              src={user.user?.avatar_url}
-              alt={user.user?.name || "Avatar"}
-            />
+            <AvatarImage src={user?.avatar_url} alt={user?.name || "Avatar"} />
             <AvatarFallback>
               <Spinner loadingSpanClassName="bg-primary" className="size-6" />
             </AvatarFallback>
@@ -312,25 +313,27 @@ const RegisterNewPasskey = () => {
   };
 
   return (
-    <div className="flex w-full flex-col items-center justify-center space-y-2">
-      <PasskeyAnimation />
-      <Button
-        onClick={() => handleRegisterPasskey(user!.id)}
-        className="flex items-center justify-center space-x-2"
-        disabled={isPending || user?.has_passkey}
-      >
-        {isPending ? (
-          <Spinner loadingSpanClassName="bg-primary" className="mr-2" />
-        ) : (
-          <GoPasskeyFill className="mr-2 h-5 w-5" />
+    <div className="flex w-full flex-col items-center justify-center space-y-8">
+      <PasskeyLogo />
+      <div className="space-y-2 text-center">
+        <Button
+          onClick={() => handleRegisterPasskey(user!.id)}
+          className="flex items-center justify-center space-x-2"
+          disabled={isPending || user?.has_passkey}
+        >
+          {isPending ? (
+            <Spinner loadingSpanClassName="bg-primary" className="mr-2" />
+          ) : (
+            <GoPasskeyFill className="mr-2 h-5 w-5" />
+          )}
+          Register a new passkey
+        </Button>
+        {user?.has_passkey && (
+          <div className="text-xs text-muted-foreground">
+            You has already registerd a passkey
+          </div>
         )}
-        Register a new passkey
-      </Button>
-      {user?.has_passkey && (
-        <div className="text-xs text-muted-foreground">
-          You has already registerd a passkey
-        </div>
-      )}
+      </div>
     </div>
   );
 };

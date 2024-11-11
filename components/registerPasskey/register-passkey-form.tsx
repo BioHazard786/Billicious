@@ -27,8 +27,8 @@ import {
   CardTitle,
 } from "../ui/card";
 
-import PasskeyAnimation from "../ui/passkey_animation";
-import Spinner from "../ui/spinner";
+import PasskeyLogo from "../ui/passkey-logo";
+import { AnimatedSpinner } from "../ui/spinner";
 
 const RegisterPasskey = () => {
   const user = useUserInfoStore((state) => state.user);
@@ -93,7 +93,7 @@ const RegisterPasskey = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <PasskeyAnimation />
+        <PasskeyLogo className="mb-8 mt-2 flex w-full items-center" />
         <div className="flex flex-col gap-4">
           <Button
             onClick={() => handleRegisterPasskey(user!.id)}
@@ -101,7 +101,7 @@ const RegisterPasskey = () => {
             disabled={isPending}
           >
             {isPending ? (
-              <Spinner className="mr-2" />
+              <AnimatedSpinner className="mr-2" />
             ) : (
               <GoPasskeyFill className="mr-2 h-5 w-5" />
             )}
