@@ -21,15 +21,15 @@ import { signUpFormSchema } from "@/lib/schema";
 import { signInUsingGoogle, signUpUsingEmail } from "@/server/actions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 import { z } from "zod";
+import AnimatedButton from "../ui/animated-button";
 import { PasswordField } from "../ui/password-input";
-import Spinner from "../ui/spinner";
+import { Spinner } from "../ui/spinner";
 
 export default function SignUp() {
   const isApple = useAppleDevice().isAppleDevice;
@@ -180,24 +180,15 @@ export default function SignUp() {
               )}
             />
             <PasswordField />
-            <AnimatePresence presenceAffectsLayout initial={false}>
-              <Button
-                type="submit"
-                variant="default"
-                className="w-full"
-                disabled={isSignUpWithEmailPending || isSignUpWithGooglePending}
-              >
-                {isSignUpWithEmailPending && (
-                  <Spinner className="mr-[0.35rem]" />
-                )}
-                <motion.span
-                  layout
-                  transition={{ ease: "easeInOut", duration: 0.2 }}
-                >
-                  Create an account
-                </motion.span>
-              </Button>
-            </AnimatePresence>
+            <AnimatedButton
+              type="submit"
+              variant="default"
+              className="w-full"
+              isDisabled={isSignUpWithEmailPending || isSignUpWithGooglePending}
+              isLoading={isSignUpWithEmailPending}
+            >
+              Create an account
+            </AnimatedButton>
           </form>
         </Form>
         <div className="relative">
@@ -213,7 +204,7 @@ export default function SignUp() {
         <div className="flex flex-col gap-2">
           <Button
             variant="outline"
-            className="relative flex w-full items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground/80 shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+            className="relative"
             onClick={handleSignUpWithGoogle}
             disabled={isSignUpWithEmailPending || isSignUpWithGooglePending}
           >

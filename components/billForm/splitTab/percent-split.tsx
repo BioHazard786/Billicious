@@ -1,11 +1,11 @@
-import AnimatedCounter from "@/components/ui/animated-counter";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Slider } from "@/components/ui/slider";
 import {
   modifyDraweePercent,
   removeDraweeAmount,
   removeDraweePercent,
-} from "@/lib/split-tab-utils";
+} from "@/components/billForm/splitTab/utils";
+import AnimatedCounter from "@/components/ui/animated-counter";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Slider } from "@/components/ui/slider";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
 import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
@@ -22,6 +22,7 @@ const PercentSplit = () => {
           key={`drawee-percent-${index}`}
           memberName={member.name}
           memberIndex={member.memberIndex}
+          avatarUrl={member.avatarUrl}
         />
       ))}
     </div>
@@ -31,9 +32,11 @@ const PercentSplit = () => {
 const DraweePercent = ({
   memberName,
   memberIndex,
+  avatarUrl,
 }: {
   memberName: string;
   memberIndex: string;
+  avatarUrl?: string;
 }) => {
   const payeesBill = useContributionsTabStore.getState().payeesBill;
   const drawees = useSplitEquallyTabStore.getState().drawees;
@@ -51,6 +54,7 @@ const DraweePercent = ({
     <div className="flex items-center justify-evenly gap-3">
       <div className="flex flex-none items-center gap-2">
         <Avatar>
+          <AvatarImage src={avatarUrl} alt={memberName} />
           <AvatarFallback>{memberName[0]}</AvatarFallback>
         </Avatar>
         <p className="w-14 truncate text-sm">{memberName}</p>

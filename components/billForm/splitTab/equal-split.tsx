@@ -1,12 +1,12 @@
-import AnimatedCounter from "@/components/ui/animated-counter";
-import AnimatedNumber from "@/components/ui/animated-number";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   addDraweeAmount,
   addDraweePercent,
   removeDraweeAmount,
   removeDraweePercent,
-} from "@/lib/split-tab-utils";
+} from "@/components/billForm/splitTab/utils";
+import AnimatedCounter from "@/components/ui/animated-counter";
+import AnimatedNumber from "@/components/ui/animated-number";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
@@ -29,6 +29,7 @@ const EqualSplit = () => {
             key={`drawee-list-${index}`}
             memberName={member.name}
             memberIndex={member.memberIndex}
+            avatarUrl={member.avatarUrl}
           />
         ))}
       </div>
@@ -44,6 +45,7 @@ const EqualSplit = () => {
 
         <span className="flex font-bold text-primary">
           <span className="mr-[0.1rem]">₹</span>
+
           <AnimatedCounter
             value={drawees.length > 0 ? payeesBill / drawees.length : 0}
             precision={2}
@@ -58,9 +60,11 @@ const EqualSplit = () => {
 const ChooseDrawee = ({
   memberName,
   memberIndex,
+  avatarUrl,
 }: {
   memberName: string;
   memberIndex: string;
+  avatarUrl?: string;
 }) => {
   const payeesBill = useContributionsTabStore.getState().payeesBill;
   const draweesSplitByAmount =
@@ -106,6 +110,7 @@ const ChooseDrawee = ({
     >
       <div className="relative">
         <Avatar>
+          <AvatarImage src={avatarUrl} alt={memberName} />
           <AvatarFallback>{memberName[0]}</AvatarFallback>
         </Avatar>
         <AnimatePresence presenceAffectsLayout>

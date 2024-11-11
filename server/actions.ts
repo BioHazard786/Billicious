@@ -15,7 +15,7 @@ export const getUser = async () => {
 
   // fetch user from database
   const dbUser = await supabase
-    .from("profiles")
+    .from("users_table")
     .select(`id, name, avatar_url, email, username, has_passkey`)
     .eq("id", authUser?.id)
     .single();
@@ -136,7 +136,7 @@ export async function passkeyRegistered(userId: string) {
   const supabase = createClient();
 
   const { error } = await supabase
-    .from("profiles")
+    .from("users_table")
     .update({ has_passkey: true }) // Set has_passkey to false or true
     .eq("id", userId);
 

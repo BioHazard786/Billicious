@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { easeOut, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
 function formatForDisplay(number: number, precision: number) {
@@ -29,6 +29,7 @@ function NumberColumn({ digit }: { digit: string }) {
       <motion.div
         initial={false}
         animate={{ y: position }}
+        transition={{ ease: "easeOut", duration: 0.5 }}
         className="absolute bottom-0 h-[1000%]"
       >
         {[9, 8, 7, 6, 5, 4, 3, 2, 1, 0].map((num) => (

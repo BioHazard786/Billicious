@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TMembers } from "./types";
 import { titleCase } from "./utils";
 
 export const signInFormSchema = z.object({
@@ -34,23 +35,36 @@ export const signUpFormSchema = z.object({
     .max(32, { message: "Password must contain at most 32 character(s)" }),
 });
 
-export const addMemberFormSchema = z.object({
-  name: z
-    .string()
-    .min(2, { message: "Name must contain at least 2 character(s)" })
-    .max(32, { message: "Name must contain at most 32 character(s)" })
-    .transform((val) => titleCase(val)),
-});
+export const createAddMemberFormSchema = (members: TMembers[]) =>
+  z.object({
+    name: z
+      .string()
+      .min(2, { message: "Name must contain at least 2 character(s)" })
+      .max(32, { message: "Name must contain at most 32 character(s)" })
+      .transform((name) => titleCase(name))
+      .refine((name) => !members.some((member) => member.name === name), {
+        message: "Member already exists",
+      }),
+  });
 
 export const createGroupFormSchema = z.object({
   group_name: z
     .string()
     .min(2, { message: "Group Name must contain at least 2 character(s)" })
     .max(32, { message: "Group Name must contain at most 32 character(s)" })
-    .transform((val) => titleCase(val)),
-  member_name: z.string().optional(),
+    .transform((name) => titleCase(name)),
+  permanent_member_name: z.string().optional(),
+  temporary_member_name: z.string().optional(),
 });
 
+export const groupNameTabFormSchema = z.object({
+  group_name: z
+    .string()
+    .min(2, { message: "Group Name must contain at least 2 character(s)" })
+    .max(32, { message: "Group Name must contain at most 32 character(s)" })
+    .transform((val) => titleCase(val)),
+  currency: z.string(),
+});
 export const avatarUploadSchema = z.object({
   userId: z.string(),
   image: z.instanceof(File),

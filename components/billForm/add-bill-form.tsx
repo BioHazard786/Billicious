@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import { CustomBreadcrumb } from "@/components/ui/breadcrumb";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,18 +15,12 @@ import {
   DrawerContent,
   DrawerFooter,
   DrawerHeader,
-  DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
 
+import { formatDrawees } from "@/components/billForm/splitTab/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { formatDrawees } from "@/lib/split-tab-utils";
-import {
-  cn,
-  formatMemberData,
-  resetBillFormStores,
-  titleCase,
-} from "@/lib/utils";
+import { resetBillFormStores, titleCase } from "@/lib/utils";
 import { addBillToGroupInDB } from "@/server/fetchHelpers";
 import useAddBillStore from "@/store/add-bill-store";
 import useContributionsTabStore from "@/store/contributions-tab-store";
@@ -143,17 +131,22 @@ function AddBillForm() {
 
   const { isPending, mutate: server_createTransaction } = useMutation({
     mutationFn: addBillToGroupInDB,
-    onSuccess: (data) => {
-      setIsOpen(false);
+    onMutate: (variables) => {
+      const toastId = toast.loading(
+        `Creating ${variables.name} transaction...`,
+      );
+      return { toastId };
+    },
+    onSuccess: (data, variables, context) => {
       addBillToGroup({
-        updatedMembers: formatMemberData(data.members),
-        totalAmount: parseFloat(data.total_group_expense),
+        updatedMemberData: data.members,
+        totalAmount: parseFloat(data.totalGroupExpense),
       });
       addTransaction({
-        name: billName,
-        category: category,
-        createdAt: createdAt as Date,
-        notes: notes,
+        name: variables.name,
+        category: variables.category,
+        createdAt: createdAt,
+        notes: variables.notes,
         id: data.bill_id,
         amount: payeesBill,
         isPayment: false,
@@ -165,12 +158,18 @@ function AddBillForm() {
         ),
       });
       resetBillFormStores();
-      return toast.success("Transaction added successfully");
+      return toast.success(`${variables.name} transaction added successfully`, {
+        id: context.toastId,
+      });
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
       console.log(error);
+      return toast.error(error.message, {
+        id: context?.toastId,
+      });
+    },
+    onSettled: () => {
       setIsOpen(false);
-      return toast.error(error.message);
     },
   });
 
@@ -183,11 +182,27 @@ function AddBillForm() {
       return setBillName("");
     }
 
+    // console.log({
+    //   groupId: slug as string,
+    //   name: titleCase(billName),
+    //   category: category,
+    //   createdAt: createdAt.getTime(),
+    //   notes: notes,
+    //   payees: payees,
+    //   drawees: formatDrawees(
+    //     draweesSplitEqually,
+    //     draweesSplitByAmount,
+    //     draweesSplitByPercent,
+    //     payeesBill,
+    //     currentSelectedTab,
+    //   ),
+    // });
+
     server_createTransaction({
-      group_id: slug as string,
+      groupId: slug as string,
       name: titleCase(billName),
       category: category,
-      created_at: createdAt.getTime(),
+      createdAt: createdAt.getTime(),
       notes: notes,
       payees: payees,
       drawees: formatDrawees(
@@ -216,6 +231,7 @@ function AddBillForm() {
         <DialogContent className="z-[101] placeholder:sm:max-w-[425px]">
           <div className="relative mx-auto h-full w-full overflow-hidden">
             <AnimatePresence
+              initial={false}
               custom={direction}
               mode="popLayout"
               onExitComplete={() => setIsAnimating(false)}
@@ -236,7 +252,11 @@ function AddBillForm() {
             </AnimatePresence>
           </div>
           <DialogFooter className="flex-row items-center sm:justify-between">
-            <CustomBreadcrumb handleTabClick={handleTabClick} />
+            <CustomBreadcrumb
+              handleTabClick={handleTabClick}
+              tabs={tabs}
+              activeTab={activeTab}
+            />
             <AnimatedButton
               type="submit"
               variant="default"
@@ -271,9 +291,11 @@ function AddBillForm() {
       </DrawerTrigger>
       <DrawerContent className="z-[101] placeholder:sm:max-w-[425px]">
         <DrawerHeader className="justify-center pb-0">
-          <DrawerTitle>
-            <CustomBreadcrumb handleTabClick={handleTabClick} />
-          </DrawerTitle>
+          <CustomBreadcrumb
+            handleTabClick={handleTabClick}
+            tabs={tabs}
+            activeTab={activeTab}
+          />
         </DrawerHeader>
         <div className="relative mx-auto h-full w-full overflow-hidden">
           <AnimatePresence
@@ -319,57 +341,5 @@ function AddBillForm() {
     </Drawer>
   );
 }
-
-export const CustomBreadcrumb = ({
-  handleTabClick,
-}: {
-  handleTabClick: (newTabId: number) => void;
-}) => {
-  return (
-    <Breadcrumb>
-      <BreadcrumbList>
-        {tabs.map((tab) => (
-          <CustomBreadcrumbItem
-            key={`tab-${tab.id}`}
-            handleTabClick={handleTabClick}
-            tabIndex={tab.id}
-            tabName={tab.label}
-          />
-        ))}
-      </BreadcrumbList>
-    </Breadcrumb>
-  );
-};
-
-const CustomBreadcrumbItem = ({
-  tabIndex,
-  tabName,
-  handleTabClick,
-}: {
-  tabIndex: number;
-  tabName: string;
-  handleTabClick: (newTabId: number) => void;
-}) => {
-  const { activeTab } = useAddBillStore((state) => state);
-
-  return (
-    <>
-      <BreadcrumbItem>
-        <BreadcrumbLink asChild>
-          <div
-            className={cn(
-              "cursor-pointer",
-              activeTab == tabIndex ? "text-foreground" : "",
-            )}
-            onClick={() => handleTabClick(tabIndex)}
-          >
-            {tabName}
-          </div>
-        </BreadcrumbLink>
-      </BreadcrumbItem>
-      {tabIndex + 1 < tabs.length ? <BreadcrumbSeparator /> : null}
-    </>
-  );
-};
 
 export default AddBillForm;

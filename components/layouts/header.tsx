@@ -1,50 +1,28 @@
 "use client";
 
-import { LogOut, Settings } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useCallback, useMemo } from "react";
-import { FaGithub } from "react-icons/fa6";
-import { toast } from "sonner";
-
-import { cn } from "@/lib/utils";
-import { signOut } from "@/server/actions";
-import useUserInfoStore from "@/store/user-info-store";
-
 import Logo from "@/components/ui/logo";
 import Mascot from "@/components/ui/mascot";
 import ThemeToggleButton from "@/components/ui/theme-toggle-button";
-import { User } from "@/lib/types";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { cn } from "@/lib/utils";
+import useUserInfoStore from "@/store/user-info-store";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useMemo } from "react";
+import Notifications from "../notifications/notifications";
 import { Button } from "../ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+import UserMenu from "../user/user-menu";
 
 const ELIGIBLE_PATHS = [
   "/",
   "/auth/signin",
   "/auth/signup",
   "/settings/account",
+  "/notifications",
 ];
 
 const Header = () => {
   const pathName = usePathname();
   const user = useUserInfoStore((state) => state.user);
-
-  const handleSignOut = useCallback(() => {
-    toast.promise(signOut(), {
-      loading: "Signing Out...",
-      success: "Sign Out Successfully",
-      error: "Failed to Sign Out",
-    });
-  }, []);
 
   const showMascot = useMemo(
     () => ELIGIBLE_PATHS.includes(pathName) || user === null,
@@ -66,69 +44,25 @@ const Header = () => {
       <Link href="/">
         <Logo className={logoClassName} />
       </Link>
-      <div className="ml-auto flex place-items-center justify-center">
-        <Link
-          target="_blank"
-          rel="noreferrer"
-          href="https://github.com/BioHazard786"
-        >
-          <Button variant="ghost" size="icon">
-            <FaGithub className="size-5" />
-          </Button>
-        </Link>
+      <div className="ml-auto flex place-items-center justify-center gap-2">
+        {user && <Notifications />}
         <ThemeToggleButton />
         {user ? (
-          <UserMenu user={user} onSignOut={handleSignOut} />
+          <UserMenu />
         ) : (
           <Link
-            href={{
-              pathname: "/auth/signin",
-              query: { next: pathName },
-            }}
+            href={
+              pathName === "/auth/signin" || pathName === "/auth/signup"
+                ? { pathname: "/auth/signin" }
+                : { pathname: "/auth/signin", query: { next: pathName } }
+            }
           >
-            <Button variant="default" className="ml-2">
-              Sign In
-            </Button>
+            <Button variant="default">Sign In</Button>
           </Link>
         )}
       </div>
     </header>
   );
 };
-
-const UserMenu = ({
-  user,
-  onSignOut,
-}: {
-  user: User;
-  onSignOut: () => void;
-}) => (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <Avatar className="ml-2 size-8 cursor-pointer">
-        <AvatarImage src={user!.avatar_url} alt={user!.name} />
-        <AvatarFallback>{user!.name[0]}</AvatarFallback>
-      </Avatar>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" className="z-[100]">
-      <DropdownMenuLabel>My Account</DropdownMenuLabel>
-      <DropdownMenuSeparator />
-      <Link href="/settings/account">
-        <DropdownMenuItem className="cursor-pointer">
-          Settings
-          <DropdownMenuShortcut>
-            <Settings className="size-4" />
-          </DropdownMenuShortcut>
-        </DropdownMenuItem>
-      </Link>
-      <DropdownMenuItem onClick={onSignOut} className="cursor-pointer">
-        Sign Out
-        <DropdownMenuShortcut>
-          <LogOut className="size-4" />
-        </DropdownMenuShortcut>
-      </DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
-);
 
 export default Header;

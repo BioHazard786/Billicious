@@ -6,7 +6,7 @@ import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";
 
 type Action = {
-  addBill: (bill: TBill) => void;
+  addBill: (bill: { totalAmount: number; updatedMemberData: any }) => void;
   addMember: (member: TMembers[]) => void;
   addTransaction: (transaction: TransactionT) => void;
 };
@@ -22,11 +22,17 @@ export const createDashboardStore = (initialGroupData: TGroupData) => {
           state.members.push(...member);
         }),
       ),
-    addBill: (bill: TBill) =>
+    addBill: (bill) =>
       set(
         produce((state: TGroupData) => {
           state.totalBill = bill.totalAmount;
-          state.members = bill.updatedMembers;
+          bill.updatedMemberData.forEach((data: any) => {
+            const member = state.members[data.userIndex];
+            if (member) {
+              member.balance = Number(data.totalPaid) - Number(data.totalSpent);
+              member.totalPaid = Number(data.totalPaid);
+            }
+          });
         }),
       ),
     addTransaction: (transaction: TransactionT) =>

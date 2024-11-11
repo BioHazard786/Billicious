@@ -1,8 +1,11 @@
-import CreateGroupForm from "@/components/createGroup/create-group-form";
-import Loading from "./loading";
+import HomePage from "@/components/createGroup/home-page";
+import { db } from "@/database/dbConnect";
+import { formatUserGroupsData } from "@/lib/utils";
+import { getUser } from "@/server/actions";
+import { getUserGroupsFromDB } from "./api/(users)/utils";
 // import { redpanda } from "@/database/kafka";
 
-const Page = () => {
+const Page = async () => {
   // const consumer = redpanda.consumer({ groupId: 'my-group-id' });
   // console.log("Consumer");
   // console.log(consumer);
@@ -33,11 +36,13 @@ const Page = () => {
   //   }
   // });
 
-  return (
-    <div className="flex h-dvh w-full items-center justify-center">
-      <CreateGroupForm />
-    </div>
-  );
+  const user = await getUser();
+
+  const usersGroup = await db.transaction(async (transaction) => {
+    return getUserGroupsFromDB(transaction, user?.id);
+  });
+
+  return <HomePage userGroups={formatUserGroupsData(usersGroup)} />;
 };
 
 export default Page;

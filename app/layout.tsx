@@ -1,16 +1,21 @@
 import Header from "@/components/layouts/header";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { db } from "@/database/dbConnect";
+import { Notifications } from "@/lib/types";
 import { checkDevice } from "@/lib/utils";
 import { AppleDeviceProvider } from "@/providers/apple-device-provider";
+import { NotificationStoreProvider } from "@/providers/notification-store-provider";
 import QueryProvider from "@/providers/query-provider";
 import ThemeProvider from "@/providers/theme-provider";
-import { UserInfoStoreProvider } from "@/providers/user-info-provider";
+import { UserInfoStoreProvider } from "@/providers/user-info-store-provider";
 import { getUser } from "@/server/actions";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
+import { nanoid } from "nanoid";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { getUserInvitesFromDB } from "./api/(invites)/utils";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -65,11 +70,21 @@ export default async function RootLayout({
   const userAgent = headersList.get("user-agent") || "";
   const isAppleDevice = checkDevice(userAgent);
   const user = await getUser();
+  let notifications: Notifications = [];
+
+  if (user) {
+    notifications = await db.transaction(async (transaction) => {
+      return await getUserInvitesFromDB(transaction, user?.id);
+    });
+    notifications.forEach((notification) => {
+      notification.notificationId = nanoid();
+    });
+  }
 
   return (
     <html lang="en">
       <body
-        className={`${GeistSans.className} ${GeistMono.variable} scroll-smooth`}
+        className={`${GeistSans.className} ${GeistMono.variable} !pointer-events-auto scroll-smooth`}
       >
         <QueryProvider>
           <ThemeProvider
@@ -80,11 +95,13 @@ export default async function RootLayout({
           >
             <TooltipProvider>
               <UserInfoStoreProvider user={user}>
-                <AppleDeviceProvider isAppleDevice={isAppleDevice}>
-                  <Header />
-                  <Toaster richColors position="top-center" />
-                  <main>{children}</main>
-                </AppleDeviceProvider>
+                <NotificationStoreProvider notifications={notifications}>
+                  <AppleDeviceProvider isAppleDevice={isAppleDevice}>
+                    <Header />
+                    <Toaster richColors position="top-center" />
+                    <main>{children}</main>
+                  </AppleDeviceProvider>
+                </NotificationStoreProvider>
               </UserInfoStoreProvider>
             </TooltipProvider>
           </ThemeProvider>

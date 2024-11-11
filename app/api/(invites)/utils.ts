@@ -1,4 +1,4 @@
-import { membersTable, inviteTable } from "@/database/schema";
+import { inviteTable, membersTable } from "@/database/schema";
 import { and, eq, ExtractTablesWithRelations, inArray, or } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
@@ -314,8 +314,7 @@ export async function getGroupInvitesFromDB(
   >,
   groupId: string,
 ) {
-  let invites: any = [];
-  invites = await transaction
+  const invites = await transaction
     .select()
     .from(inviteTable)
     .where(eq(inviteTable.groupId, groupId));

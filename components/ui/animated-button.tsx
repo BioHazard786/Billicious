@@ -9,7 +9,7 @@ import {
   type MotionProps,
 } from "framer-motion";
 import React, { memo } from "react";
-import Spinner from "./spinner";
+import { AnimatedSpinner } from "./spinner";
 
 type AnimatedButtonProps = ButtonProps &
   MotionProps & {
@@ -41,7 +41,7 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = memo(
         disabled={isDisabled}
       >
         {isLoading && (
-          <Spinner
+          <AnimatedSpinner
             className={cn("mr-2", spinnerClassName)}
             loadingSpanClassName={loadingSpanClassName}
             AnimationProps={animationProps}

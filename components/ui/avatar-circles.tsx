@@ -1,5 +1,6 @@
 "use client";
 
+import { TMembers } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
@@ -7,19 +8,14 @@ import React, { useMemo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 
-type Member = {
-  name: string;
-  avatar_url?: string;
-};
-
 type AvatarCirclesProps = {
   className?: string;
   limit?: number;
-  members: Member[];
+  members: TMembers[];
 };
 
 const AvatarCircle: React.FC<{
-  member: Member;
+  member: TMembers;
   index: number;
   className?: string;
 }> = React.memo(({ member, index, className }) => (
@@ -37,7 +33,7 @@ const AvatarCircle: React.FC<{
     <Tooltip>
       <TooltipTrigger asChild>
         <Avatar className={className}>
-          <AvatarImage src={member.avatar_url} alt={member.name} />
+          <AvatarImage src={member.avatarUrl} alt={member.name} />
           <AvatarFallback>{member.name[0]}</AvatarFallback>
         </Avatar>
       </TooltipTrigger>
