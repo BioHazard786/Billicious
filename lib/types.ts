@@ -4,6 +4,8 @@ export type TGroupData = {
   totalBill: number;
   members: TMembers[];
   transactions: TransactionT[];
+  currencyCode: string;
+  backgroundUrl: string;
 };
 
 export type TMembers = {

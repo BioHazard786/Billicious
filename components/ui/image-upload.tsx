@@ -14,7 +14,10 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -350,28 +353,45 @@ export function ImageUploader(props: FileUploaderProps) {
           )}
         </Dropzone>
         <DialogContent
-          className="gap-0 p-0 [&>button]:hidden"
+          onClose={() => setFiles([])}
+          onEscapeKeyDown={(e) => {
+            setFiles([]);
+          }}
           onInteractOutside={(e) => {
             setFiles([]);
           }}
         >
-          <div className="size-full p-6">
+          <DialogHeader>
+            <DialogTitle>Crop photo</DialogTitle>
+            <DialogDescription>
+              Adjust the size of the grid to crop your image.
+            </DialogDescription>
+          </DialogHeader>
+          <div
+            className="flex max-h-full max-w-full items-center justify-center overflow-hidden rounded-lg p-4"
+            style={{
+              backgroundImage:
+                "linear-gradient(45deg, rgb(176, 176, 176) 25%, transparent 25%), linear-gradient(-45deg, rgb(176, 176, 176) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, rgb(176, 176, 176) 75%), linear-gradient(-45deg, transparent 75%, rgb(176, 176, 176) 75%)",
+              backgroundSize: "20px 20px",
+              backgroundPosition: "0 0, 0 10px, 10px -10px, -10px 0",
+            }}
+          >
             <ReactCrop
+              circularCrop
               crop={crop}
               onChange={(_, percentCrop) => setCrop(percentCrop)}
               onComplete={(c) => onCropComplete(c)}
               aspect={aspect}
-              className="w-full"
             >
               <Avatar className="size-full rounded-none">
                 <AvatarImage
                   ref={imgRef}
-                  className="aspect-auto size-full rounded-none object-cover"
+                  className="aspect-auto !max-h-[277px] max-w-full rounded-none object-cover"
                   alt="Image Cropper Shell"
                   src={files?.[0]?.preview}
                   onLoad={onImageLoad}
                 />
-                <AvatarFallback className="size-full min-h-[460px] rounded-none">
+                <AvatarFallback className="size-full min-h-[460px] min-w-[277px] rounded-none">
                   <Spinner
                     loadingSpanClassName="bg-primary"
                     className="size-6"
@@ -380,7 +400,7 @@ export function ImageUploader(props: FileUploaderProps) {
               </Avatar>
             </ReactCrop>
           </div>
-          <DialogFooter className="flex flex-col-reverse gap-3 p-6 pt-0 md:flex-row md:justify-center">
+          <DialogFooter className="gap-2 sm:gap-0">
             <DialogClose asChild>
               <Button
                 type="reset"
@@ -390,13 +410,11 @@ export function ImageUploader(props: FileUploaderProps) {
                   setFiles([]);
                 }}
               >
-                <Trash2Icon className="mr-1.5 size-4" />
                 Cancel
               </Button>
             </DialogClose>
             <Button type="submit" className="md:w-fit" onClick={onCrop}>
-              <CropIcon className="mr-1.5 size-4" />
-              Crop
+              Apply
             </Button>
           </DialogFooter>
         </DialogContent>

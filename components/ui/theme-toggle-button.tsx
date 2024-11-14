@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,13 +15,13 @@ export default function ThemeToggleButton() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <div className="relative inline-flex size-9 cursor-pointer items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
           <IoSunny className="size-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <IoMoon className="absolute size-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           <span className="sr-only">Toggle theme</span>
-        </Button>
+        </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="z-[77] text-muted-foreground">
+      <DropdownMenuContent align="end" className="z-[99] text-muted-foreground">
         <DropdownMenuItem
           onClick={() => setTheme("light")}
           className="flex items-center gap-2"
