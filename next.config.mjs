@@ -12,6 +12,11 @@ const nextConfig = {
         hostname: "yinfexdxmyxznylhzohx.supabase.co",
         pathname: "**",
       },
+      {
+        protocol: "https",
+        hostname: "encrypted-tbn0.gstatic.com",
+        pathname: "**",
+      },
     ],
   },
 };

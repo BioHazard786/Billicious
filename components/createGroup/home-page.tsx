@@ -1,11 +1,19 @@
 "use client";
 
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { userGroup } from "@/lib/types";
 import { cn, timeAgo } from "@/lib/utils";
 import useUserStore from "@/store/user-info-store";
 import { Plus, SquareArrowOutUpRight } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import React, { useMemo } from "react";
+import { LabelList, RadialBar, RadialBarChart } from "recharts";
 import { AspectRatio } from "../ui/aspect-ratio";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
@@ -16,71 +24,157 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
-import Logo from "../ui/logo";
-import Mascot from "../ui/mascot";
+import GridPattern from "../ui/grid-patterm";
 import NoContent from "../ui/no-content";
 import CreateGroupForm from "./create-group-form";
 
 const GroupCard = React.memo(
-  ({ group, userAvatarUrl }: { group: userGroup; userAvatarUrl?: string }) => (
-    <div>
-      <AspectRatio
-        ratio={20 / 9}
-        className="relative overflow-hidden rounded-none rounded-t-xl border border-b-0 bg-muted"
-      >
-        <Logo className="absolute right-0 top-20 h-24 -rotate-45 text-muted-foreground opacity-50" />
-        <Mascot className="absolute size-32 text-muted-foreground opacity-50" />
-        <div className="absolute bottom-0 -rotate-45 text-6xl font-bold text-muted-foreground opacity-50">
-          #{group.groupName}
-        </div>
-      </AspectRatio>
-      <Card className="w-full rounded-none border-t-0">
-        <CardHeader>
-          <CardTitle className="flex flex-row items-center justify-between gap-16">
-            {group.groupName}
-            <span className="text-sm font-normal text-muted-foreground">
-              {timeAgo(group.updatedAt)}
-            </span>
-          </CardTitle>
-          <CardDescription className="flex flex-row items-center justify-between gap-1">
-            <span className="flex flex-row gap-1">
-              <Avatar className="size-5">
-                <AvatarImage src={userAvatarUrl} alt={group.groupName} />
-                <AvatarFallback>{group.groupName[0]}</AvatarFallback>
-              </Avatar>
-              {group.userNameInGroup}
-            </span>
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="text-sm">
-          <div className="flex items-center justify-between">
-            Total Expense:{" "}
-            <span className="font-mono">₹{group.totalExpense.toFixed(2)}</span>
+  ({ group, userAvatarUrl }: { group: userGroup; userAvatarUrl?: string }) => {
+    const chartData = [
+      {
+        moneyType: "expenses",
+        value: group.totalExpense,
+        fill: "var(--color-expenses)",
+      },
+      { moneyType: "paid", value: group.totalPaid, fill: "var(--color-paid)" },
+      {
+        moneyType: "balance",
+        value: group.balance,
+        fill: "var(--color-balance)",
+      },
+    ];
+
+    const chartConfig = {
+      value: {
+        label: "Value",
+      },
+      expenses: {
+        label: "Total Expenses",
+        color: "hsl(var(--chart-1))",
+      },
+      paid: {
+        label: "Total Paid",
+        color: "hsl(var(--chart-2))",
+      },
+      balance: {
+        label: "Balance",
+        color: "hsl(var(--chart-3))",
+      },
+    } satisfies ChartConfig;
+
+    return (
+      <div>
+        <AspectRatio
+          ratio={20 / 9}
+          className="flex items-center justify-center overflow-hidden rounded-none rounded-t-xl border border-b-0 bg-muted"
+        >
+          <div className="z-10 text-5xl font-bold text-secondary-foreground">
+            #{group.groupName}
           </div>
-          <div className="flex items-center justify-between">
-            Total Paid:{" "}
-            <span className="font-mono">₹{group.totalPaid.toFixed(2)}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            Balance:{" "}
-            <span
-              className={cn(
-                "font-mono",
-                group.balance >= 0 ? "text-primary" : "text-destructive",
-              )}
+          <GridPattern
+            squares={[
+              [4, 4],
+              [5, 1],
+              [8, 2],
+              [5, 3],
+              [5, 5],
+              [10, 10],
+              [12, 15],
+              [15, 10],
+              [10, 15],
+              [15, 10],
+              [10, 15],
+              [15, 10],
+            ]}
+            className={cn(
+              "[mask-image:radial-gradient(400px_circle_at_center,white,transparent)]",
+              "inset-x-0 inset-y-[-30%] h-[200%] skew-y-12",
+            )}
+          />
+          {/* <Image
+            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAE9ExQiOPbNqS6c2T1XZ0Gf25DKbEitpS2A&s"
+            alt="Photo by Drew Beamer"
+            fill
+            className="h-full w-full object-cover"
+          /> */}
+        </AspectRatio>
+        <Card className="w-full rounded-none border-t-0">
+          <CardHeader className="pb-0">
+            <CardTitle className="flex flex-row items-center justify-between gap-16">
+              {group.groupName}
+              <span className="text-sm font-normal text-muted-foreground">
+                {timeAgo(group.updatedAt)}
+              </span>
+            </CardTitle>
+            <CardDescription className="flex flex-row items-center justify-between gap-1">
+              <span className="flex flex-row gap-1">
+                <Avatar className="size-5">
+                  <AvatarImage src={userAvatarUrl} alt={group.groupName} />
+                  <AvatarFallback>{group.groupName[0]}</AvatarFallback>
+                </Avatar>
+                {group.userNameInGroup}
+              </span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="py-0 text-sm">
+            <ChartContainer
+              config={chartConfig}
+              className="mx-auto aspect-square max-h-[250px]"
             >
-              <span>₹{group.balance.toFixed(2)}</span>
-            </span>
-          </div>
-        </CardContent>
-      </Card>
-      <Link href={`/group/${group.groupId}`}>
-        <Button className="w-full rounded-none rounded-b-xl border border-t-0">
-          View Group <SquareArrowOutUpRight className="ml-2 size-4" />
-        </Button>
-      </Link>
-    </div>
-  ),
+              <RadialBarChart
+                data={chartData}
+                startAngle={-90}
+                endAngle={380}
+                innerRadius={30}
+                outerRadius={110}
+              >
+                <ChartTooltip
+                  cursor={false}
+                  content={
+                    <ChartTooltipContent hideLabel nameKey="moneyType" />
+                  }
+                />
+                <RadialBar dataKey="value" cornerRadius={10} background>
+                  <LabelList
+                    position="insideStart"
+                    dataKey="moneyType"
+                    className="fill-white capitalize mix-blend-luminosity"
+                    fontSize={11}
+                  />
+                </RadialBar>
+              </RadialBarChart>
+            </ChartContainer>
+            {/* <div className="flex items-center justify-between">
+              Total Expense:{" "}
+              <span className="font-mono">
+                ₹{group.totalExpense.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              Total Paid:{" "}
+              <span className="font-mono">₹{group.totalPaid.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              Balance:{" "}
+              <span
+                className={cn(
+                  "font-mono",
+                  group.balance >= 0 ? "text-primary" : "text-destructive",
+                )}
+              >
+                <span>₹{group.balance.toFixed(2)}</span>
+              </span>
+            </div> */}
+          </CardContent>
+        </Card>
+        <Link href={`/group/${group.groupId}`}>
+          <Button className="w-full rounded-none rounded-b-xl border border-t-0">
+            View Group <SquareArrowOutUpRight className="ml-2 size-4" />
+          </Button>
+        </Link>
+      </div>
+    );
+  },
 );
 
 const HomePage = ({ userGroups }: { userGroups: userGroup[] }) => {
@@ -123,7 +217,8 @@ const HomePage = ({ userGroups }: { userGroups: userGroup[] }) => {
           <div className="blob relative">
             <span></span>
             <span></span>
-            <span className="absolute inset-0 -z-[30] rounded-lg bg-primary opacity-50 blur-lg"></span>
+            <span></span>
+            <span className="absolute inset-0 -z-[40] rounded-lg bg-primary opacity-40 blur-xl"></span>
             <Button size="icon" className="size-16 rounded-full md:size-20">
               <Plus className="size-6 md:size-7" />
             </Button>
