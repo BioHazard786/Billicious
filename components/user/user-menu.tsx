@@ -33,7 +33,7 @@ const UserMenu = () => {
           <AvatarFallback>{user!.name[0]}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="z-[100]">
+      <DropdownMenuContent align="end" className="z-[99]">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <Link href="/settings/account">

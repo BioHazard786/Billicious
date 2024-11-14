@@ -36,20 +36,27 @@ AvatarImage.displayName = AvatarPrimitive.Image.displayName;
 const AvatarFallback = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Fallback>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Fallback
-    ref={ref}
-    data-accent-color={
-      colorMapping[`${(props.children as string).toLowerCase()}`] || "olive"
+>(({ className, ...props }, ref) => {
+  const dataAccentColor = React.useMemo(() => {
+    if (typeof props.children === "string") {
+      return colorMapping[props.children.toLowerCase()] || "olive";
     }
-    className={cn(
-      "flex h-full w-full items-center justify-center rounded-full font-medium",
-      "bg-[--accent-bg] text-[--accent-fg]",
-      className,
-    )}
-    {...props}
-  />
-));
+    return "olive";
+  }, [props.children]);
+
+  return (
+    <AvatarPrimitive.Fallback
+      ref={ref}
+      data-accent-color={dataAccentColor}
+      className={cn(
+        "flex h-full w-full items-center justify-center rounded-full font-medium",
+        "bg-[--accent-bg] text-[--accent-fg]",
+        className,
+      )}
+      {...props}
+    />
+  );
+});
 
 AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
 
