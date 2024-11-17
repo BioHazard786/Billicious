@@ -129,7 +129,7 @@ const CreateGroupForm = ({ children }: { children: React.ReactNode }) => {
       members: temporaryMembers,
       usernames: permanentMembers.map((member) => member.username),
       ownerId: admin!.id,
-      currecyCode: currencyCode,
+      currencyCode: currencyCode,
     });
   };
 

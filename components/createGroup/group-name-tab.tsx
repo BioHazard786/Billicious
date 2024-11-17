@@ -68,7 +68,7 @@ const GroupNameTab: React.FC = () => {
         </div>
         <div className="space-y-2">
           <Label>Currency</Label>
-          <Popover open={open} onOpenChange={setOpen}>
+          <Popover open={open} onOpenChange={setOpen} modal>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -105,7 +105,7 @@ const GroupNameTab: React.FC = () => {
                 />
                 <CommandList>
                   <CommandEmpty>No currency found.</CommandEmpty>
-                  <CommandGroup>
+                  <CommandGroup className="overflow-y-auto">
                     {currencyList.map(
                       ([
                         currencyCode,

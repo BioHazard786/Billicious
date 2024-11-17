@@ -3,7 +3,7 @@ type GroupData = {
   members: string[];
   usernames: string[];
   ownerId: string;
-  currecyCode: string;
+  currencyCode: string;
   backgroundUrl?: string;
 };
 
@@ -35,6 +35,14 @@ type ProfileData = {
 type InviteData = {
   groupId: string | null;
   userId: string | null;
+};
+
+type SendInviteData = {
+  name?: string;
+  groupId: string;
+  senderUserId: string;
+  receiverUsername: string;
+  userIndex: number;
 };
 
 const postFetchHelper = async (endPoint: string, body: string) => {
@@ -73,6 +81,10 @@ export const updateProfile = async (profileData: ProfileData) => {
 
 export const searchUsername = async (username: string) => {
   return postFetchHelper("/api/search_username", JSON.stringify({ username }));
+};
+
+export const sendInvite = async (sendInviteData: SendInviteData) => {
+  return postFetchHelper("/api/send_invite", JSON.stringify(sendInviteData));
 };
 
 export const acceptInvite = async (acceptInviteData: InviteData) => {

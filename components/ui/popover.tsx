@@ -39,6 +39,39 @@ const PopoverContent = React.forwardRef<
           );
         }
       }}
+      onTouchMove={(e) => {
+        e.stopPropagation();
+        const touch = e.touches[0];
+        const currentTouch = touch.clientY;
+
+        // Store the last touch position in a data attribute
+        const lastTouch = parseFloat(
+          e.currentTarget.getAttribute("data-last-touch") ||
+            String(currentTouch),
+        );
+
+        // Update the last touch position
+        e.currentTarget.setAttribute("data-last-touch", String(currentTouch));
+
+        // Determine scroll direction
+        const isScrollingDown = currentTouch > lastTouch;
+
+        // Simulate keyboard events based on touch movement
+        if (isScrollingDown) {
+          e.currentTarget.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "ArrowDown" }),
+          );
+        } else {
+          e.currentTarget.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "ArrowUp" }),
+          );
+        }
+      }}
+      onTouchStart={(e) => {
+        // Store initial touch position
+        const touch = e.touches[0];
+        e.currentTarget.setAttribute("data-last-touch", String(touch.clientY));
+      }}
       {...props}
     />
   </PopoverPrimitive.Portal>

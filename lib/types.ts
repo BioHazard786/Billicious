@@ -73,6 +73,7 @@ export type Notifications = {
 }[];
 
 export type PermanentUser = {
+  id: string;
   name: string;
   username: string;
   avatar_url?: string;
