@@ -6,15 +6,21 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import ProgressBar from "@/components/ui/progress-bar";
+import { CURRENCIES } from "@/constants/items";
 import useDashboardStore from "@/store/dashboard-store";
 import { AnimatePresence } from "framer-motion";
+import { useMemo } from "react";
 import { ScrollArea } from "../ui/scroll-area";
 
 const ExpenseChart = () => {
-  const [members, totalBill] = useDashboardStore((group) => [
-    group.members,
-    group.totalBill,
-  ]);
+  const members = useDashboardStore((group) => group.members);
+  const totalBill = useDashboardStore((group) => group.totalBill);
+  const currencyCode = useDashboardStore((group) => group.currencyCode);
+
+  const currencySymbol = useMemo(
+    () => CURRENCIES[currencyCode || "INR"].currencySymbol,
+    [currencyCode],
+  );
 
   return (
     <Card className="h-min md:col-span-2 lg:col-span-1 lg:row-span-2 lg:h-full">
@@ -33,6 +39,7 @@ const ExpenseChart = () => {
                 totalPaid={member.totalPaid}
                 totalBill={totalBill}
                 key={`progress-bar-${index}`}
+                currencySymbol={currencySymbol}
               />
             ))}
           </AnimatePresence>

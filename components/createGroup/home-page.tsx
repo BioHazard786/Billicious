@@ -8,6 +8,7 @@ import { Plus, SquareArrowOutUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useMemo } from "react";
+import { AnimatedGridPattern } from "../ui/animated-grid-pattern";
 import { AspectRatio } from "../ui/aspect-ratio";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
@@ -18,7 +19,6 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
-import GridPattern from "../ui/grid-patterm";
 import NoContent from "../ui/no-content";
 import CreateGroupForm from "./create-group-form";
 
@@ -47,21 +47,11 @@ const GroupCard = React.memo(
               <span className="z-10 max-w-full truncate text-2xl font-bold text-secondary-foreground md:text-3xl lg:text-4xl">
                 #{group.groupName}
               </span>
-              <GridPattern
-                squares={[
-                  [4, 4],
-                  [5, 1],
-                  [8, 2],
-                  [5, 3],
-                  [5, 5],
-                  [10, 10],
-                  [12, 15],
-                  [15, 10],
-                  [10, 15],
-                  [15, 10],
-                  [10, 15],
-                  [15, 10],
-                ]}
+              <AnimatedGridPattern
+                numSquares={Math.floor(Math.random() * (100 - 20 + 1)) + 20}
+                maxOpacity={0.07}
+                duration={3}
+                repeatDelay={1}
                 className={cn(
                   "[mask-image:radial-gradient(200px_circle_at_center,white,transparent)]",
                   "md:[mask-image:radial-gradient(300px_circle_at_center,white,transparent)]",

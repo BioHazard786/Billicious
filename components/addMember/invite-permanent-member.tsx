@@ -1,13 +1,16 @@
 import { useAppleDevice } from "@/hooks/use-apple-device";
 import useDebounce from "@/hooks/use-debounce";
-import { PermanentUser } from "@/lib/types";
+import { PermanentUser, TMembers } from "@/lib/types";
 import { formatMemberData } from "@/lib/utils";
-import { addMembersToGroupInDB, searchUsername } from "@/server/fetchHelpers";
+import {
+  addMembersToGroupInDB,
+  searchUsername,
+  sendInvite,
+} from "@/server/fetchHelpers";
 import useMemberTabStore from "@/store/add-member-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
 import useUserInfoStore from "@/store/user-info-store";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { set } from "date-fns";
 import { ChevronsUpDown } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useCallback, useState } from "react";
@@ -33,8 +36,10 @@ type SearchData = {
 
 const InvitePermanentMember = ({
   setIsOpen,
+  existingMember,
 }: {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
+  existingMember?: TMembers | null;
 }) => {
   const { slug } = useParams();
 
@@ -46,7 +51,8 @@ const InvitePermanentMember = ({
   const debouncedSearch = useDebounce(search, 500);
 
   const members = useDashboardStore((state) => state.members);
-  const updateMembers = useDashboardStore((state) => state.addMember);
+  const addMember = useDashboardStore((state) => state.addMember);
+  const updateMember = useDashboardStore((state) => state.updateMember);
   const admin = useUserInfoStore((state) => state.user);
   const resetSelectedTab = useMemberTabStore.use.reset();
 
@@ -62,7 +68,10 @@ const InvitePermanentMember = ({
     staleTime: 5 * 60 * 1000,
   });
 
-  const { isPending, mutate: server_addMembersToGroup } = useMutation({
+  const {
+    isPending: isPendingNewUserInvite,
+    mutate: server_inviteNewUserToGroup,
+  } = useMutation({
     mutationFn: addMembersToGroupInDB,
     onMutate: (variables) => {
       const toastId = toast.loading(`Inviting ${variables.name}...`);
@@ -70,7 +79,7 @@ const InvitePermanentMember = ({
     },
     onSuccess: (data, variables, context) => {
       const newMember = formatMemberData(data);
-      updateMembers(newMember);
+      addMember(newMember);
       return toast.success(`${variables.name} invited successfully`, {
         id: context.toastId,
       });
@@ -88,6 +97,42 @@ const InvitePermanentMember = ({
     },
   });
 
+  const { isPending: isPendingUserInvite, mutate: server_inviteUserToGroup } =
+    useMutation({
+      mutationFn: sendInvite,
+      onMutate: (variables) => {
+        const toastId = toast.loading(`Inviting ${variables.name}...`);
+        return { toastId };
+      },
+      onSuccess: (data, variables, context) => {
+        const invitedMember = {
+          name: selectedUser?.name as string,
+          memberId: selectedUser?.id as string,
+          memberIndex: existingMember?.memberIndex as string,
+          username: selectedUser?.username ?? undefined,
+          avatarUrl: selectedUser?.avatar_url ?? undefined,
+          isAdmin: false,
+          status: 1,
+          balance: existingMember?.balance as number,
+          totalPaid: existingMember?.totalPaid as number,
+        };
+        updateMember(invitedMember);
+        return toast.success(`${variables.name} invited successfully`, {
+          id: context.toastId,
+        });
+      },
+      onError: (error, variables, context) => {
+        console.error(error);
+        return toast.error(error.message, {
+          id: context?.toastId,
+        });
+      },
+      onSettled: () => {
+        setIsOpen(false);
+        setSearch("");
+      },
+    });
+
   const handleInviteMember = useCallback(
     (user: PermanentUser) => {
       if (admin?.username === user.username) {
@@ -96,12 +141,22 @@ const InvitePermanentMember = ({
       if (members.some((member) => member.username === user.username)) {
         return toast.error("This user is already invited");
       }
-      server_addMembersToGroup({
-        name: user.name,
-        usernames: [user.username],
-        groupId: slug as string,
-        userId: admin?.id as string,
-      });
+      if (!existingMember) {
+        server_inviteNewUserToGroup({
+          name: user.name,
+          usernames: [user.username],
+          groupId: slug as string,
+          userId: admin?.id as string,
+        });
+      } else {
+        server_inviteUserToGroup({
+          name: user.name,
+          senderUserId: admin?.id as string,
+          receiverUsername: user.username,
+          groupId: slug as string,
+          userIndex: Number(existingMember.memberIndex),
+        });
+      }
     },
     [admin, members],
   );
@@ -115,7 +170,7 @@ const InvitePermanentMember = ({
             <Button
               variant="outline"
               role="combobox"
-              disabled={isPending}
+              disabled={isPendingNewUserInvite || isPendingUserInvite}
               aria-expanded={open}
               className="h-10 w-full justify-between font-normal"
             >
@@ -190,10 +245,12 @@ const InvitePermanentMember = ({
         </Popover>
       </div>
       <AnimatedButton
-        isLoading={isPending}
+        isLoading={isPendingNewUserInvite || isPendingUserInvite}
         variant="default"
         className="w-full"
-        isDisabled={!selectedUser || isPending}
+        isDisabled={
+          !selectedUser || isPendingNewUserInvite || isPendingUserInvite
+        }
         onClick={() => handleInviteMember(selectedUser as PermanentUser)}
       >
         Invite

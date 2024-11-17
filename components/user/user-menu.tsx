@@ -34,7 +34,18 @@ const UserMenu = () => {
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="z-[99]">
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+        <DropdownMenuLabel className="flex items-center gap-2">
+          <Avatar className="size-6 cursor-pointer">
+            <AvatarImage src={user!.avatar_url} alt={user!.name} />
+            <AvatarFallback>{user!.name[0]}</AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <span>{user?.name}</span>
+            <span className="text-xs font-normal text-muted-foreground">
+              @{user?.username}
+            </span>
+          </div>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <Link href="/settings/account">
           <DropdownMenuItem className="cursor-pointer">

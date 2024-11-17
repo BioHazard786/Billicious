@@ -16,7 +16,7 @@ export async function POST(request: Request) {
 
     const { data, error } = await supabase
       .from("users_table")
-      .select("name, username, avatar_url")
+      .select("name, username, avatar_url, id")
       .textSearch("username", username, {
         type: "plain",
         config: "english",

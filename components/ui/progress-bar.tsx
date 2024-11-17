@@ -8,6 +8,7 @@ interface ProgressBarProps {
   totalPaid: number;
   totalBill: number;
   balance: number;
+  currencySymbol: string;
 }
 
 const ProgressBar = ({
@@ -16,6 +17,7 @@ const ProgressBar = ({
   totalPaid,
   totalBill,
   balance,
+  currencySymbol,
 }: ProgressBarProps) => {
   const width = useMemo(
     () => (totalBill === 0 ? 0 : totalPaid / totalBill),
@@ -48,7 +50,9 @@ const ProgressBar = ({
       duration: 0.5,
       onUpdate: (value) => {
         node.textContent =
-          value < 0 ? `-₹${(-value).toFixed(2)}` : `₹${value.toFixed(2)}`;
+          value < 0
+            ? `-${currencySymbol}${(-value).toFixed(2)}`
+            : `${currencySymbol}${value.toFixed(2)}`;
       },
     });
     previousBalance.current = balance;
@@ -56,7 +60,9 @@ const ProgressBar = ({
   }, [balance]);
 
   const balanceText =
-    balance < 0 ? `-₹${(-balance).toFixed(2)}` : `₹${balance.toFixed(2)}`;
+    balance < 0
+      ? `-${currencySymbol}${(-balance).toFixed(2)}`
+      : `${currencySymbol}${balance.toFixed(2)}`;
 
   return (
     <motion.div
@@ -87,7 +93,7 @@ const ProgressBar = ({
             )}
           </p>
           <p className="font-mono text-sm">
-            <span className="mr-[0.1rem]">₹</span>
+            <span className="mr-[0.1rem]">{currencySymbol}</span>
             <span ref={totalPaidRef}>{totalPaid}</span>
           </p>
         </div>

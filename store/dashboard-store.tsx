@@ -8,6 +8,7 @@ import { useStoreWithEqualityFn } from "zustand/traditional";
 type Action = {
   addBill: (bill: { totalAmount: number; updatedMemberData: any }) => void;
   addMember: (member: TMembers[]) => void;
+  updateMember: (member: TMembers) => void;
   addTransaction: (transaction: TransactionT) => void;
 };
 
@@ -20,6 +21,15 @@ export const createDashboardStore = (initialGroupData: TGroupData) => {
       set(
         produce((state: TGroupData) => {
           state.members.push(...member);
+        }),
+      ),
+    updateMember: (user: TMembers) =>
+      set(
+        produce((state: TGroupData) => {
+          const index = state.members.findIndex(
+            (member) => member.memberIndex === user.memberIndex,
+          );
+          state.members.splice(index, 1, user);
         }),
       ),
     addBill: (bill) =>
