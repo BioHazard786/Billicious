@@ -3,7 +3,7 @@ import { and, eq, ExtractTablesWithRelations, inArray, or } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
 import { getMultipleGroupsFromDB } from "../(groups)/utils";
-import { getMultipleUserFromDB } from "../(users)/utils";
+import { getMultipleUserFromDB, getUserFromDB } from "../(users)/utils";
 
 export async function sendInvite(
   transaction: PgTransaction<
@@ -227,11 +227,13 @@ export async function acceptInvite(
     throw new Error("No invites exists");
   }
 
+  let user = await getUserFromDB(transaction, userId);
+
   let userInvite = userInvites[0];
 
   await transaction
     .update(membersTable)
-    .set({ status: 2 })
+    .set({ status: 2, userNameInGroup: user.name })
     .where(
       and(
         eq(membersTable.groupId, userInvite.groupId as string),
