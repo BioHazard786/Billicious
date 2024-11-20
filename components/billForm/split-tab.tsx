@@ -2,9 +2,12 @@ import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CURRENCIES } from "@/constants/items";
 import useContributionsTabStore from "@/store/contributions-tab-store";
+import useDashboardStore from "@/store/dashboard-store";
 import useSplitTabStore from "@/store/split-tab-store";
 import { IndianRupee, Percent, Scale, Users } from "lucide-react";
+import { useMemo } from "react";
 import AnimatedCounter from "../ui/animated-counter";
 import AmountSplit from "./splitTab/amount-split";
 import EqualSplit from "./splitTab/equal-split";
@@ -14,6 +17,11 @@ const SplitTab = () => {
   const payeesBill = useContributionsTabStore.use.payeesBill();
   const currentSelectedTab = useSplitTabStore.use.currentSelectedTab();
   const setCurrentSelectedTab = useSplitTabStore.use.setCurrentSelectedTab();
+  const currencyCode = useDashboardStore((state) => state.currencyCode);
+  const currencySymbol = useMemo(
+    () => CURRENCIES[currencyCode || "INR"].currencySymbol,
+    [currencyCode],
+  );
 
   return (
     <>
@@ -22,7 +30,7 @@ const SplitTab = () => {
         <div className="flex gap-1 text-sm text-muted-foreground">
           Total:{" "}
           <span className="flex">
-            <span className="mr-[0.1rem]">₹</span>
+            <span className="mr-[0.1rem]">{currencySymbol}</span>
             <AnimatedCounter
               value={payeesBill}
               precision={2}
@@ -36,7 +44,7 @@ const SplitTab = () => {
         <div className="flex justify-center gap-1 text-sm text-muted-foreground">
           Total:{" "}
           <span className="flex">
-            <span className="mr-[0.1rem]">₹</span>
+            <span className="mr-[0.1rem]">{currencySymbol}</span>
             <AnimatedCounter
               value={payeesBill}
               precision={2}

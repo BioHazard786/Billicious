@@ -1,17 +1,24 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { Input, InputWithCurrency } from "@/components/ui/input";
+import { InputWithCurrency } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { CURRENCIES } from "@/constants/items";
 import { useAppleDevice } from "@/hooks/use-apple-device";
-import { cn } from "@/lib/utils";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
+import { useMemo } from "react";
 import AnimatedCounter from "../ui/animated-counter";
 
 const ContributionsTab = () => {
   const members = useDashboardStore((group) => group.members);
   const payeesBill = useContributionsTabStore.use.payeesBill();
+  const currencyCode = useDashboardStore((state) => state.currencyCode);
+  const currencySymbol = useMemo(
+    () => CURRENCIES[currencyCode || "INR"].currencySymbol,
+    [currencyCode],
+  );
+
   return (
     <>
       <DialogHeader className="hidden pb-4 md:block">
@@ -19,7 +26,7 @@ const ContributionsTab = () => {
         <div className="flex gap-1 text-sm text-muted-foreground">
           Total Contributions:{" "}
           <span className="flex">
-            <span className="mr-[0.1rem]">₹</span>
+            <span className="mr-[0.1rem]">{currencySymbol}</span>
             <AnimatedCounter
               value={payeesBill}
               precision={2}
@@ -33,7 +40,7 @@ const ContributionsTab = () => {
         <div className="flex justify-center gap-1 text-sm text-muted-foreground">
           Total Contributions:{" "}
           <span className="flex">
-            <span className="mr-[0.1rem]">₹</span>
+            <span className="mr-[0.1rem]">{currencySymbol}</span>
             <AnimatedCounter
               value={payeesBill}
               precision={2}
@@ -50,6 +57,8 @@ const ContributionsTab = () => {
               memberName={member.name}
               memberIndex={member.memberIndex}
               avatarUrl={member.avatarUrl}
+              currencySymbol={currencySymbol}
+              currencyCode={currencyCode}
             />
           ))}
         </div>
@@ -62,15 +71,20 @@ const PayeeInputAmount = ({
   memberName,
   memberIndex,
   avatarUrl,
+  currencyCode,
+  currencySymbol,
 }: {
   memberName: string;
   memberIndex: string;
   avatarUrl?: string;
+  currencyCode: string;
+  currencySymbol: string;
 }) => {
   const isApple = useAppleDevice().isAppleDevice;
   const payees = useContributionsTabStore.use.payees();
   const setPayee = useContributionsTabStore.use.setPayee();
   const deletePayee = useContributionsTabStore.use.deletePayee();
+
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -81,8 +95,8 @@ const PayeeInputAmount = ({
         <p className="w-14 truncate text-sm md:w-32">{memberName}</p>
       </div>
       <InputWithCurrency
-        currencyCode="INR"
-        currencySymbol="₹"
+        currencyCode={currencyCode}
+        currencySymbol={currencySymbol}
         className={isApple ? "text-base" : ""}
         type="number"
         value={payees[memberIndex] || ""}

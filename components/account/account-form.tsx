@@ -230,6 +230,7 @@ const UpdateUserAvatar = () => {
   const user = useUserInfoStore((state) => state.user);
   const setAvatarUrl = useUserInfoStore((state) => state.setAvatarUrl);
   const supabase = useMemo(() => createClient(), []);
+
   const handleImageUpload = async (image: File) => {
     const { error } = await supabase.storage
       .from("avatars")

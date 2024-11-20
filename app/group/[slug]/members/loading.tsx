@@ -1,11 +1,12 @@
-"use client";
-
-import { Loader } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 const Loading = () => {
   return (
     <div className="flex h-screen w-full items-center justify-center [@supports(height:100dvh)]:h-dvh">
-      <Loader className="size-8 animate-spin text-muted-foreground" />
+      <Spinner
+        loadingSpanClassName="bg-muted-foreground"
+        className="size-6 md:size-7 lg:size-8"
+      />
     </div>
   );
 };

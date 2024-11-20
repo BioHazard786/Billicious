@@ -182,22 +182,6 @@ function AddBillForm() {
       return setBillName("");
     }
 
-    // console.log({
-    //   groupId: slug as string,
-    //   name: titleCase(billName),
-    //   category: category,
-    //   createdAt: createdAt.getTime(),
-    //   notes: notes,
-    //   payees: payees,
-    //   drawees: formatDrawees(
-    //     draweesSplitEqually,
-    //     draweesSplitByAmount,
-    //     draweesSplitByPercent,
-    //     payeesBill,
-    //     currentSelectedTab,
-    //   ),
-    // });
-
     server_createTransaction({
       groupId: slug as string,
       name: titleCase(billName),
@@ -289,7 +273,7 @@ function AddBillForm() {
           <Plus className="size-5" />
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="z-[101] placeholder:sm:max-w-[425px]">
+      <DrawerContent className="z-[101]">
         <DrawerHeader className="justify-center pb-0">
           <CustomBreadcrumb
             handleTabClick={handleTabClick}

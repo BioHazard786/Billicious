@@ -4,6 +4,7 @@ import useContributionsTabStore from "@/store/contributions-tab-store";
 import useCreateGroupFormStore from "@/store/create-group-form-store";
 import useCreateGroup from "@/store/create-group-store";
 import useDetailsTabStore from "@/store/details-tab-store";
+import useGroupImageTabStore from "@/store/group-image-tab-store";
 import useGroupNameTabStore from "@/store/group-name-tab-store";
 import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
 import useSplitByPercentTabStore from "@/store/split-by-percent-tab-store";
@@ -105,6 +106,7 @@ export function resetGroupFormStores() {
   useCreateGroup.getState().reset();
   useCreateGroupFormStore.getState().reset();
   useGroupNameTabStore.getState().reset();
+  useGroupImageTabStore.getState().reset();
   useMemberTabStore.getState().reset();
 }
 

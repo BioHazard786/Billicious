@@ -21,7 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
-import { Input } from "../ui/input";
+import { Input, InputWithLimit } from "../ui/input";
 
 const AddTemporaryMember = ({
   setIsOpen,
@@ -76,9 +76,9 @@ const AddTemporaryMember = ({
   const addMembersToGroup = async (
     data: z.infer<typeof addMemberFormSchema>,
   ) => {
-    if (members.some((member) => member.name === data.name)) {
-      return form.setError("name", { message: "Member already exists" });
-    }
+    // if (members.some((member) => member.name === data.name)) {
+    //   return form.setError("name", { message: "Member already exists" });
+    // }
     server_addMembersToGroup({
       groupId: slug as string,
       members: [data.name],

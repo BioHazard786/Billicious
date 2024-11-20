@@ -29,7 +29,9 @@ export const createDashboardStore = (initialGroupData: TGroupData) => {
           const index = state.members.findIndex(
             (member) => member.memberIndex === user.memberIndex,
           );
-          state.members.splice(index, 1, user);
+          if (index !== -1) {
+            state.members[index] = user;
+          }
         }),
       ),
     addBill: (bill) =>

@@ -1,4 +1,5 @@
 import React from "react";
+import { BackgroundImageUploader } from "../ui/image-upload";
 import ResponsiveHeader from "../ui/responsive-header";
 
 const GroupImageTab: React.FC = () => {
@@ -14,6 +15,7 @@ const GroupImageTab: React.FC = () => {
         title="Add Image"
         description="Choose group cover image"
       />
+      <BackgroundImageUploader accept={{ "image/jpeg": [], "image/png": [] }} />
     </>
   );
 };

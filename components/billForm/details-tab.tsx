@@ -12,7 +12,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Input, InputWithLimit } from "@/components/ui/input";
+import { InputWithLimit } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -30,6 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { CURRENCIES } from "@/constants/items";
 import { useAppleDevice } from "@/hooks/use-apple-device";
 import { categories, cn } from "@/lib/utils";
 import useContributionsTabStore from "@/store/contributions-tab-store";
@@ -50,6 +51,7 @@ import {
   ForwardRefExoticComponent,
   memo,
   RefAttributes,
+  useMemo,
   useState,
 } from "react";
 
@@ -70,6 +72,11 @@ const DetailsTab = () => {
   const setBillName = useDetailsTabStore.use.setBillName();
   const notes = useDetailsTabStore.use.notes();
   const setNotes = useDetailsTabStore.use.setNotes();
+  const currencyCode = useDashboardStore((state) => state.currencyCode);
+  const currencySymbol = useMemo(
+    () => CURRENCIES[currencyCode || "INR"].currencySymbol,
+    [currencyCode],
+  );
 
   return (
     <>
@@ -78,7 +85,7 @@ const DetailsTab = () => {
         <DialogDescription className="flex gap-1">
           Total:{" "}
           <span className="flex">
-            <span className="mr-[0.1rem]">₹</span>
+            <span className="mr-[0.1rem]">{currencySymbol}</span>
             <span className="font-mono">{totalBill.toFixed(2)}</span>
           </span>
         </DialogDescription>
@@ -88,7 +95,7 @@ const DetailsTab = () => {
         <DrawerDescription className="flex justify-center gap-1">
           Total:{" "}
           <span className="flex">
-            <span className="mr-[0.1rem]">₹</span>
+            <span className="mr-[0.1rem]">{currencySymbol}</span>
             <span className="font-mono">{totalBill.toFixed(2)}</span>
           </span>
         </DrawerDescription>
@@ -105,7 +112,7 @@ const DetailsTab = () => {
               value={billName}
               onChange={(e) => setBillName(e.target.value)}
               className={isApple ? "text-base" : ""}
-              autoComplete="bullName"
+              autoComplete="billName"
               id="billName"
               placeholder="Bill Name"
             />
@@ -127,14 +134,14 @@ const DetailsTab = () => {
             </div>
           </div>
           <Separator />
-          <DetailsTable />
+          <DetailsTable currencySymbol={currencySymbol} />
         </div>
       </ScrollArea>
     </>
   );
 };
 
-const DetailsTable = () => {
+const DetailsTable = ({ currencySymbol }: { currencySymbol: string }) => {
   const members = useDashboardStore((group) => group.members);
   const payees = useContributionsTabStore.getState().payees;
   const payeesBill = useContributionsTabStore.getState().payeesBill;
@@ -177,12 +184,12 @@ const DetailsTable = () => {
             </TableCell>
             <TableCell className="text-right font-mono text-primary">
               {payees.hasOwnProperty(member.memberIndex)
-                ? `₹${payees[member.memberIndex].toFixed(2)}`
+                ? `${currencySymbol}${payees[member.memberIndex].toFixed(2)}`
                 : "-"}
             </TableCell>
             <TableCell className="text-right font-mono text-destructive">
               {drawees.hasOwnProperty(member.memberIndex)
-                ? `-₹${drawees[member.memberIndex].toFixed(2)}`
+                ? `-${currencySymbol}${drawees[member.memberIndex].toFixed(2)}`
                 : "-"}
             </TableCell>
           </TableRow>

@@ -13,16 +13,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { CURRENCIES } from "@/constants/items";
 import { categories, cn } from "@/lib/utils";
 import useDashboardStore from "@/store/dashboard-store";
 import { format } from "date-fns";
-import { Tags } from "lucide-react";
+import { ArrowRight, MoveRight, Tags } from "lucide-react";
+import { useMemo } from "react";
 import AvatarCircles from "../ui/avatar-circles";
 import NoContent from "../ui/no-content";
 
 export default function RecentTransactions() {
   const transactions = useDashboardStore((state) => state.transactions);
   const members = useDashboardStore((state) => state.members);
+  const currencyCode = useDashboardStore((state) => state.currencyCode);
+  const currencySymbol = useMemo(
+    () => CURRENCIES[currencyCode || "INR"].currencySymbol,
+    [currencyCode],
+  );
 
   if (transactions.length === 0) {
     return (
@@ -62,18 +69,18 @@ export default function RecentTransactions() {
           </TableHeader>
           <TableBody>
             {transactions.map((transaction) => (
-              <TableRow key={transaction.id}>
+              <TableRow key={transaction.id} className="no-hover">
                 <TableCell>
                   <div className="flex items-center gap-3">
                     {getCategoryIcon(transaction.category)}
                     <div>
-                      <div className="max-w-40 truncate font-medium lg:w-full">
+                      <div className="max-w-28 truncate font-medium md:max-w-32 lg:w-full">
                         {transaction.name}
                       </div>
-                      <div className="hidden text-sm text-muted-foreground md:inline">
+                      <div className="hidden text-muted-foreground md:inline">
                         {format(transaction.createdAt, "EEEE, MMMM d")}
                       </div>
-                      <div className="text-sm text-muted-foreground md:hidden">
+                      <div className="max-w-28 truncate text-sm text-muted-foreground md:hidden">
                         {format(transaction.createdAt, "EEE, MMM d")}
                       </div>
                     </div>
@@ -98,7 +105,33 @@ export default function RecentTransactions() {
                   />
                 </TableCell>
                 <TableCell className="text-right font-mono text-destructive">
-                  -₹{transaction.amount}
+                  <div className="space-y-1">
+                    <span>
+                      -{currencySymbol}
+                      {transaction.amount}
+                    </span>
+                    <span className="flex flex-row items-center justify-end md:hidden">
+                      <AvatarCircles
+                        className="size-4 text-[10px]"
+                        containerClassName="-space-x-[9px]"
+                        hideExtraMembers={true}
+                        limit={3}
+                        members={transaction.payees.map(
+                          (payeeIndex) => members[payeeIndex],
+                        )}
+                      />
+                      <ArrowRight className="mx-1 size-4 text-muted-foreground" />
+                      <AvatarCircles
+                        className="size-4 text-[10px]"
+                        containerClassName="-space-x-[9px]"
+                        hideExtraMembers={true}
+                        limit={3}
+                        members={transaction.drawees.map(
+                          (draweeIndex) => members[draweeIndex],
+                        )}
+                      />
+                    </span>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
