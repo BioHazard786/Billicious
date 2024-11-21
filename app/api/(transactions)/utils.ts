@@ -17,6 +17,10 @@ export async function getAllBalancesFromDB(
     .from(transactionsTable)
     .where(eq(transactionsTable.groupId, groupId));
 
+  balances = balances.filter((balance) => {
+    return parseFloat(balance.balance) > 0;
+  });
+
   return balances;
 }
 
