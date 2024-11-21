@@ -45,7 +45,16 @@ export async function createBillInDB(
 
   const members = await getMembersFromDB(transaction, groupId);
 
-  let totalAmount = validateDraweesAndPayees(drawees, payees, members.length);
+  let draweesAndPayees: string[] = [];
+
+  let totalAmount = validateDraweesAndPayees(
+    drawees,
+    payees,
+    members.length,
+    draweesAndPayees,
+  );
+
+  console.log(draweesAndPayees);
 
   // Create a New Bill in the Database
   const newBill = {
@@ -54,6 +63,8 @@ export async function createBillInDB(
     amount: totalAmount.toString(),
     category: category,
     isPayment: isPayment,
+    draweesString: draweesAndPayees[0],
+    payeesString: draweesAndPayees[1],
     createdAt: createdAt,
     groupId: groupId,
   };
@@ -328,10 +339,13 @@ function validateDraweesAndPayees(
   drawees: any[],
   payees: any[],
   membersLength: number,
+  draweesAndPayees: string[],
 ) {
   let totalDrawn = 0,
     totalPaid = 0;
 
+  let draweesString: string = "",
+    payeesString: string = "";
   // CHECK IF EACH DRAWEE INDEX IS LESS THAN MEMBERS' LENGTH
   // ADD EACH DRAWEE AMOUNT TO TOTALDRAWN
   for (let [idx, amt] of Object.entries(drawees)) {
@@ -340,6 +354,7 @@ function validateDraweesAndPayees(
     if (index >= membersLength) {
       throw new Error("drawees index must be less than member's length");
     }
+    draweesString += idx + "|";
     totalDrawn += amount;
   }
 
@@ -351,6 +366,7 @@ function validateDraweesAndPayees(
     if (index >= membersLength) {
       throw new Error("payees index must be less than member's length");
     }
+    payeesString += idx + "|";
     totalPaid += amount;
   }
 
@@ -358,6 +374,7 @@ function validateDraweesAndPayees(
   if (totalDrawn != totalPaid) {
     throw new Error("drawn and paid amount mismatch");
   }
+  draweesAndPayees.push(draweesString.slice(0, -1), payeesString.slice(0, -1));
   return totalPaid;
 }
 
