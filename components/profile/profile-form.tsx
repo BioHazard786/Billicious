@@ -322,20 +322,19 @@ const RegisterNewPasskey = () => {
         <Button
           onClick={() => handleRegisterPasskey(user!.id)}
           className="flex items-center justify-center space-x-2"
-          disabled={isPending || user?.has_passkey}
+          disabled={isPending}
         >
           {isPending ? (
-            <Spinner loadingSpanClassName="bg-primary" className="mr-2" />
+            <Spinner className="mr-2" />
           ) : (
             <GoPasskeyFill className="mr-2 h-5 w-5" />
           )}
           Register a new passkey
         </Button>
-        {user?.has_passkey && (
-          <div className="text-xs text-muted-foreground">
-            You has already registerd a passkey
-          </div>
-        )}
+
+        <div className="text-xs text-muted-foreground">
+          You has already registerd a passkey
+        </div>
       </div>
     </div>
   );
