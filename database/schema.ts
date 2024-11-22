@@ -63,6 +63,8 @@ export const billsTable = pgTable(
     groupId: text("group_id").references(() => groupsTable.id),
     isPayment: boolean("is_payment").default(false),
     category: text("category").notNull(),
+    draweesString: text("drawees_string"),
+    payeesString: text("payees_string"),
     createdAt: timestamp("created_at").notNull(),
     updatedAt: timestamp("updated_at")
       .notNull()
