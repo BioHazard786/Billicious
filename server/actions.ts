@@ -73,7 +73,7 @@ export async function signUpUsingEmail(data: z.infer<typeof signUpFormSchema>) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect("/register/passkey");
 }
 
 export async function signInUsingGoogle(next: string) {

@@ -100,7 +100,7 @@ export default function SignUp() {
   };
 
   const handleSignUpWithGoogle = () => {
-    server_signInUsingGoogle(searchParams.get("next") ?? "/");
+    server_signInUsingGoogle("/register/passkey");
   };
 
   return (

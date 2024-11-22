@@ -6,7 +6,7 @@ const PasskeyLogo = ({ className }: { className?: string }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      className={cn("h-48 w-auto fill-current", className)}
+      className={cn("h-40 w-auto fill-current", className)}
       viewBox="0 0 432 512"
     >
       <path

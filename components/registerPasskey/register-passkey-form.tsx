@@ -33,9 +33,6 @@ import { AnimatedSpinner } from "../ui/spinner";
 const RegisterPasskey = () => {
   const user = useUserInfoStore((state) => state.user);
   const router = useRouter();
-  const setHasPasskeys = useUserInfoStore((state) => state.setHasPasskeys);
-
-  //   if (user?.has_passkey) router.replace("/");
 
   const { isPending, mutate: server_registerNewPasskey } = useMutation({
     mutationFn: async ({ userId }: { userId: string }) => {
@@ -55,10 +52,11 @@ const RegisterPasskey = () => {
         return toast.error(response.error, {
           id: context.toastId,
         });
-      setHasPasskeys();
-      return toast.success("Passkey registered", {
+      toast.success("Passkey registered", {
         id: context.toastId,
       });
+
+      return router.replace("/");
     },
     onError: (error, variables, context) => {
       return toast.error(error.message, {
