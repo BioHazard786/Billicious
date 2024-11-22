@@ -45,7 +45,7 @@ export async function signInUsingEmail(
 export async function signUpUsingEmail(data: z.infer<typeof signUpFormSchema>) {
   const supabase = createClient();
   const { data: existingUser, error: existingUserError } = await supabase
-    .from("profiles")
+    .from("users_table")
     .select("username")
     .eq("username", data.username)
     .single();
@@ -81,7 +81,7 @@ export async function signInUsingGoogle(next: string) {
   const baseUrl =
     process.env.NODE_ENV === "development"
       ? "http://localhost:3000"
-      : "https://app-billicious.vercel.app";
+      : "https://app.billicious.tech";
   const redirectUrl = `${baseUrl}/auth/callback?next=${encodeURIComponent(next)}`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({

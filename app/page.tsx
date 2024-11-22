@@ -2,7 +2,6 @@ import HomePage from "@/components/createGroup/home-page";
 import { db } from "@/database/dbConnect";
 import { formatUserGroupsData } from "@/lib/utils";
 import { getUser } from "@/server/actions";
-import { Profiler, StrictMode } from "react";
 import { getUserGroupsFromDB } from "./api/(users)/utils";
 // import { redpanda } from "@/database/kafka";
 

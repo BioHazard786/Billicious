@@ -19,6 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import { GoPasskeyFill } from "react-icons/go";
@@ -47,6 +48,7 @@ export default function SignIn({
 }: {
   lastSignedInMethod?: string;
 }) {
+  const [hasPasskeys, setHasPasskeys] = useState(false);
   const searchParams = useSearchParams();
   const isApple = useAppleDevice().isAppleDevice;
   const form = useForm<z.infer<typeof signInFormSchema>>({
@@ -150,6 +152,46 @@ export default function SignIn({
   const handleSignInWithPasskey = () => {
     server_signInUsingPasskey(searchParams.get("next") ?? "/");
   };
+
+  useEffect(() => {
+    const checkPasskeySupport = async () => {
+      try {
+        // First check if the browser supports WebAuthn
+        if (!window.PublicKeyCredential) {
+          setHasPasskeys(false);
+          return;
+        }
+
+        // Check if conditional mediation is supported
+        const supported =
+          await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+        if (!supported) {
+          setHasPasskeys(false);
+          return;
+        }
+
+        // Check for existing credentials without triggering the auth prompt
+        const result = await navigator.credentials
+          .get({
+            mediation: "conditional",
+            publicKey: {
+              challenge: new Uint8Array([1, 2, 3, 4]), // Example challenge
+              timeout: 1, // Minimal timeout to prevent waiting
+              userVerification: "preferred",
+              rpId: window.location.hostname,
+            },
+          })
+          .catch(() => null);
+
+        setHasPasskeys(!!result);
+      } catch (error) {
+        console.error("Error checking passkey support:", error);
+        setHasPasskeys(false);
+      }
+    };
+
+    checkPasskeySupport();
+  }, []);
 
   return (
     <Card className="mx-auto w-full max-w-sm space-y-8 border-0 px-1">
@@ -255,32 +297,34 @@ export default function SignIn({
               </div>
             )}
           </Button>
-          <Button
-            variant="outline"
-            onClick={handleSignInWithPasskey}
-            className="relative"
-            disabled={
-              isSignInWithEmailPending ||
-              isSignInWithGooglePending ||
-              isSignInWithPasskeyPending
-            }
-          >
-            {isSignInWithPasskeyPending ? (
-              <Spinner loadingSpanClassName="bg-primary" className="mr-2" />
-            ) : (
-              <GoPasskeyFill className="mr-2 h-5 w-5" />
-            )}
-            <span>Sign in with Passkey</span>
-            {lastSignedInMethod === "passkey" && (
-              <span className="ml-2 inline md:hidden">(Last used)</span>
-            )}
-            {lastSignedInMethod === "passkey" && (
-              <div className="absolute left-full top-1/2 ml-8 hidden -translate-y-1/2 whitespace-nowrap rounded-md bg-accent px-4 py-1 text-xs text-foreground/80 md:block">
-                <div className="absolute -left-5 top-0 border-[12px] border-background border-r-accent" />
-                Last used
-              </div>
-            )}
-          </Button>
+          {hasPasskeys && (
+            <Button
+              variant="outline"
+              onClick={handleSignInWithPasskey}
+              className="relative"
+              disabled={
+                isSignInWithEmailPending ||
+                isSignInWithGooglePending ||
+                isSignInWithPasskeyPending
+              }
+            >
+              {isSignInWithPasskeyPending ? (
+                <Spinner loadingSpanClassName="bg-primary" className="mr-2" />
+              ) : (
+                <GoPasskeyFill className="mr-2 h-5 w-5" />
+              )}
+              <span>Sign in with Passkey</span>
+              {lastSignedInMethod === "passkey" && (
+                <span className="ml-2 inline md:hidden">(Last used)</span>
+              )}
+              {lastSignedInMethod === "passkey" && (
+                <div className="absolute left-full top-1/2 ml-8 hidden -translate-y-1/2 whitespace-nowrap rounded-md bg-accent px-4 py-1 text-xs text-foreground/80 md:block">
+                  <div className="absolute -left-5 top-0 border-[12px] border-background border-r-accent" />
+                  Last used
+                </div>
+              )}
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

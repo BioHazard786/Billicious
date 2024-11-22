@@ -17,12 +17,9 @@ export async function GET(request: Request) {
     if (!error && session) {
       // Get the host for redirect
       const forwardedHost = request.headers.get("x-forwarded-host");
-      const isLocalEnv = process.env.NODE_ENV === "development";
-      const redirectUrl = isLocalEnv
-        ? `${origin}${next}`
-        : forwardedHost
-          ? `https://${forwardedHost}${next}`
-          : `${origin}${next}`;
+      const redirectUrl = forwardedHost
+        ? `https://${forwardedHost}${next}`
+        : `${origin}${next}`;
 
       return NextResponse.redirect(redirectUrl);
     }

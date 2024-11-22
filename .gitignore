@@ -37,7 +37,7 @@ yarn-error.log*
 next-env.d.ts
 
 # dev
-test.js
+test.mjs
 group_schema.json
 bill_schema.json
 accent-colors.css
