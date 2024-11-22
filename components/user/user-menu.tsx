@@ -1,7 +1,8 @@
 import { signOut } from "@/server/actions";
 import useUserInfoStore from "@/store/user-info-store";
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, Settings, UserCog } from "lucide-react";
 import Link from "next/link";
+import { useParams, usePathname } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -17,6 +18,8 @@ import {
 
 const UserMenu = () => {
   const user = useUserInfoStore((state) => state.user);
+  const { slug: groupId } = useParams();
+  const pathName = usePathname();
   const handleSignOut = useCallback(() => {
     toast.promise(signOut(), {
       loading: "Signing Out...",
@@ -47,14 +50,27 @@ const UserMenu = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {groupId && !pathName.startsWith("/view/group") && (
+          <Link
+            href={`/group/${encodeURIComponent(groupId as string)}/settings`}
+          >
+            <DropdownMenuItem className="cursor-pointer">
+              Settings
+              <DropdownMenuShortcut>
+                <Settings className="size-4" />
+              </DropdownMenuShortcut>
+            </DropdownMenuItem>
+          </Link>
+        )}
         <Link href="/settings/account">
           <DropdownMenuItem className="cursor-pointer">
-            Settings
+            Profile
             <DropdownMenuShortcut>
-              <Settings className="size-4" />
+              <UserCog className="size-4" />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
         </Link>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
           Sign Out
           <DropdownMenuShortcut>

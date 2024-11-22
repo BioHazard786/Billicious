@@ -10,6 +10,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 
 type AvatarCirclesProps = {
   className?: string;
+  containerClassName?: string;
+  hideExtraMembers?: boolean;
   limit?: number;
   members: TMembers[];
 };
@@ -42,37 +44,40 @@ const AvatarCircle: React.FC<{
   </motion.div>
 ));
 
-const RemainingMembersCircle: React.FC<{ count: number; className?: string }> =
-  React.memo(({ count, className }) => (
-    <motion.div
-      initial={{ opacity: 0, translateX: -50, scale: 0.5 }}
-      animate={{ opacity: 1, translateX: 0, scale: 1 }}
-      exit={{ opacity: 0, translateX: -50, scale: 0.5 }}
-      transition={{ duration: 0.2 }}
-      className={cn(
-        "relative rounded-full border-[2px] border-background hover:z-[100]",
-      )}
-    >
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div
-            className={cn(
-              "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-primary",
-              className,
-            )}
-          >
-            <Plus size={10} />
-            <span>{count}</span>
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>more members</TooltipContent>
-      </Tooltip>
-    </motion.div>
-  ));
+const RemainingMembersCircle: React.FC<{
+  count: number;
+  className?: string;
+  hideExtraMembers?: boolean;
+}> = React.memo(({ count, className, hideExtraMembers }) => (
+  <motion.div
+    initial={{ opacity: 0, translateX: -50, scale: 0.5 }}
+    animate={{ opacity: 1, translateX: 0, scale: 1 }}
+    exit={{ opacity: 0, translateX: -50, scale: 0.5 }}
+    transition={{ duration: 0.2 }}
+    className="relative rounded-full border-[2px] border-background hover:z-[100]"
+  >
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div
+          className={cn(
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-primary",
+            className,
+          )}
+        >
+          <Plus size={10} />
+          {!hideExtraMembers && <span>{count}</span>}
+        </div>
+      </TooltipTrigger>
+      <TooltipContent>more members</TooltipContent>
+    </Tooltip>
+  </motion.div>
+));
 
 const AvatarCircles: React.FC<AvatarCirclesProps> = ({
   limit = 6,
   className,
+  containerClassName,
+  hideExtraMembers,
   members,
 }) => {
   const visibleMembers = useMemo(
@@ -82,7 +87,12 @@ const AvatarCircles: React.FC<AvatarCirclesProps> = ({
   const remainingMembers = members.length - limit;
 
   return (
-    <div className="z-10 flex -space-x-4 rtl:space-x-reverse">
+    <div
+      className={cn(
+        "z-10 flex -space-x-4 rtl:space-x-reverse",
+        containerClassName,
+      )}
+    >
       <AnimatePresence initial={false}>
         {visibleMembers.map((member, index) => (
           <AvatarCircle
@@ -96,6 +106,7 @@ const AvatarCircles: React.FC<AvatarCirclesProps> = ({
           <RemainingMembersCircle
             count={remainingMembers}
             className={className}
+            hideExtraMembers={hideExtraMembers}
           />
         )}
       </AnimatePresence>

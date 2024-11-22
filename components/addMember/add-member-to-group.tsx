@@ -44,11 +44,12 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { CURRENCIES } from "@/constants/items";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { TMembers } from "@/lib/types";
 import { cn, memberStatus } from "@/lib/utils";
 import useMemberTabStore from "@/store/add-member-tab-store";
-import { Dispatch, useRef, useState } from "react";
+import { Dispatch, useMemo, useRef, useState } from "react";
 import { Badge } from "../ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import AddTemporaryMember from "./add-temporary-member";
@@ -57,6 +58,11 @@ import InvitePermanentMember from "./invite-permanent-member";
 export default function AddMembers() {
   const temporaryMember = useRef<TMembers | null>(null);
   const members = useDashboardStore((state) => state.members);
+  const currencyCode = useDashboardStore((state) => state.currencyCode);
+  const currencySymbol = useMemo(
+    () => CURRENCIES[currencyCode || "INR"].currencySymbol,
+    [currencyCode],
+  );
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [isInviteMemberOpen, setIsInviteMemberOpen] = useState(false);
@@ -104,13 +110,29 @@ export default function AddMembers() {
                 <TableRow key={`add-member-${index}`}>
                   <TableCell>
                     <span className="flex items-center gap-2 md:gap-3">
-                      <Avatar className="size-8 md:size-10">
+                      <Avatar className="relative size-8 md:size-10">
                         <AvatarImage src={member.avatarUrl} alt={member.name} />
+                        {member.status === 1 && member.avatarUrl && (
+                          <div
+                            className={cn(
+                              "absolute inset-0 rounded-full",
+                              "bg-black/50",
+                              "pointer-events-none",
+                            )}
+                          />
+                        )}
                         <AvatarFallback>{member.name[0]}</AvatarFallback>
                       </Avatar>
-                      <p className="max-w-14 truncate md:max-w-32 lg:w-full">
-                        {member.name}
-                      </p>
+                      <span className="flex flex-col">
+                        <span className="max-w-14 truncate md:max-w-32 lg:w-full">
+                          {member.name}
+                        </span>
+                        {member.username && (
+                          <span className="max-w-14 truncate text-xs text-muted-foreground md:max-w-32 lg:w-full">
+                            @{member.username}
+                          </span>
+                        )}
+                      </span>
                     </span>
                   </TableCell>
                   <TableCell>
@@ -123,11 +145,12 @@ export default function AddMembers() {
                     )}
                   >
                     {member.balance < 0
-                      ? `-₹${(-member.balance).toFixed(2)}`
-                      : `₹${member.balance.toFixed(2)}`}
+                      ? `-${currencySymbol}${(-member.balance).toFixed(2)}`
+                      : `${currencySymbol}${member.balance.toFixed(2)}`}
                   </TableCell>
                   <TableCell className="hidden font-mono md:table-cell">
-                    ₹{member.totalPaid}
+                    {currencySymbol}
+                    {member.totalPaid}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu
@@ -195,7 +218,6 @@ const AddMemberDialog = ({
 }) => {
   const currentSelectedTab = useMemberTabStore.use.currentSelectedTab();
   const setCurrentSelectedTab = useMemberTabStore.use.setCurrentSelectedTab();
-  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   return (
     <ResponsiveDialog
@@ -212,26 +234,26 @@ const AddMemberDialog = ({
         <div className="flex w-full justify-center">
           <TabsList className="w-min">
             <TabsTrigger value="temporary">
-              {isDesktop && <UserMinus className="mr-2 size-4" />}
+              <UserMinus className="mr-2 hidden size-4 md:visible" />
               Temporary
             </TabsTrigger>
             <TabsTrigger value="permanent">
-              {isDesktop && <UserCheck className="mr-2 size-4" />}
+              <UserCheck className="mr-2 hidden size-4 md:visible" />
               Permanent
             </TabsTrigger>
             <TabsTrigger value="invite">
-              {isDesktop && <Link className="mr-2 size-4" />}
+              <Link className="mr-2 hidden size-4 md:visible" />
               Invite Link
             </TabsTrigger>
           </TabsList>
         </div>
-        <TabsContent value="temporary">
+        <TabsContent value="temporary" className="p-4 pt-0 md:p-0">
           <AddTemporaryMember setIsOpen={setIsOpen} />
         </TabsContent>
-        <TabsContent value="permanent">
+        <TabsContent value="permanent" className="p-4 pt-0 md:p-0">
           <InvitePermanentMember setIsOpen={setIsOpen} />
         </TabsContent>
-        <TabsContent value="invite">
+        <TabsContent value="invite" className="p-4 pt-0 md:p-0">
           <div> </div>
         </TabsContent>
       </Tabs>

@@ -6,12 +6,14 @@ import {
 } from "@/components/billForm/splitTab/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input, InputWithCurrency } from "@/components/ui/input";
+import { CURRENCIES } from "@/constants/items";
 import { useAppleDevice } from "@/hooks/use-apple-device";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
 import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
 import useSplitByPercentTabStore from "@/store/split-by-percent-tab-store";
 import useSplitEquallyTabStore from "@/store/split-equally-tab-store";
+import { useMemo } from "react";
 import { toast } from "sonner";
 
 const AmountSplit = () => {
@@ -61,6 +63,11 @@ const DraweeInput = ({
     state.setDraweesSplitByAmount,
     state.setIsError,
   ]);
+  const currencyCode = useDashboardStore((state) => state.currencyCode);
+  const currencySymbol = useMemo(
+    () => CURRENCIES[currencyCode || "INR"].currencySymbol,
+    [currencyCode],
+  );
 
   return (
     <div className="flex items-center justify-between">
@@ -72,8 +79,8 @@ const DraweeInput = ({
         <p className="w-14 truncate text-sm md:w-32">{memberName}</p>
       </div>
       <InputWithCurrency
-        currencyCode="INR"
-        currencySymbol="₹"
+        currencyCode={currencyCode}
+        currencySymbol={currencySymbol}
         className={isApple ? "text-base" : ""}
         type="number"
         value={

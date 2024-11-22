@@ -1,7 +1,7 @@
-import AccountForm from "@/components/account/account-form";
+import ProfileForm from "@/components/profile/profile-form";
 
 const Page = () => {
-  return <AccountForm />;
+  return <ProfileForm />;
 };
 
 export default Page;

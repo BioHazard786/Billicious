@@ -342,7 +342,7 @@ const MemberItem: React.FC<MemberItemProps> = memo(
       animate={{ opacity: 1, scale: 1 }}
       initial={{ opacity: 0, scale: 0 }}
       exit={{ opacity: 0 }}
-      whileHover={{ scale: 1.1 }}
+      // whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.9 }}
       className="flex cursor-default items-center gap-2 rounded-full border bg-background text-sm"
     >

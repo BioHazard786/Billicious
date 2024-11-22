@@ -7,6 +7,7 @@ import {
 import AnimatedCounter from "@/components/ui/animated-counter";
 import AnimatedNumber from "@/components/ui/animated-number";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CURRENCIES } from "@/constants/items";
 import { cn } from "@/lib/utils";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
@@ -15,11 +16,17 @@ import useSplitByPercentTabStore from "@/store/split-by-percent-tab-store";
 import useSplitEquallyTabStore from "@/store/split-equally-tab-store";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check } from "lucide-react";
+import { useMemo } from "react";
 
 const EqualSplit = () => {
   const members = useDashboardStore((group) => group.members);
   const payeesBill = useContributionsTabStore.getState().payeesBill;
   const drawees = useSplitEquallyTabStore.use.drawees();
+  const currencyCode = useDashboardStore((state) => state.currencyCode);
+  const currencySymbol = useMemo(
+    () => CURRENCIES[currencyCode || "INR"].currencySymbol,
+    [currencyCode],
+  );
 
   return (
     <>
@@ -44,7 +51,7 @@ const EqualSplit = () => {
         </motion.span>
 
         <span className="flex font-bold text-primary">
-          <span className="mr-[0.1rem]">₹</span>
+          <span className="mr-[0.1rem]">{currencySymbol}</span>
 
           <AnimatedCounter
             value={drawees.length > 0 ? payeesBill / drawees.length : 0}

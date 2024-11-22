@@ -189,6 +189,11 @@
     --accent-fg: #60655f;
   }
 
+  [data-accent-color="default"] {
+    --accent-bg: hsl(var(--muted));
+    --accent-fg: hsl(var(--foreground));
+  }
+
   .dark {
     --background: 220.91 39.29% 10.98%;
     --foreground: 0 0% 100%;
@@ -348,6 +353,11 @@
     [data-accent-color="olive"] {
       --accent-bg: #212220;
       --accent-fg: #afb5ad;
+    }
+
+    [data-accent-color="default"] {
+      --accent-bg: hsl(var(--muted));
+      --accent-fg: hsl(var(--foreground));
     }
   }
 }

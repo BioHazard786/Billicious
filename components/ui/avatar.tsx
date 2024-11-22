@@ -41,7 +41,7 @@ const AvatarFallback = React.forwardRef<
     if (typeof props.children === "string") {
       return colorMapping[props.children.toLowerCase()] || "olive";
     }
-    return "olive";
+    return "default";
   }, [props.children]);
 
   return (

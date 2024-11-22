@@ -7,7 +7,7 @@ import {
   payeesInBillsTable,
   transactionsTable,
 } from "@/database/schema";
-import { eq, and, ExtractTablesWithRelations, sql } from "drizzle-orm";
+import { and, eq, ExtractTablesWithRelations, sql } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
 import { getGroupFromDB, getMembersFromDB } from "../(groups)/utils";
@@ -53,8 +53,6 @@ export async function createBillInDB(
     members.length,
     draweesAndPayees,
   );
-
-  console.log(draweesAndPayees);
 
   // Create a New Bill in the Database
   const newBill = {

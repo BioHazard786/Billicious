@@ -60,7 +60,7 @@ export type userGroup = {
 };
 
 export type Notifications = {
-  notificationId: string;
+  id: string;
   senderUserId: string | null;
   receiverUserId: string | null;
   groupId: string | null;

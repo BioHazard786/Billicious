@@ -13,15 +13,17 @@ import {
 import {
   Drawer,
   DrawerContent,
+  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTrigger,
 } from "@/components/ui/drawer";
 
+import { createClient } from "@/auth-utils/client";
 import { formatDrawees } from "@/components/billForm/splitTab/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { resetBillFormStores, titleCase } from "@/lib/utils";
-import { addBillToGroupInDB } from "@/server/fetchHelpers";
+import { addBillToGroupInDB, viewGroup } from "@/server/fetchHelpers";
 import useAddBillStore from "@/store/add-bill-store";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
@@ -34,7 +36,7 @@ import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import AnimatedButton from "../ui/animated-button";
 import ContributionsTab from "./contributions-tab";
@@ -78,9 +80,10 @@ const variants = {
 };
 
 function AddBillForm() {
-  const { slug } = useParams();
+  const { slug: groupId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
+  const supabase = useMemo(() => createClient(), []);
 
   const activeTab = useAddBillStore.use.activeTab();
   const direction = useAddBillStore.use.direction();
@@ -140,7 +143,7 @@ function AddBillForm() {
     onSuccess: (data, variables, context) => {
       addBillToGroup({
         updatedMemberData: data.members,
-        totalAmount: parseFloat(data.totalGroupExpense),
+        totalAmount: Number(data.totalGroupExpense),
       });
       addTransaction({
         name: variables.name,
@@ -173,6 +176,19 @@ function AddBillForm() {
     },
   });
 
+  const { mutateAsync: server_fetchNewGroupData } = useMutation({
+    mutationFn: viewGroup,
+    onSuccess: (data) => {
+      addBillToGroup({
+        updatedMemberData: data.members,
+        totalAmount: Number(data.group.totalExpense),
+      });
+    },
+    onError: (error) => {
+      console.log(error);
+    },
+  });
+
   const createTransaction = () => {
     if (!billName) {
       return toast.error("Bill Name should not be empty");
@@ -182,24 +198,8 @@ function AddBillForm() {
       return setBillName("");
     }
 
-    // console.log({
-    //   groupId: slug as string,
-    //   name: titleCase(billName),
-    //   category: category,
-    //   createdAt: createdAt.getTime(),
-    //   notes: notes,
-    //   payees: payees,
-    //   drawees: formatDrawees(
-    //     draweesSplitEqually,
-    //     draweesSplitByAmount,
-    //     draweesSplitByPercent,
-    //     payeesBill,
-    //     currentSelectedTab,
-    //   ),
-    // });
-
     server_createTransaction({
-      groupId: slug as string,
+      groupId: groupId as string,
       name: titleCase(billName),
       category: category,
       createdAt: createdAt.getTime(),
@@ -214,6 +214,39 @@ function AddBillForm() {
       ),
     });
   };
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("realtime bills")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "bills_table",
+          filter: `group_id=eq.${groupId}`,
+        },
+        async (payload) => {
+          await server_fetchNewGroupData(groupId as string);
+          addTransaction({
+            name: payload.new.name,
+            category: payload.new.category,
+            createdAt: new Date(payload.new.created_at + "Z"),
+            notes: payload.new.notes,
+            id: payload.new.id,
+            amount: payload.new.amount,
+            isPayment: payload.new.is_payment,
+            drawees: payload.new.drawees_string.split("|").map(Number),
+            payees: payload.new.payees_string.split("|").map(Number),
+          });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   if (isDesktop) {
     return (
@@ -289,13 +322,14 @@ function AddBillForm() {
           <Plus className="size-5" />
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="z-[101] placeholder:sm:max-w-[425px]">
+      <DrawerContent className="z-[101]">
         <DrawerHeader className="justify-center pb-0">
           <CustomBreadcrumb
             handleTabClick={handleTabClick}
             tabs={tabs}
             activeTab={activeTab}
           />
+          <DrawerDescription></DrawerDescription>
         </DrawerHeader>
         <div className="relative mx-auto h-full w-full overflow-hidden">
           <AnimatePresence

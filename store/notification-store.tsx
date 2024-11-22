@@ -1,4 +1,4 @@
-import { Notifications, User } from "@/lib/types";
+import { Notifications } from "@/lib/types";
 import { produce } from "immer";
 import { createContext, useContext } from "react";
 import { createStore } from "zustand";
@@ -10,6 +10,7 @@ type State = {
 };
 
 type Action = {
+  addNotification: (notification: Notifications[0]) => void;
   removeNotification: (notificationId: string) => void;
 };
 
@@ -18,11 +19,17 @@ export type NotificationStore = ReturnType<typeof createNotificationStore>;
 export const createNotificationStore = (notifications: Notifications) => {
   return createStore<Action & State>()((set) => ({
     notifications: notifications,
+    addNotification: (notification) =>
+      set(
+        produce((state: State) => {
+          state.notifications.push(notification);
+        }),
+      ),
     removeNotification: (notificationId: string) =>
       set(
         produce((state: State) => {
           state.notifications = state.notifications.filter(
-            (notification) => notification.notificationId !== notificationId,
+            (notification) => notification.id !== notificationId,
           );
         }),
       ),

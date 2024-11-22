@@ -47,7 +47,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
 type ProfileUpdateFormData = z.infer<typeof profileUpdateFormSchema>;
 
-export default function AccountForm() {
+export default function ProfileForm() {
   const user = useUserInfoStore((state) => state.user);
 
   if (!user) {
@@ -60,7 +60,7 @@ export default function AccountForm() {
     <Card className="mx-auto mt-12 w-full max-w-lg border-0 px-1">
       <CardHeader>
         <CardTitle className="mt-6 text-center text-2xl font-bold tracking-tight text-foreground/90 md:text-3xl">
-          Account Settings
+          Profile Settings
         </CardTitle>
         <CardDescription className="text-center text-sm text-muted-foreground">
           Update your personal information here.
@@ -230,6 +230,7 @@ const UpdateUserAvatar = () => {
   const user = useUserInfoStore((state) => state.user);
   const setAvatarUrl = useUserInfoStore((state) => state.setAvatarUrl);
   const supabase = useMemo(() => createClient(), []);
+
   const handleImageUpload = async (image: File) => {
     const { error } = await supabase.storage
       .from("avatars")
@@ -262,12 +263,14 @@ const UpdateUserAvatar = () => {
           <ImageUploader
             accept={{ "image/jpeg": [], "image/png": [] }}
             onUpload={handleImageUpload}
+            circularCrop={true}
           />
         </div>
       ) : (
         <ImageUploader
           accept={{ "image/jpeg": [], "image/png": [] }}
           onUpload={handleImageUpload}
+          circularCrop={true}
         />
       )}
     </div>

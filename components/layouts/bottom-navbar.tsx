@@ -41,7 +41,6 @@ const NavItem = ({ href, icon: Icon, label, isActive }: NavItemProps) => (
 const BottomNavbar = () => {
   const pathname = usePathname();
   const { slug } = useParams<{ slug: string }>();
-  const user = useUserInfoStore((state) => state.user);
 
   const navItems = useMemo(
     () => [
@@ -72,8 +71,6 @@ const BottomNavbar = () => {
     ],
     [slug, pathname],
   );
-
-  if (!user) return null;
 
   return (
     <nav className="fixed bottom-0 z-[75] flex w-full items-center justify-between border-t bg-background px-3 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden">
