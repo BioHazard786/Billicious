@@ -6,8 +6,8 @@ import {
   pgTable,
   primaryKey,
   text,
-  uuid,
   timestamp,
+  uuid,
 } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
 
@@ -175,6 +175,7 @@ export const payeesInBillsTable = pgTable(
 export const inviteTable = pgTable(
   "invite_table",
   {
+    id: uuid("id").primaryKey().defaultRandom(),
     senderUserId: uuid("sender_user_id").references(() => usersTable.id),
     receiverUserId: uuid("receiver_user_id").references(() => usersTable.id),
     groupId: text("group_id").references(() => groupsTable.id),
@@ -183,10 +184,6 @@ export const inviteTable = pgTable(
   },
   (table) => {
     return {
-      primaryKey: primaryKey({
-        name: "invite_table_pk",
-        columns: [table.receiverUserId, table.groupId],
-      }),
       inviteTableReceiverUserIdIndex: index(
         "invite_table_receiver_user_id_index",
       ).on(table.receiverUserId),

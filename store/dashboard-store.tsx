@@ -1,4 +1,4 @@
-import { TBill, TGroupData, TMembers, TransactionT } from "@/lib/types";
+import { TGroupData, TMembers, TransactionT } from "@/lib/types";
 import { produce } from "immer";
 import { createContext, useContext } from "react";
 import { createStore } from "zustand";
@@ -10,6 +10,7 @@ type Action = {
   addMember: (member: TMembers[]) => void;
   updateMember: (member: TMembers) => void;
   addTransaction: (transaction: TransactionT) => void;
+  updateBackgroundUrl: (url: string) => void;
 };
 
 export type DashboardStore = ReturnType<typeof createDashboardStore>;
@@ -50,7 +51,22 @@ export const createDashboardStore = (initialGroupData: TGroupData) => {
     addTransaction: (transaction: TransactionT) =>
       set(
         produce((state: TGroupData) => {
-          state.transactions = [transaction, ...state.transactions.slice(0, 8)];
+          if (!state.transactions.some((t) => t.id === transaction.id)) {
+            state.transactions.push(transaction);
+            state.transactions.sort(
+              (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+            );
+
+            if (state.transactions.length > 9) {
+              state.transactions = state.transactions.slice(0, 9);
+            }
+          }
+        }),
+      ),
+    updateBackgroundUrl: (url: string) =>
+      set(
+        produce((state: TGroupData) => {
+          state.backgroundUrl = url;
         }),
       ),
   }));

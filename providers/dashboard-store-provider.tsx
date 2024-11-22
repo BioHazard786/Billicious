@@ -23,7 +23,11 @@ export const DashboardStoreProvider = ({
     setInitialDraweeState(initialGroupData.members);
   }
   // else {
-  //   storeRef.current.setState(initialGroupData, true);
+  //   const currentState = storeRef.current.getState();
+  //   const actions = Object.entries(currentState)
+  //     .filter(([_, value]) => typeof value === "function")
+  //     .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
+  //   storeRef.current.setState({ ...initialGroupData, ...actions }, true);
   // }
 
   return (

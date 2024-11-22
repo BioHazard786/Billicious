@@ -90,8 +90,8 @@ const DetailsTab = () => {
           </span>
         </DialogDescription>
       </DialogHeader>
-      <DrawerHeader className="pb-4 md:hidden">
-        <DrawerTitle>Details</DrawerTitle>
+      <DrawerHeader className="justify-center pb-4 md:hidden">
+        <DrawerTitle className="text-center">Details</DrawerTitle>
         <DrawerDescription className="flex justify-center gap-1">
           Total:{" "}
           <span className="flex">
@@ -246,9 +246,14 @@ const CategoryPopover = () => {
 const getCategoryIcon = (category: string, className?: string) => {
   const { icon: Icon, color } = categories[category] || {
     icon: Tags,
-    color: "hsl(var(--primary))",
+    color: "cyan",
   };
-  return <Icon className={className} style={{ color }} />;
+  return (
+    <Icon
+      data-accent-color={color}
+      className={cn("text-[--accent-fg]", className)}
+    />
+  );
 };
 
 export default DetailsTab;

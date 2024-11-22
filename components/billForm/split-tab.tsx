@@ -39,8 +39,8 @@ const SplitTab = () => {
           </span>
         </div>
       </DialogHeader>
-      <DrawerHeader className="pb-4 md:hidden">
-        <DrawerTitle>Split By</DrawerTitle>
+      <DrawerHeader className="justify-center pb-4 md:hidden">
+        <DrawerTitle className="text-center">Split By</DrawerTitle>
         <div className="flex justify-center gap-1 text-sm text-muted-foreground">
           Total:{" "}
           <span className="flex">

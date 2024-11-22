@@ -30,7 +30,7 @@ export default function Error({ error, reset }: ErrorProps) {
             <h2 className="text-2xl font-semibold md:text-4xl">
               Page Not Found
             </h2>
-            <p className="max-w-lg text-muted-foreground md:text-xl">
+            <p className="max-w-lg text-sm text-muted-foreground md:text-base">
               Oops! The page you are looking for might have been removed, had
               its name changed, or is temporarily unavailable.
             </p>

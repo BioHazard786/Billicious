@@ -37,6 +37,12 @@ type InviteData = {
   userId: string | null;
 };
 
+type DeleteInviteData = {
+  groupId: string | null;
+  userId: string | null;
+  userIndex: number | null;
+};
+
 type SendInviteData = {
   name?: string;
   groupId: string;
@@ -67,6 +73,28 @@ export const createGroupInDB = async (groupData: GroupData) => {
   return postFetchHelper("/api/create_group", JSON.stringify(groupData));
 };
 
+export const viewGroup = async (groupId: string) => {
+  return postFetchHelper(
+    "/api/view_group",
+    JSON.stringify({
+      groupId,
+    }),
+  );
+};
+
+export const fetchUserGroupInfo = async ({
+  userId,
+  groupId,
+}: {
+  userId: string;
+  groupId: string;
+}) => {
+  return postFetchHelper(
+    "/api/get_user_group_info",
+    JSON.stringify({ userId, groupId }),
+  );
+};
+
 export const addMembersToGroupInDB = async (memberData: MemberData) => {
   return postFetchHelper("/api/add_members", JSON.stringify(memberData));
 };
@@ -94,7 +122,7 @@ export const acceptInvite = async (acceptInviteData: InviteData) => {
   );
 };
 
-export const declineInvite = async (declineInviteData: InviteData) => {
+export const declineInvite = async (declineInviteData: DeleteInviteData) => {
   return postFetchHelper(
     "/api/delete_invite",
     JSON.stringify(declineInviteData),

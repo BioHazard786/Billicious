@@ -26,7 +26,7 @@ import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { nanoid } from "nanoid";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import AnimatedButton from "../ui/animated-button";
 import { CustomBreadcrumb } from "../ui/breadcrumb";
@@ -73,6 +73,7 @@ const variants = {
 const CreateGroupForm = ({ children }: { children: React.ReactNode }) => {
   const supabase = useMemo(() => createClient(), []);
   const isDesktop = useMediaQuery("(min-width: 768px)");
+  const toastIdRef = useRef<string | number | undefined>(undefined);
   const [isOpen, setIsOpen] = useState(false);
 
   const activeTab = useCreateGroupFormStore.use.activeTab();
@@ -108,11 +109,63 @@ const CreateGroupForm = ({ children }: { children: React.ReactNode }) => {
     [activeTab, isAnimating, setDirection, setActiveTab, groupName],
   );
 
+  const uploadGroupImage = async ({
+    groupId,
+    image,
+  }: {
+    groupId: string;
+    image: File;
+  }) => {
+    const { error } = await supabase.storage
+      .from("group_cover_image")
+      .upload(`${groupId}/${image.name}`, image, { upsert: true });
+
+    if (error) throw error;
+    const { data: imageData } = supabase.storage
+      .from("group_cover_image")
+      .getPublicUrl(`${groupId}/${image.name}`);
+
+    return imageData.publicUrl;
+  };
+
+  const { isPending: imageUploadPending, mutateAsync: handleUploadGroupImage } =
+    useMutation({
+      mutationFn: uploadGroupImage,
+      onMutate: (variables) => {
+        const toastId = toast.loading("Uploading group cover image...");
+        return { toastId };
+      },
+      onSuccess: (data, variables, context) => {
+        return toast.success("Group cover image uploaded successfully", {
+          id: context.toastId,
+        });
+      },
+      onError: (error, _, context) => {
+        console.error(error);
+        return toast.error(
+          `Failed to upload group cover image: ${error.message}`,
+          {
+            id: context?.toastId,
+          },
+        );
+      },
+      onSettled: (data, error, variables, context) => {
+        toastIdRef.current = context?.toastId;
+      },
+    });
+
   const { isPending, mutate: server_createGroup } = useMutation({
     mutationFn: createGroupInDB,
     onMutate: (variables) => {
-      const toastId = toast.loading(`Creating ${variables.name} group...`);
-      return { toastId };
+      if (toastIdRef.current) {
+        toast.loading(`Creating ${variables.name} group...`, {
+          id: toastIdRef.current,
+        });
+        return { toastId: toastIdRef.current };
+      } else {
+        const toastId = toast.loading(`Creating ${variables.name} group...`);
+        return { toastId };
+      }
     },
     onSuccess: (data: { group: { id: string } }, variables, context) => {
       router.replace(`/group/${encodeURIComponent(data.group.id)}`);
@@ -121,34 +174,15 @@ const CreateGroupForm = ({ children }: { children: React.ReactNode }) => {
         id: context.toastId,
       });
     },
-    onError: (error, variables, context) => {
+    onError: (error, _, context) => {
       console.log(error);
       return toast.error(error.message, { id: context?.toastId });
     },
     onSettled: () => {
       setIsOpen(false);
+      toastIdRef.current = undefined;
     },
   });
-
-  const uploadGroupImage = async (groupId: string, image: File) => {
-    const toastId = toast.loading("Uploading group cover image...");
-    const { error } = await supabase.storage
-      .from("group_cover_image")
-      .upload(`${groupId}/${image.name}`, image, { upsert: true });
-
-    if (error) {
-      toast.error(`Failed to upload group cover image: ${error.message}`, {
-        id: toastId,
-      });
-      throw error;
-    }
-    const { data: imageData } = supabase.storage
-      .from("group_cover_image")
-      .getPublicUrl(`${groupId}/${image.name}`);
-
-    toast.success("Group cover image uploaded successfully", { id: toastId });
-    return imageData.publicUrl;
-  };
 
   const createGroup = async () => {
     if (temporaryMembers.length === 0 && permanentMembers.length === 0) {
@@ -158,11 +192,10 @@ const CreateGroupForm = ({ children }: { children: React.ReactNode }) => {
     let backgroundUrl = undefined;
 
     if (groupImage.length > 0) {
-      try {
-        backgroundUrl = await uploadGroupImage(nanoid(), groupImage[0]);
-      } catch (error) {
-        console.error(error);
-      }
+      backgroundUrl = await handleUploadGroupImage({
+        groupId: nanoid(),
+        image: groupImage[0],
+      });
     }
 
     server_createGroup({
@@ -273,8 +306,10 @@ const CreateGroupForm = ({ children }: { children: React.ReactNode }) => {
                 createGroup();
               }
             }}
-            isDisabled={isPending || groupName.length === 0}
-            isLoading={isPending}
+            isDisabled={
+              isPending || imageUploadPending || groupName.length === 0
+            }
+            isLoading={isPending || imageUploadPending}
           >
             {activeTab + 1 === tabs.length ? "Create" : "Next"}
           </AnimatedButton>

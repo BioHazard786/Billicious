@@ -35,8 +35,8 @@ const ContributionsTab = () => {
           </span>
         </div>
       </DialogHeader>
-      <DrawerHeader className="pb-4 md:hidden">
-        <DrawerTitle>Contributions</DrawerTitle>
+      <DrawerHeader className="justify-center pb-4 md:hidden">
+        <DrawerTitle className="text-center">Contributions</DrawerTitle>
         <div className="flex justify-center gap-1 text-sm text-muted-foreground">
           Total Contributions:{" "}
           <span className="flex">

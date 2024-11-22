@@ -88,7 +88,7 @@ export function formatGroupData(groupData: any): TGroupData {
     totalBill: Number(groupData.group.totalExpense),
     members: members,
     transactions: transactions,
-    currencyCode: groupData.group.currencyCode,
+    currencyCode: groupData.group.currencyCode || "INR",
     backgroundUrl: groupData.group.backgroundUrl,
   };
 }

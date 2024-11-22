@@ -44,6 +44,14 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith(route),
   );
 
+  if (!user && request.nextUrl.pathname.startsWith("/group/")) {
+    const groupId = request.nextUrl.pathname.split("/")[2];
+    if (groupId) {
+      url.pathname = `/view/group/${encodeURIComponent(groupId)}`;
+      return NextResponse.redirect(url);
+    }
+  }
+
   if (!user && !isAuthRoute) {
     url.pathname = "/auth/signin";
     url.searchParams.set("next", request.nextUrl.pathname);

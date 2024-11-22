@@ -12,7 +12,6 @@ import { UserInfoStoreProvider } from "@/providers/user-info-store-provider";
 import { getUser } from "@/server/actions";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
-import { nanoid } from "nanoid";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { getUserInvitesFromDB } from "./api/(invites)/utils";
@@ -75,9 +74,6 @@ export default async function RootLayout({
   if (user) {
     notifications = await db.transaction(async (transaction) => {
       return await getUserInvitesFromDB(transaction, user?.id);
-    });
-    notifications.forEach((notification) => {
-      notification.notificationId = nanoid();
     });
   }
 

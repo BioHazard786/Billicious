@@ -25,7 +25,7 @@ import { useControllableState } from "@/hooks/use-controllable-state";
 import { cn, convertToJpgExtension, formatBytes } from "@/lib/utils";
 import useGroupImageTabStore from "@/store/group-image-tab-store";
 import { useMutation } from "@tanstack/react-query";
-import { CropIcon, FileText, Trash2Icon, Upload, X } from "lucide-react";
+import { FileText, Upload, X } from "lucide-react";
 import ReactCrop, {
   centerCrop,
   makeAspectCrop,
@@ -112,6 +112,38 @@ interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
    * @example disabled
    */
   disabled?: boolean;
+
+  /**
+   * Aspect Ratio of react crop.
+   * @type number
+   * @default 1
+   * @example aspect
+   */
+  aspect?: number;
+
+  /**
+   * Toast Loading message.
+   * @type string
+   * @default "Uploading avatar..."
+   * @example toastMessage
+   */
+  toastLoadingMessage?: string;
+
+  /**
+   * Toast Success message.
+   * @type string
+   * @default "Avatar uploaded..."
+   * @example toastMessage
+   */
+  toastSuccessMessage?: string;
+
+  /**
+   * Circular crop option.
+   * @type boolean
+   * @default false
+   * @example circularCrop
+   */
+  circularCrop?: boolean;
 }
 
 export function ImageUploader(props: FileUploaderProps) {
@@ -127,11 +159,13 @@ export function ImageUploader(props: FileUploaderProps) {
     maxFileCount = 1,
     multiple = false,
     disabled = false,
+    aspect = 1,
+    toastLoadingMessage = "Uploading avatar...",
+    toastSuccessMessage = "Avatar uploaded successfully",
+    circularCrop = false,
     className,
     ...dropzoneProps
   } = props;
-
-  const aspect = 1;
 
   const [files, setFiles] = useControllableState({
     prop: valueProp,
@@ -146,12 +180,12 @@ export function ImageUploader(props: FileUploaderProps) {
   const { mutate: handleImageUpload } = useMutation({
     mutationFn: onUpload,
     onMutate: () => {
-      const toastId = toast.loading("Uploading avatar...");
+      const toastId = toast.loading(toastLoadingMessage);
       return { toastId };
     },
     onSuccess: (data, variables, context) => {
       setFiles([]);
-      return toast.success("Avatar uploaded", {
+      return toast.success(toastSuccessMessage, {
         id: context.toastId,
       });
     },
@@ -332,7 +366,7 @@ export function ImageUploader(props: FileUploaderProps) {
             }}
           >
             <ReactCrop
-              circularCrop
+              circularCrop={circularCrop}
               crop={crop}
               onChange={(_, percentCrop) => setCrop(percentCrop)}
               onComplete={(c) => onCropComplete(c)}

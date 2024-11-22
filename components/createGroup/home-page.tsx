@@ -45,7 +45,9 @@ const GroupCard = ({
             src={group.backgroundUrl}
             alt={group.groupName}
             fill
-            className="h-full w-full object-cover"
+            priority
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover"
           />
         ) : (
           <div>

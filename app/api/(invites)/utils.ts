@@ -25,17 +25,6 @@ export async function sendInvite(
   };
   await transaction.insert(inviteTable).values(newInvite);
 
-  let member = await transaction
-    .select()
-    .from(membersTable)
-    .where(
-      and(
-        eq(membersTable.groupId, groupId),
-        eq(membersTable.userIndex, userIndex),
-      ),
-    );
-  console.log(member);
-
   await transaction
     .update(membersTable)
     .set({ userId: receiverUserId, status: 1 })
