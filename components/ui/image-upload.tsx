@@ -669,7 +669,7 @@ export function BackgroundImageUploader(props: FileUploaderProps) {
         </DialogContent>
       </Dialog>
       {files?.length ? (
-        <ScrollArea className="h-fit w-full px-3">
+        <ScrollArea className="h-fit w-full">
           <div className="flex max-h-48 flex-col gap-4">
             {files?.map((file, index) => (
               <FileCard

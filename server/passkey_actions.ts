@@ -34,3 +34,8 @@ export async function finishServerPasskeyLogin(options: any) {
   const response = await passkeyApi.login.finalize(options);
   return response;
 }
+
+export async function getSavedPasskeys(userId: string) {
+  const passkeys = await passkeyApi.user(userId).credentials();
+  return passkeys;
+}

@@ -17,10 +17,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { profileUpdateFormSchema } from "@/lib/schema";
+import { timeAgo } from "@/lib/utils";
 import { passkeyRegistered } from "@/server/actions";
 import { updateProfile } from "@/server/fetchHelpers";
 import {
   finishServerPasskeyRegistration,
+  getSavedPasskeys,
   startServerPasskeyRegistration,
 } from "@/server/passkey_actions";
 import useUserInfoStore from "@/store/user-info-store";
@@ -29,7 +31,7 @@ import {
   type CredentialCreationOptionsJSON,
 } from "@github/webauthn-json";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Camera, Lock, User } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -42,7 +44,18 @@ import { Button } from "../ui/button";
 import { ImageUploader } from "../ui/image-upload";
 import { Input } from "../ui/input";
 import PasskeyLogo from "../ui/passkey-logo";
+import { ScrollArea } from "../ui/scroll-area";
+import { Skeleton } from "../ui/skeleton";
 import { Spinner } from "../ui/spinner";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
 type ProfileUpdateFormData = z.infer<typeof profileUpdateFormSchema>;
@@ -279,7 +292,6 @@ const UpdateUserAvatar = () => {
 
 const RegisterNewPasskey = () => {
   const user = useUserInfoStore((state) => state.user);
-  const setHasPasskeys = useUserInfoStore((state) => state.setHasPasskeys);
 
   const { isPending, mutate: server_registerNewPasskey } = useMutation({
     mutationFn: async ({ userId }: { userId: string }) => {
@@ -299,7 +311,6 @@ const RegisterNewPasskey = () => {
         return toast.error(response.error, {
           id: context.toastId,
         });
-      setHasPasskeys();
       return toast.success("Passkey registered", {
         id: context.toastId,
       });
@@ -311,31 +322,65 @@ const RegisterNewPasskey = () => {
     },
   });
 
+  const { isLoading, data } = useQuery({
+    queryKey: ["passkeys", user?.id],
+    queryFn: () => getSavedPasskeys(user?.id as string),
+    staleTime: 5 * 60 * 1000,
+  });
+
   const handleRegisterPasskey = (userId: string) => {
     server_registerNewPasskey({ userId });
   };
 
   return (
     <div className="flex w-full flex-col items-center justify-center space-y-8">
-      <PasskeyLogo />
-      <div className="space-y-2 text-center">
-        <Button
-          onClick={() => handleRegisterPasskey(user!.id)}
-          className="flex items-center justify-center space-x-2"
-          disabled={isPending}
-        >
-          {isPending ? (
-            <Spinner className="mr-2" />
-          ) : (
-            <GoPasskeyFill className="mr-2 h-5 w-5" />
-          )}
-          Register a new passkey
-        </Button>
-
-        <div className="text-xs text-muted-foreground">
-          You has already registerd a passkey
+      <PasskeyLogo className="h-24 md:h-32 lg:h-40" />
+      {isLoading ? (
+        <div className="grid h-48 w-[80%] place-items-center rounded-md">
+          <Spinner
+            loadingSpanClassName="bg-muted-foreground"
+            className="size-6 md:size-7 lg:size-8"
+          />
         </div>
-      </div>
+      ) : (
+        <Table>
+          <TableCaption>
+            {`You have ${data?.length || 0} passkeys registered.`}
+          </TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead className="text-right">Last Used</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data?.map((passkey) => (
+              <TableRow key={passkey.id}>
+                <TableCell className="font-medium">{passkey.name}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {timeAgo(passkey.created_at)}
+                </TableCell>
+                <TableCell className="text-right text-muted-foreground">
+                  {timeAgo(passkey.last_used_at as string)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+      <Button
+        onClick={() => handleRegisterPasskey(user!.id)}
+        className="flex items-center justify-center space-x-2"
+        disabled={isPending}
+      >
+        {isPending ? (
+          <Spinner className="mr-2" />
+        ) : (
+          <GoPasskeyFill className="mr-2 h-5 w-5" />
+        )}
+        Register a new passkey
+      </Button>
     </div>
   );
 };

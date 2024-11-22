@@ -15,7 +15,11 @@ const GroupImageTab: React.FC = () => {
         title="Add Image"
         description="Choose group cover image"
       />
-      <BackgroundImageUploader accept={{ "image/jpeg": [], "image/png": [] }} />
+      <div className="px-4 md:px-0">
+        <BackgroundImageUploader
+          accept={{ "image/jpeg": [], "image/png": [] }}
+        />
+      </div>
     </>
   );
 };
