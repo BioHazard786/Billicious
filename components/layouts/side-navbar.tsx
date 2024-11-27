@@ -59,10 +59,10 @@ const SideNavbar = () => {
       isActive: pathname === `/group/${groupId}`,
     },
     {
-      href: `/group/${encodeURIComponent(groupId)}/activities`,
+      href: `/group/${encodeURIComponent(groupId)}/settle`,
       icon: Handshake,
-      label: "Settle",
-      isActive: pathname === `/group/${groupId}/activities`,
+      label: "Settle Up",
+      isActive: pathname === `/group/${groupId}/settle`,
     },
     {
       href: `/group/${encodeURIComponent(groupId)}/expenses`,
