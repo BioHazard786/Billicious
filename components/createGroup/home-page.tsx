@@ -90,8 +90,8 @@ const GroupCard = ({
           <CardDescription className="flex flex-row items-center justify-between gap-1">
             <span className="flex flex-row gap-1">
               <Avatar className="size-5">
-                <AvatarImage src={userAvatarUrl} alt={group.groupName} />
-                <AvatarFallback>{group.groupName[0]}</AvatarFallback>
+                <AvatarImage src={userAvatarUrl} alt={group.userNameInGroup} />
+                <AvatarFallback>{group.userNameInGroup[0]}</AvatarFallback>
               </Avatar>
               {group.userNameInGroup}
             </span>

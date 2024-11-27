@@ -31,8 +31,9 @@ import {
   type CredentialCreationOptionsJSON,
 } from "@github/webauthn-json";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Camera, Lock, User } from "lucide-react";
+import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { GoPasskeyFill } from "react-icons/go";
@@ -44,8 +45,6 @@ import { Button } from "../ui/button";
 import { ImageUploader } from "../ui/image-upload";
 import { Input } from "../ui/input";
 import PasskeyLogo from "../ui/passkey-logo";
-import { ScrollArea } from "../ui/scroll-area";
-import { Skeleton } from "../ui/skeleton";
 import { Spinner } from "../ui/spinner";
 import {
   Table,
@@ -292,6 +291,8 @@ const UpdateUserAvatar = () => {
 
 const RegisterNewPasskey = () => {
   const user = useUserInfoStore((state) => state.user);
+  const queryClient = useQueryClient();
+  const { slug: groupId } = useParams();
 
   const { isPending, mutate: server_registerNewPasskey } = useMutation({
     mutationFn: async ({ userId }: { userId: string }) => {
@@ -311,6 +312,9 @@ const RegisterNewPasskey = () => {
         return toast.error(response.error, {
           id: context.toastId,
         });
+      queryClient.invalidateQueries({
+        queryKey: ["passkeys", user?.id, groupId as string],
+      });
       return toast.success("Passkey registered", {
         id: context.toastId,
       });
@@ -323,9 +327,8 @@ const RegisterNewPasskey = () => {
   });
 
   const { isLoading, data } = useQuery({
-    queryKey: ["passkeys", user?.id],
+    queryKey: ["passkeys", user?.id, groupId as string],
     queryFn: () => getSavedPasskeys(user?.id as string),
-    staleTime: 5 * 60 * 1000,
   });
 
   const handleRegisterPasskey = (userId: string) => {

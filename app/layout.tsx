@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     "Expense Splitter",
     "Group Cost Sharing",
   ],
-  title: "Billcious | Simplify the calculation of splitting group expenses",
+  title: "Billicious | Simplify the calculation of splitting group expenses",
   description:
     "Split your bills easily! Billicious is an open-source Webapp built for tracking debts and payments quickly",
   applicationName: "Billicious",

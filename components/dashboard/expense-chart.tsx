@@ -40,6 +40,7 @@ const ExpenseChart = () => {
                 totalBill={totalBill}
                 key={`progress-bar-${index}`}
                 currencySymbol={currencySymbol}
+                status={member.status}
               />
             ))}
           </AnimatePresence>

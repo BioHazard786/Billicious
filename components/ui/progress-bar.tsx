@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { animate, motion } from "framer-motion";
 import { useEffect, useMemo, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
@@ -9,6 +10,7 @@ interface ProgressBarProps {
   totalBill: number;
   balance: number;
   currencySymbol: string;
+  status: number;
 }
 
 const ProgressBar = ({
@@ -18,6 +20,7 @@ const ProgressBar = ({
   totalBill,
   balance,
   currencySymbol,
+  status,
 }: ProgressBarProps) => {
   const width = useMemo(
     () => (totalBill === 0 ? 0 : totalPaid / totalBill),
@@ -72,8 +75,17 @@ const ProgressBar = ({
       exit={{ opacity: 0, translateY: -50 }}
       transition={{ duration: 0.25, ease: "easeInOut" }}
     >
-      <Avatar>
+      <Avatar className="relative">
         <AvatarImage src={avatarUrl} alt={name} />
+        {status === 1 && avatarUrl && (
+          <div
+            className={cn(
+              "absolute inset-0 rounded-full",
+              "bg-black/50",
+              "pointer-events-none",
+            )}
+          />
+        )}
         <AvatarFallback>{name[0]}</AvatarFallback>
       </Avatar>
       <div className="ml-4 flex flex-grow flex-col">
