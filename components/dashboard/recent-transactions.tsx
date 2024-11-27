@@ -17,7 +17,7 @@ import { CURRENCIES } from "@/constants/items";
 import { categories, cn } from "@/lib/utils";
 import useDashboardStore from "@/store/dashboard-store";
 import { format } from "date-fns";
-import { ArrowRight, MoveRight, Tags } from "lucide-react";
+import { Tags } from "lucide-react";
 import { useMemo } from "react";
 import AvatarCircles from "../ui/avatar-circles";
 import NoContent from "../ui/no-content";
@@ -117,7 +117,7 @@ export default function RecentTransactions() {
   );
 }
 
-const getCategoryIcon = (category: string, className?: string) => {
+export const getCategoryIcon = (category: string, className?: string) => {
   const { icon: Icon, color } = categories[category] || {
     icon: Tags,
     color: "cyan",

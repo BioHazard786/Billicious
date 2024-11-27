@@ -32,7 +32,8 @@ import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
 import useSplitByPercentTabStore from "@/store/split-by-percent-tab-store";
 import useSplitEquallyTabStore from "@/store/split-equally-tab-store";
 import useSplitTabStore from "@/store/split-tab-store";
-import { useMutation } from "@tanstack/react-query";
+import useUserInfoStore from "@/store/user-info-store";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -84,6 +85,8 @@ function AddBillForm() {
   const [isOpen, setIsOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const supabase = useMemo(() => createClient(), []);
+  const queryClient = useQueryClient();
+  const user = useUserInfoStore((state) => state.user);
 
   const activeTab = useAddBillStore.use.activeTab();
   const direction = useAddBillStore.use.direction();
@@ -159,6 +162,12 @@ function AddBillForm() {
         payees: data.payees.map(
           (payee: { userIndex: number }) => payee.userIndex,
         ),
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["settleUp", user?.id, groupId as string],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["expenses", user?.id, groupId as string],
       });
       resetBillFormStores();
       return toast.success(`${variables.name} transaction added successfully`, {

@@ -3,9 +3,9 @@
 import AddBillForm from "@/components/billForm/add-bill-form";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import useUserInfoStore from "@/store/user-info-store";
 import {
   Activity,
+  Handshake,
   LayoutDashboard,
   LucideIcon,
   PieChart,
@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 
 interface NavItemProps {
   href: string;
@@ -40,37 +40,36 @@ const NavItem = ({ href, icon: Icon, label, isActive }: NavItemProps) => (
 
 const BottomNavbar = () => {
   const pathname = usePathname();
-  const { slug } = useParams<{ slug: string }>();
+  const { slug } = useParams();
+  const groupId = useMemo(() => slug as string, [slug]);
 
-  const navItems = useMemo(
-    () => [
-      {
-        href: `/group/${encodeURIComponent(slug)}`,
-        icon: LayoutDashboard,
-        label: "Dashboard",
-        isActive: pathname === `/group/${slug}`,
-      },
-      {
-        href: `/group/${encodeURIComponent(slug)}/expenses`,
-        icon: PieChart,
-        label: "Expenses",
-        isActive: pathname === `/group/${slug}/expenses`,
-      },
-      {
-        href: `/group/${encodeURIComponent(slug)}/activities`,
-        icon: Activity,
-        label: "Activities",
-        isActive: pathname === `/group/${slug}/activities`,
-      },
-      {
-        href: `/group/${encodeURIComponent(slug)}/members`,
-        icon: Users,
-        label: "Members",
-        isActive: pathname === `/group/${slug}/members`,
-      },
-    ],
-    [slug, pathname],
-  );
+  const navItems = [
+    {
+      href: `/group/${encodeURIComponent(groupId)}`,
+      icon: LayoutDashboard,
+      label: "Dashboard",
+      isActive: pathname === `/group/${groupId}`,
+    },
+    {
+      href: `/group/${encodeURIComponent(groupId)}/settle`,
+      icon: Handshake,
+      label: "Settle",
+      isActive: pathname === `/group/${groupId}/settle`,
+    },
+    {
+      href: `/group/${encodeURIComponent(groupId)}/expenses`,
+      icon: PieChart,
+      label: "Expenses",
+      isActive: pathname === `/group/${groupId}/expenses`,
+    },
+
+    {
+      href: `/group/${encodeURIComponent(groupId)}/members`,
+      icon: Users,
+      label: "Members",
+      isActive: pathname === `/group/${groupId}/members`,
+    },
+  ];
 
   return (
     <nav className="fixed bottom-0 z-[75] flex w-full items-center justify-between border-t bg-background px-3 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden">
@@ -85,4 +84,4 @@ const BottomNavbar = () => {
   );
 };
 
-export default BottomNavbar;
+export default memo(BottomNavbar);

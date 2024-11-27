@@ -34,8 +34,17 @@ const AvatarCircle: React.FC<{
   >
     <Tooltip>
       <TooltipTrigger asChild>
-        <Avatar className={className}>
+        <Avatar className={cn("relative", className)}>
           <AvatarImage src={member.avatarUrl} alt={member.name} />
+          {member.status === 1 && member.avatarUrl && (
+            <div
+              className={cn(
+                "absolute inset-0 rounded-full",
+                "bg-black/50",
+                "pointer-events-none",
+              )}
+            />
+          )}
           <AvatarFallback>{member.name[0]}</AvatarFallback>
         </Avatar>
       </TooltipTrigger>

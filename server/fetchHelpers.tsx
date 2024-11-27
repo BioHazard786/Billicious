@@ -128,3 +128,14 @@ export const declineInvite = async (declineInviteData: DeleteInviteData) => {
     JSON.stringify(declineInviteData),
   );
 };
+
+export const fetchAllBalances = async (groupId: string) => {
+  return postFetchHelper("/api/get_all_balances", JSON.stringify({ groupId }));
+};
+
+export const fetchTransactions = async (groupId: string, page: number) => {
+  return postFetchHelper(
+    "/api/get_all_bills",
+    JSON.stringify({ groupId, page }),
+  );
+};

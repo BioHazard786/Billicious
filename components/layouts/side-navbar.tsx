@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, LayoutDashboard, PieChart, Users } from "lucide-react";
+import { Handshake, LayoutDashboard, PieChart, Users } from "lucide-react";
 
 import AddBillForm from "@/components/billForm/add-bill-form";
 import { Button } from "@/components/ui/button";
@@ -13,10 +13,71 @@ import {
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
+import { memo, useMemo } from "react";
+
+const NavItem = ({
+  href,
+  icon: Icon,
+  label,
+  active,
+}: {
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  active: boolean;
+}) => (
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <Button
+        variant="ghost"
+        size="icon"
+        className={cn("rounded-lg", active && "bg-muted")}
+        aria-label={label}
+        asChild
+      >
+        <Link href={href}>
+          <Icon className="size-5" />
+        </Link>
+      </Button>
+    </TooltipTrigger>
+    <TooltipContent side="right" sideOffset={5}>
+      {label}
+    </TooltipContent>
+  </Tooltip>
+);
 
 const SideNavbar = () => {
   const pathname = usePathname();
   const { slug } = useParams();
+  const groupId = useMemo(() => slug as string, [slug]);
+
+  const navItems = [
+    {
+      href: `/group/${encodeURIComponent(groupId)}`,
+      icon: LayoutDashboard,
+      label: "Dashboard",
+      isActive: pathname === `/group/${groupId}`,
+    },
+    {
+      href: `/group/${encodeURIComponent(groupId)}/activities`,
+      icon: Handshake,
+      label: "Settle",
+      isActive: pathname === `/group/${groupId}/activities`,
+    },
+    {
+      href: `/group/${encodeURIComponent(groupId)}/expenses`,
+      icon: PieChart,
+      label: "Expenses",
+      isActive: pathname === `/group/${groupId}/expenses`,
+    },
+
+    {
+      href: `/group/${encodeURIComponent(groupId)}/members`,
+      icon: Users,
+      label: "Members",
+      isActive: pathname === `/group/${groupId}/members`,
+    },
+  ];
 
   return (
     <aside className="fixed inset-y-0 left-0 z-[76] hidden h-full flex-col border-r border-border lg:flex">
@@ -24,80 +85,28 @@ const SideNavbar = () => {
         <Mascot className="cursor-pointer" />
       </div>
       <nav className="grid gap-3 p-2">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link href={`/group/${encodeURIComponent(slug as string)}`}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "rounded-lg",
-                  /^\/group\/[^\/]+$/.test(pathname) ? "bg-muted" : "",
-                )}
-                aria-label="Dashboard"
-              >
-                <LayoutDashboard className="size-5" />
-              </Button>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent side="right" sideOffset={5}>
-            Dashboard
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-lg"
-              aria-label="Expenses"
-            >
-              <PieChart className="size-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="right" sideOffset={5}>
-            Expenses
-          </TooltipContent>
-        </Tooltip>
+        {navItems.slice(0, 2).map(({ href, icon, label, isActive }) => (
+          <NavItem
+            key={label}
+            href={href}
+            icon={icon}
+            label={label}
+            active={isActive}
+          />
+        ))}
         <AddBillForm />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-lg"
-              aria-label="Activities"
-            >
-              <Activity className="size-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="right" sideOffset={5}>
-            Activities
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link href={`/group/${encodeURIComponent(slug as string)}/members`}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "rounded-lg",
-                  /^\/group\/[^\/]+\/members$/.test(pathname) ? "bg-muted" : "",
-                )}
-                aria-label="Members"
-              >
-                <Users className="size-5" />
-              </Button>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent side="right" sideOffset={5}>
-            Members
-          </TooltipContent>
-        </Tooltip>
+        {navItems.slice(2).map(({ href, icon, label, isActive }) => (
+          <NavItem
+            key={label}
+            href={href}
+            icon={icon}
+            label={label}
+            active={isActive}
+          />
+        ))}
       </nav>
     </aside>
   );
 };
 
-export default SideNavbar;
+export default memo(SideNavbar);

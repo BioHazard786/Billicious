@@ -106,7 +106,7 @@ const InvitePermanentMember = ({
       },
       onSuccess: (data, variables, context) => {
         const invitedMember = {
-          name: selectedUser?.name as string,
+          name: existingMember?.name as string,
           memberId: selectedUser?.id as string,
           memberIndex: existingMember?.memberIndex as string,
           username: selectedUser?.username ?? undefined,
