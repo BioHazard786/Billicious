@@ -206,7 +206,7 @@ export async function createAdmin(
           .where(
             and(
               eq(membersTable.groupId, groupId),
-              eq(membersTable.userId, ownerId),
+              eq(membersTable.userIndex, userIndex),
             ),
           );
       }
@@ -242,7 +242,7 @@ export async function removeAdmin(
           .where(
             and(
               eq(membersTable.groupId, groupId),
-              eq(membersTable.userId, ownerId),
+              eq(membersTable.userIndex, userIndex),
             ),
           );
       }
