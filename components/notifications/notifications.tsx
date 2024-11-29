@@ -69,7 +69,6 @@ const Notifications = () => {
           filter: `receiver_user_id=eq.${user?.id}`,
         },
         async (payload) => {
-          console.log(payload, payload.new.receiver_user_id === user?.id);
           const info = await server_fetchNewNotifications({
             userId: payload.new.sender_user_id,
             groupId: payload.new.group_id,

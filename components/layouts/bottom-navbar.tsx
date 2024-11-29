@@ -2,25 +2,12 @@
 
 import AddBillForm from "@/components/billForm/add-bill-form";
 import { Button } from "@/components/ui/button";
+import { NavItemProps } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import {
-  Activity,
-  Handshake,
-  LayoutDashboard,
-  LucideIcon,
-  PieChart,
-  Users,
-} from "lucide-react";
+import { Handshake, LayoutDashboard, PieChart, Users } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { memo, useMemo } from "react";
-
-interface NavItemProps {
-  href: string;
-  icon: LucideIcon;
-  label: string;
-  isActive: boolean;
-}
 
 const NavItem = ({ href, icon: Icon, label, isActive }: NavItemProps) => (
   <Link href={href} className="flex flex-col items-center gap-1">
@@ -38,36 +25,41 @@ const NavItem = ({ href, icon: Icon, label, isActive }: NavItemProps) => (
   </Link>
 );
 
-const BottomNavbar = () => {
+const BottomNavbar = ({
+  removeBillForm = false,
+}: {
+  removeBillForm?: boolean;
+}) => {
   const pathname = usePathname();
   const { slug } = useParams();
   const groupId = useMemo(() => slug as string, [slug]);
+  const navPath = removeBillForm ? "/view/group" : "/group";
 
   const navItems = [
     {
-      href: `/group/${encodeURIComponent(groupId)}`,
+      href: `${navPath}/${encodeURIComponent(groupId)}`,
       icon: LayoutDashboard,
       label: "Dashboard",
-      isActive: pathname === `/group/${groupId}`,
+      isActive: pathname === `${navPath}/${groupId}`,
     },
     {
-      href: `/group/${encodeURIComponent(groupId)}/settle`,
+      href: `${navPath}/${encodeURIComponent(groupId)}/settle`,
       icon: Handshake,
       label: "Settle",
-      isActive: pathname === `/group/${groupId}/settle`,
+      isActive: pathname === `${navPath}/${groupId}/settle`,
     },
     {
-      href: `/group/${encodeURIComponent(groupId)}/expenses`,
+      href: `${navPath}/${encodeURIComponent(groupId)}/expenses`,
       icon: PieChart,
       label: "Expenses",
-      isActive: pathname === `/group/${groupId}/expenses`,
+      isActive: pathname === `${navPath}/${groupId}/expenses`,
     },
 
     {
-      href: `/group/${encodeURIComponent(groupId)}/members`,
+      href: `${navPath}/${encodeURIComponent(groupId)}/members`,
       icon: Users,
       label: "Members",
-      isActive: pathname === `/group/${groupId}/members`,
+      isActive: pathname === `${navPath}/${groupId}/members`,
     },
   ];
 
@@ -76,7 +68,7 @@ const BottomNavbar = () => {
       {navItems.slice(0, 2).map((item) => (
         <NavItem key={item.label} {...item} />
       ))}
-      <AddBillForm />
+      {!removeBillForm && <AddBillForm />}
       {navItems.slice(2).map((item) => (
         <NavItem key={item.label} {...item} />
       ))}

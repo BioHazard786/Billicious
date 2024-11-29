@@ -1,5 +1,6 @@
-import SettleUp from "@/components/settleUp/settle-up";
-import { fetchAllBalances } from "@/server/fetchHelpers";
+import Expenses from "@/components/expenses/expenses";
+import { getUser } from "@/server/actions";
+import { fetchTransactions } from "@/server/fetchHelpers";
 import {
   dehydrate,
   HydrationBoundary,
@@ -11,13 +12,12 @@ const Page = async ({ params }: { params: { slug: string } }) => {
   const groupId = params.slug;
 
   await queryClient.prefetchQuery({
-    queryKey: ["settleUp", groupId],
-    queryFn: () => fetchAllBalances(groupId),
+    queryKey: ["expenses", groupId],
+    queryFn: () => fetchTransactions(groupId, 1),
   });
-
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <SettleUp />
+      <Expenses />
     </HydrationBoundary>
   );
 };

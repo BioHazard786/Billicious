@@ -169,16 +169,6 @@ export function convertToJpgExtension(filename?: string) {
   return ext.toLowerCase() === "jpg" ? `${newName}.jpg` : `${newName}.jpg`;
 }
 
-export function memberStatus(status: number, isAdmin: boolean): string {
-  return status === 2
-    ? isAdmin
-      ? "Admin"
-      : "Permanent"
-    : status === 1
-      ? "Invited"
-      : "Temporary";
-}
-
 export function formatUserGroupsData(data: any): userGroup[] {
   const userGroups: userGroup[] = data.map((group: any) => ({
     groupId: group.groupId,

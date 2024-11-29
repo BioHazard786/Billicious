@@ -5,7 +5,7 @@ const Loading = () => {
     <div className="flex h-screen w-full items-center justify-center [@supports(height:100dvh)]:h-dvh">
       <Spinner
         loadingSpanClassName="bg-muted-foreground"
-        className="size-6 md:size-7 lg:size-8"
+        className="size-6 md:size-6 lg:size-7"
       />
     </div>
   );

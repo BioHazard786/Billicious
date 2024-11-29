@@ -10,28 +10,19 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { NavItemProps } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { memo, useMemo } from "react";
 
-const NavItem = ({
-  href,
-  icon: Icon,
-  label,
-  active,
-}: {
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  active: boolean;
-}) => (
+const NavItem = ({ href, icon: Icon, label, isActive }: NavItemProps) => (
   <Tooltip>
     <TooltipTrigger asChild>
       <Button
         variant="ghost"
         size="icon"
-        className={cn("rounded-lg", active && "bg-muted")}
+        className={cn("rounded-lg", isActive && "bg-muted")}
         aria-label={label}
         asChild
       >
@@ -46,63 +37,58 @@ const NavItem = ({
   </Tooltip>
 );
 
-const SideNavbar = () => {
+const SideNavbar = ({
+  removeBillForm = false,
+}: {
+  removeBillForm?: boolean;
+}) => {
   const pathname = usePathname();
   const { slug } = useParams();
   const groupId = useMemo(() => slug as string, [slug]);
+  const navPath = removeBillForm ? "/view/group" : "/group";
 
   const navItems = [
     {
-      href: `/group/${encodeURIComponent(groupId)}`,
+      href: `${navPath}/${encodeURIComponent(groupId)}`,
       icon: LayoutDashboard,
       label: "Dashboard",
-      isActive: pathname === `/group/${groupId}`,
+      isActive: pathname === `${navPath}/${groupId}`,
     },
     {
-      href: `/group/${encodeURIComponent(groupId)}/settle`,
+      href: `${navPath}/${encodeURIComponent(groupId)}/settle`,
       icon: Handshake,
-      label: "Settle Up",
-      isActive: pathname === `/group/${groupId}/settle`,
+      label: "Settle",
+      isActive: pathname === `${navPath}/${groupId}/settle`,
     },
     {
-      href: `/group/${encodeURIComponent(groupId)}/expenses`,
+      href: `${navPath}/${encodeURIComponent(groupId)}/expenses`,
       icon: PieChart,
       label: "Expenses",
-      isActive: pathname === `/group/${groupId}/expenses`,
+      isActive: pathname === `${navPath}/${groupId}/expenses`,
     },
 
     {
-      href: `/group/${encodeURIComponent(groupId)}/members`,
+      href: `${navPath}/${encodeURIComponent(groupId)}/members`,
       icon: Users,
       label: "Members",
-      isActive: pathname === `/group/${groupId}/members`,
+      isActive: pathname === `${navPath}/${groupId}/members`,
     },
   ];
 
   return (
     <aside className="fixed inset-y-0 left-0 z-[76] hidden h-full flex-col border-r border-border lg:flex">
       <div className="p-2 pt-[0.6rem]">
-        <Mascot className="cursor-pointer" />
+        <Link href="/">
+          <Mascot className="cursor-pointer" />
+        </Link>
       </div>
       <nav className="grid gap-3 p-2">
-        {navItems.slice(0, 2).map(({ href, icon, label, isActive }) => (
-          <NavItem
-            key={label}
-            href={href}
-            icon={icon}
-            label={label}
-            active={isActive}
-          />
+        {navItems.slice(0, 2).map((item) => (
+          <NavItem key={item.label} {...item} />
         ))}
-        <AddBillForm />
-        {navItems.slice(2).map(({ href, icon, label, isActive }) => (
-          <NavItem
-            key={label}
-            href={href}
-            icon={icon}
-            label={label}
-            active={isActive}
-          />
+        {!removeBillForm && <AddBillForm />}
+        {navItems.slice(2).map((item) => (
+          <NavItem key={item.label} {...item} />
         ))}
       </nav>
     </aside>

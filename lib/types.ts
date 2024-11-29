@@ -1,3 +1,5 @@
+import { type LucideIcon } from "lucide-react";
+
 export type TGroupData = {
   id: string;
   name: string;
@@ -77,4 +79,11 @@ export type PermanentUser = {
   name: string;
   username: string;
   avatar_url?: string;
+};
+
+export type NavItemProps = {
+  href: string;
+  icon: LucideIcon;
+  label: string;
+  isActive: boolean;
 };

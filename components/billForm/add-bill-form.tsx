@@ -19,11 +19,10 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 
-import { createClient } from "@/auth-utils/client";
 import { formatDrawees } from "@/components/billForm/splitTab/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { resetBillFormStores, titleCase } from "@/lib/utils";
-import { addBillToGroupInDB, viewGroup } from "@/server/fetchHelpers";
+import { addBillToGroupInDB } from "@/server/fetchHelpers";
 import useAddBillStore from "@/store/add-bill-store";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
@@ -32,12 +31,11 @@ import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
 import useSplitByPercentTabStore from "@/store/split-by-percent-tab-store";
 import useSplitEquallyTabStore from "@/store/split-equally-tab-store";
 import useSplitTabStore from "@/store/split-tab-store";
-import useUserInfoStore from "@/store/user-info-store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import AnimatedButton from "../ui/animated-button";
 import ContributionsTab from "./contributions-tab";
@@ -84,9 +82,7 @@ function AddBillForm() {
   const { slug: groupId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
-  const user = useUserInfoStore((state) => state.user);
 
   const activeTab = useAddBillStore.use.activeTab();
   const direction = useAddBillStore.use.direction();
@@ -164,10 +160,10 @@ function AddBillForm() {
         ),
       });
       queryClient.invalidateQueries({
-        queryKey: ["settleUp", user?.id, groupId as string],
+        queryKey: ["settleUp", groupId as string],
       });
       queryClient.invalidateQueries({
-        queryKey: ["expenses", user?.id, groupId as string],
+        queryKey: ["expenses", groupId as string],
       });
       resetBillFormStores();
       return toast.success(`${variables.name} transaction added successfully`, {
@@ -182,19 +178,6 @@ function AddBillForm() {
     },
     onSettled: () => {
       setIsOpen(false);
-    },
-  });
-
-  const { mutateAsync: server_fetchNewGroupData } = useMutation({
-    mutationFn: viewGroup,
-    onSuccess: (data) => {
-      addBillToGroup({
-        updatedMemberData: data.members,
-        totalAmount: Number(data.group.totalExpense),
-      });
-    },
-    onError: (error) => {
-      console.log(error);
     },
   });
 
@@ -223,39 +206,6 @@ function AddBillForm() {
       ),
     });
   };
-
-  useEffect(() => {
-    const channel = supabase
-      .channel("realtime bills")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "bills_table",
-          filter: `group_id=eq.${groupId}`,
-        },
-        async (payload) => {
-          await server_fetchNewGroupData(groupId as string);
-          addTransaction({
-            name: payload.new.name,
-            category: payload.new.category,
-            createdAt: new Date(payload.new.created_at + "Z"),
-            notes: payload.new.notes,
-            id: payload.new.id,
-            amount: payload.new.amount,
-            isPayment: payload.new.is_payment,
-            drawees: payload.new.drawees_string.split("|").map(Number),
-            payees: payload.new.payees_string.split("|").map(Number),
-          });
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
 
   if (isDesktop) {
     return (

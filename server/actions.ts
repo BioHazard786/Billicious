@@ -60,6 +60,7 @@ export async function signUpUsingEmail(data: z.infer<typeof signUpFormSchema>) {
   const { error } = await supabase.auth.signUp({
     ...data,
     options: {
+      emailRedirectTo: "https://app.billicious.tech/register/passkey",
       data: {
         full_name: data.name,
         username: data.username,
@@ -68,12 +69,14 @@ export async function signUpUsingEmail(data: z.infer<typeof signUpFormSchema>) {
   });
 
   if (error) {
-    console.log(error);
+    console.error(error);
     return { error: error.message || "Something went wrong" };
   }
 
-  revalidatePath("/", "layout");
-  redirect("/register/passkey");
+  return { success: "Email verification sent. Please check your inbox." };
+
+  // revalidatePath("/", "layout");
+  // redirect("/register/passkey");
 }
 
 export async function signInUsingGoogle(next: string) {
