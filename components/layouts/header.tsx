@@ -25,8 +25,8 @@ const Header = () => {
   const user = useUserInfoStore((state) => state.user);
 
   const showMascot = useMemo(
-    () => ELIGIBLE_PATHS.includes(pathName) || user === null,
-    [pathName, user],
+    () => ELIGIBLE_PATHS.includes(pathName),
+    [pathName],
   );
 
   const logoClassName = useMemo(

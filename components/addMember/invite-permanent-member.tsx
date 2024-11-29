@@ -222,7 +222,7 @@ const InvitePermanentMember = ({
                           <AvatarImage src={user.avatar_url} alt={user.name} />
                           <AvatarFallback>{user.name[0]}</AvatarFallback>
                         </Avatar>
-                        <div className="ml-4 flex flex-col">
+                        <div className="ml-3 flex flex-col">
                           <span>{user.name}</span>
                           <span className="text-xs text-muted-foreground">
                             @{user.username}

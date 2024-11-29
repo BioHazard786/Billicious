@@ -22,7 +22,6 @@ import { signInUsingGoogle, signUpUsingEmail } from "@/server/actions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
@@ -33,7 +32,6 @@ import { Spinner } from "../ui/spinner";
 
 export default function SignUp() {
   const isApple = useAppleDevice().isAppleDevice;
-  const searchParams = useSearchParams();
   const form = useForm<z.infer<typeof signUpFormSchema>>({
     resolver: zodResolver(signUpFormSchema),
     defaultValues: {
@@ -55,11 +53,14 @@ export default function SignUp() {
     },
     onSuccess: (data, variables, context) => {
       if (data) {
-        if (data?.error.startsWith("Username")) {
+        if (data?.error?.startsWith("Username")) {
           form.setError("username", { message: data?.error });
           return toast.error(`Username ${variables.username} already taken`, {
             id: context?.toastId,
           });
+        }
+        if (data?.success) {
+          return toast.info(data?.success, { id: context?.toastId });
         }
         return toast.error(data?.error, {
           id: context?.toastId,

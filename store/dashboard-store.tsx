@@ -11,6 +11,9 @@ type Action = {
   updateMember: (member: TMembers) => void;
   addTransaction: (transaction: TransactionT) => void;
   updateBackgroundUrl: (url: string) => void;
+  makeAdmin: (userIndex: number) => void;
+  removeAdmin: (userIndex: number) => void;
+  removeInvite: (userIndex: number) => void;
 };
 
 export type DashboardStore = ReturnType<typeof createDashboardStore>;
@@ -67,6 +70,26 @@ export const createDashboardStore = (initialGroupData: TGroupData) => {
       set(
         produce((state: TGroupData) => {
           state.backgroundUrl = url;
+        }),
+      ),
+    makeAdmin: (userIndex: number) =>
+      set(
+        produce((state: TGroupData) => {
+          state.members[userIndex].isAdmin = true;
+        }),
+      ),
+    removeAdmin: (userIndex: number) =>
+      set(
+        produce((state: TGroupData) => {
+          state.members[userIndex].isAdmin = false;
+        }),
+      ),
+    removeInvite: (userIndex: number) =>
+      set(
+        produce((state: TGroupData) => {
+          state.members[userIndex].memberId = state.id + " | " + userIndex;
+          state.members[userIndex].status = 0;
+          state.members[userIndex].username = undefined;
         }),
       ),
   }));

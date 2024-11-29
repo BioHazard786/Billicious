@@ -1,13 +1,22 @@
 "use client";
 
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CURRENCIES } from "@/constants/items";
 import { cn } from "@/lib/utils";
 import { fetchAllBalances } from "@/server/fetchHelpers";
 import useDashboardStore from "@/store/dashboard-store";
-import useUserInfoStore from "@/store/user-info-store";
 import { useQuery } from "@tanstack/react-query";
+import { ChevronsRight } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useMemo } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
   Card,
@@ -29,64 +38,105 @@ type settleUpDataType = {
   updatedAt: string;
 };
 
-const SettleUp = async () => {
+const SettleUp = () => {
   const { slug: groupId } = useParams();
-  const user = useUserInfoStore((state) => state.user);
-
   const { data, isLoading } = useQuery<settleUpDataType[]>({
-    queryKey: ["settleUp", user?.id, groupId as string],
+    queryKey: ["settleUp", groupId as string],
     queryFn: () => fetchAllBalances(groupId as string),
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center [@supports(height:100dvh)]:h-dvh">
-        <Spinner
-          loadingSpanClassName="bg-muted-foreground"
-          className="size-6 md:size-7 lg:size-8"
-        />
-      </div>
-    );
-  }
+  const members = useDashboardStore((state) => state.members);
+  const [selectedMember, setSelectedMember] = useState<string | undefined>(
+    undefined,
+  );
 
-  if (data?.length === 0) {
-    return (
-      <Card className="m-3 mb-[5.25rem] mt-16 lg:mb-3 lg:ml-[4.2rem]">
-        <CardHeader>
-          <CardTitle>Settle Up</CardTitle>
-          <CardDescription>
-            Settle up your group's balances here
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="flex h-full flex-col items-center justify-center gap-4">
-          <NoContent className="size-32 md:size-48" />
-          <div className="text-sm text-muted-foreground md:text-base">
-            No debts here. Click + to add transactions
-          </div>
-        </CardContent>
-      </Card>
+  const filteredData = useMemo(() => {
+    if (!selectedMember || selectedMember === "all") return data;
+    return data?.filter(
+      (settleUpData) => settleUpData.user2Index.toString() === selectedMember,
     );
-  }
+  }, [data, selectedMember]);
 
   return (
     <Card className="m-3 mb-[5.25rem] mt-16 lg:mb-3 lg:ml-[4.2rem]">
       <CardHeader>
         <CardTitle>Settle Up</CardTitle>
         <CardDescription>Settle up your group's balances here</CardDescription>
+        {data && data.length > 0 && (
+          <Select
+            onValueChange={setSelectedMember}
+            value={selectedMember}
+            defaultValue="all"
+          >
+            <SelectTrigger className="w-full md:w-60">
+              <SelectValue placeholder="All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Members</SelectLabel>
+                <SelectItem value="all">
+                  <div className="flex items-center">
+                    <Avatar className="size-7">
+                      <AvatarFallback className="text-xs">A</AvatarFallback>
+                    </Avatar>
+                    <div className="ml-2 flex flex-col items-start">
+                      <span>All Members</span>
+                    </div>
+                  </div>
+                </SelectItem>
+                {members.map((member) => (
+                  <SelectItem value={member.memberIndex}>
+                    <div className="flex items-center">
+                      <Avatar className="size-7">
+                        <AvatarImage src={member.avatarUrl} alt={member.name} />
+                        <AvatarFallback className="text-xs">
+                          {member.name[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="ml-2 flex flex-col items-start">
+                        <span>{member.name}</span>
+                        {member.username && (
+                          <span className="text-xs text-muted-foreground">
+                            @{member.username}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        )}
       </CardHeader>
       <CardContent>
-        {data?.map((settleUpData, index) => (
-          <>
-            <Debt
-              key={`debt-${index}`}
-              senderIndex={settleUpData.user2Index}
-              receiverIndex={settleUpData.user1Index}
-              balance={settleUpData.balance}
+        {isLoading && (
+          <div className="flex w-full items-center justify-center">
+            <Spinner
+              loadingSpanClassName="bg-muted-foreground"
+              className="size-6 md:size-6 lg:size-7"
             />
-            <Separator className="my-4 last:hidden" />
-          </>
-        ))}
+          </div>
+        )}
+        {filteredData?.length === 0 ? (
+          <div className="flex h-full flex-col items-center justify-center gap-4">
+            <NoContent className="size-32 md:size-48" />
+            <div className="text-sm text-muted-foreground md:text-base">
+              No debts here. Click + to add transactions
+            </div>
+          </div>
+        ) : (
+          filteredData?.map((settleUpData, index) => (
+            <Fragment key={`debt-${index}`}>
+              <Debt
+                senderIndex={settleUpData.user2Index}
+                receiverIndex={settleUpData.user1Index}
+                balance={settleUpData.balance}
+              />
+              <Separator className="my-4 last:hidden" />
+            </Fragment>
+          ))
+        )}
       </CardContent>
     </Card>
   );
@@ -113,7 +163,7 @@ const Debt = ({
   return (
     <div className="flex flex-wrap items-center gap-2 px-2 text-sm">
       <span className="flex items-center gap-2 text-nowrap">
-        <Avatar className="relative size-6">
+        <Avatar className="relative size-7">
           <AvatarImage src={sender.avatarUrl} alt={sender.name} />
           {sender.status === 1 && sender.avatarUrl && (
             <div
@@ -128,12 +178,11 @@ const Debt = ({
         </Avatar>
         <span className="font-medium">{sender.name}</span>
       </span>
-      <span>should pay</span>
-      <span className="font-medium text-destructive">
+      <span className="font-mono font-medium text-destructive">
         {currencySymbol}
         {parseFloat(balance).toFixed(2)}
       </span>
-      <span>back to</span>
+      <ChevronsRight className="size-5" />
       <span className="flex items-center gap-2 text-nowrap">
         <Avatar className="relative size-6">
           <AvatarImage src={receiver.avatarUrl} alt={receiver.name} />

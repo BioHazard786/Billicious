@@ -51,6 +51,12 @@ type SendInviteData = {
   userIndex: number;
 };
 
+type CreateAdminData = {
+  groupId: string;
+  ownerId: string | undefined;
+  userIndex: number;
+};
+
 const postFetchHelper = async (endPoint: string, body: string) => {
   const response = await fetch(endPoint, {
     method: "POST",
@@ -138,4 +144,12 @@ export const fetchTransactions = async (groupId: string, page: number) => {
     "/api/get_all_bills",
     JSON.stringify({ groupId, page }),
   );
+};
+
+export const createAdmin = async (createAdminData: CreateAdminData) => {
+  return postFetchHelper("/api/create_admin", JSON.stringify(createAdminData));
+};
+
+export const deleteAdmin = async (deleteAdminData: CreateAdminData) => {
+  return postFetchHelper("/api/remove_admin", JSON.stringify(deleteAdminData));
 };

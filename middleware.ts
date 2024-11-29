@@ -16,7 +16,7 @@ export const config = {
      * - /view/group/[slug] (group pages)
      * - /api/view_group (group API endpoint)
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|view/group/[^/]+$|api/view_group).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|view/group/[^/]+(?:/.*)?$|api/).*)",
   ],
   // matcher: [
   //   "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|group/[^/]+$|view/group/[^/]+$|api/).*)",

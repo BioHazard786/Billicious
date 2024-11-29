@@ -47,17 +47,27 @@ import {
 import { CURRENCIES } from "@/constants/items";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { TMembers } from "@/lib/types";
-import { cn, memberStatus } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { createAdmin, declineInvite, deleteAdmin } from "@/server/fetchHelpers";
 import useMemberTabStore from "@/store/add-member-tab-store";
+import useUserInfoStore from "@/store/user-info-store";
+import { useMutation } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
 import { Dispatch, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "../ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import AddTemporaryMember from "./add-temporary-member";
 import InvitePermanentMember from "./invite-permanent-member";
 
 export default function AddMembers() {
+  const { slug: groupId } = useParams();
   const temporaryMember = useRef<TMembers | null>(null);
+  const user = useUserInfoStore((state) => state.user);
   const members = useDashboardStore((state) => state.members);
+  const makeAdmin = useDashboardStore((state) => state.makeAdmin);
+  const removeAdmin = useDashboardStore((state) => state.removeAdmin);
+  const deleteInvite = useDashboardStore((state) => state.removeInvite);
   const currencyCode = useDashboardStore((state) => state.currencyCode);
   const currencySymbol = useMemo(
     () => CURRENCIES[currencyCode || "INR"].currencySymbol,
@@ -69,6 +79,88 @@ export default function AddMembers() {
   const handleToggle = (id: string) => {
     setOpenDropdown((prev) => (prev === id ? null : id));
   };
+
+  const isAdmin = useMemo(() => {
+    return (
+      members.find((member) => member.memberId === user?.id)?.isAdmin ?? false
+    );
+  }, [members, user]);
+
+  const isOwner = useMemo(() => {
+    return members[0].memberId === user?.id;
+  }, [members, user]);
+
+  const { isPending: isPendingMakingAdmin, mutate: server_makeAdmin } =
+    useMutation({
+      mutationFn: createAdmin,
+      onMutate: (variables) => {
+        const toastId = toast.loading(
+          `Making ${members[variables.userIndex].name} admin...`,
+        );
+        return { toastId };
+      },
+      onSuccess: (data, variables, context) => {
+        makeAdmin(variables.userIndex);
+        return toast.success(
+          `${members[variables.userIndex].name} has been successfully made an admin.`,
+          {
+            id: context.toastId,
+          },
+        );
+      },
+      onError: (error, variables, context) => {
+        console.error(error);
+        return toast.error(error.message, {
+          id: context?.toastId,
+        });
+      },
+    });
+
+  const { isPending: isPendingRemovingAdmin, mutate: server_removeAdmin } =
+    useMutation({
+      mutationFn: deleteAdmin,
+      onMutate: (variables) => {
+        const toastId = toast.loading(
+          `Revoking admin rights for ${members[variables.userIndex].name}...`,
+        );
+        return { toastId };
+      },
+      onSuccess: (data, variables, context) => {
+        removeAdmin(variables.userIndex);
+        return toast.success(
+          `Successfully revoked ${members[variables.userIndex].name}'s admin rights.`,
+          {
+            id: context.toastId,
+          },
+        );
+      },
+      onError: (error, variables, context) => {
+        console.error(error);
+        return toast.error(error.message, {
+          id: context?.toastId,
+        });
+      },
+    });
+
+  const { isPending: isPendingDeleteInvite, mutate: server_deleteInvite } =
+    useMutation({
+      mutationFn: declineInvite,
+      onMutate: () => {
+        const toastId = toast.loading(`Deleting invite...`);
+        return { toastId };
+      },
+      onSuccess: (data, variables, context) => {
+        deleteInvite(variables.userIndex as number);
+        return toast.success(`Deleted successfully`, {
+          id: context.toastId,
+        });
+      },
+      onError: (error, variables, context) => {
+        return toast.error(error.message, {
+          id: context?.toastId,
+        });
+      },
+    });
 
   return (
     <>
@@ -136,7 +228,10 @@ export default function AddMembers() {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <MemberBadge member={member} />
+                    <MemberBadge
+                      member={member}
+                      ownerId={members[0].memberId}
+                    />
                   </TableCell>
                   <TableCell
                     className={cn(
@@ -171,8 +266,51 @@ export default function AddMembers() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Delete</DropdownMenuItem>
-                        {member.status === 0 ? (
+                        {isOwner && member.status === 2 && !member.isAdmin && (
+                          <DropdownMenuItem
+                            disabled={isPendingMakingAdmin}
+                            onClick={() =>
+                              server_makeAdmin({
+                                groupId: groupId as string,
+                                ownerId: user?.id,
+                                userIndex: Number(member.memberIndex),
+                              })
+                            }
+                          >
+                            Make Admin
+                          </DropdownMenuItem>
+                        )}
+                        {isOwner &&
+                          member.isAdmin &&
+                          member.memberId !== user?.id && (
+                            <DropdownMenuItem
+                              disabled={isPendingRemovingAdmin}
+                              onClick={() =>
+                                server_removeAdmin({
+                                  groupId: groupId as string,
+                                  ownerId: user?.id,
+                                  userIndex: Number(member.memberIndex),
+                                })
+                              }
+                            >
+                              Remove Admin
+                            </DropdownMenuItem>
+                          )}
+                        {isAdmin && member.status === 1 && (
+                          <DropdownMenuItem
+                            disabled={isPendingDeleteInvite}
+                            onClick={() =>
+                              server_deleteInvite({
+                                groupId: groupId as string,
+                                userId: member.memberId,
+                                userIndex: Number(member.memberIndex),
+                              })
+                            }
+                          >
+                            Delete Invite
+                          </DropdownMenuItem>
+                        )}
+                        {isAdmin && member.status === 0 && (
                           <DropdownMenuItem
                             onClick={() => {
                               temporaryMember.current = member;
@@ -181,7 +319,7 @@ export default function AddMembers() {
                           >
                             Invite
                           </DropdownMenuItem>
-                        ) : null}
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -190,16 +328,18 @@ export default function AddMembers() {
             </TableBody>
           </Table>
         </CardContent>
-        <CardFooter className="justify-left flex items-center">
-          <Button
-            className="w-full"
-            onClick={() => {
-              setIsAddMemberOpen(true);
-            }}
-          >
-            Add Member
-          </Button>
-        </CardFooter>
+        {isAdmin && (
+          <CardFooter className="justify-left flex items-center">
+            <Button
+              className="w-full"
+              onClick={() => {
+                setIsAddMemberOpen(true);
+              }}
+            >
+              Add Member
+            </Button>
+          </CardFooter>
+        )}
         <AddMemberDialog
           isOpen={isAddMemberOpen}
           setIsOpen={setIsAddMemberOpen}
@@ -305,13 +445,29 @@ export function ResponsiveDialog({
   );
 }
 
-const MemberBadge = ({ member }: { member: TMembers }) => {
-  const statusText = memberStatus(member.status, member.isAdmin);
+const MemberBadge = ({
+  member,
+  ownerId,
+}: {
+  member: TMembers;
+  ownerId: string;
+}) => {
+  const statusText =
+    member.status === 2
+      ? member.isAdmin
+        ? ownerId === member.memberId
+          ? "Owner"
+          : "Admin"
+        : "Permanent"
+      : member.status === 1
+        ? "Invited"
+        : "Temporary";
 
   const color: Record<string, string> = {
-    Admin: "crimson",
+    Owner: "crimson",
+    Admin: "teal",
     Permanent: "plum",
-    Temporary: "orange",
+    Temporary: "amber",
     Invited: "cyan",
   };
 

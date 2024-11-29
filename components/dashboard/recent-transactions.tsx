@@ -35,16 +35,14 @@ export default function RecentTransactions() {
     return (
       <Card className="flex h-full flex-col md:col-span-2">
         <CardHeader className="px-7">
-          <CardTitle>Transactions</CardTitle>
-          <CardDescription>
-            Recent transactions from your group.
-          </CardDescription>
+          <CardTitle>Expenses</CardTitle>
+          <CardDescription>Recent expenses from your group.</CardDescription>
         </CardHeader>
 
         <CardContent className="flex h-full flex-col items-center justify-center gap-4">
           <NoContent className="size-32 md:size-48" />
           <div className="text-sm text-muted-foreground md:text-base">
-            No Transactions here. Click + to add one
+            No expenses here. Click + to add one
           </div>
         </CardContent>
       </Card>
@@ -54,8 +52,8 @@ export default function RecentTransactions() {
   return (
     <Card className="h-full md:col-span-2">
       <CardHeader className="px-7">
-        <CardTitle>Transactions</CardTitle>
-        <CardDescription>Recent transactions from your group.</CardDescription>
+        <CardTitle>Expenses</CardTitle>
+        <CardDescription>Recent expenses from your group.</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>

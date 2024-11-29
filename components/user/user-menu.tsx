@@ -20,6 +20,7 @@ const UserMenu = () => {
   const user = useUserInfoStore((state) => state.user);
   const { slug: groupId } = useParams();
   const pathName = usePathname();
+
   const handleSignOut = useCallback(() => {
     toast.promise(signOut(), {
       loading: "Signing Out...",
