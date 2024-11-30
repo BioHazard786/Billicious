@@ -60,7 +60,7 @@ export async function signUpUsingEmail(data: z.infer<typeof signUpFormSchema>) {
   const { error } = await supabase.auth.signUp({
     ...data,
     options: {
-      emailRedirectTo: "https://app.billicious.tech/register/passkey",
+      emailRedirectTo: `${process.env.DOMAIN}/register/passkey`,
       data: {
         full_name: data.name,
         username: data.username,
@@ -84,7 +84,7 @@ export async function signInUsingGoogle(next: string) {
   const baseUrl =
     process.env.NODE_ENV === "development"
       ? "http://localhost:3000"
-      : "https://app.billicious.tech";
+      : process.env.DOMAIN;
   const redirectUrl = `${baseUrl}/auth/callback?next=${encodeURIComponent(next)}`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({

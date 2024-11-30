@@ -9,11 +9,20 @@ import {
 import { useTheme } from "next-themes";
 import { IoLaptop, IoMoon, IoSunny } from "react-icons/io5";
 
-export default function ThemeToggleButton() {
+export default function ThemeToggleButton({
+  openDropdown,
+  setOpenDropdown,
+}: {
+  openDropdown: string | null;
+  setOpenDropdown: (value: string) => void;
+}) {
   const { setTheme } = useTheme();
 
   return (
-    <DropdownMenu>
+    <DropdownMenu
+      open={openDropdown === "theme-toggle"}
+      onOpenChange={() => setOpenDropdown("theme-toggle")}
+    >
       <DropdownMenuTrigger asChild>
         <div className="relative inline-flex size-9 cursor-pointer items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
           <IoSunny className="size-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />

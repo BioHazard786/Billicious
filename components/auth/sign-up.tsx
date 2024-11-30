@@ -5,6 +5,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -13,24 +14,30 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Input, InputWithLimit } from "@/components/ui/input";
 import { useAppleDevice } from "@/hooks/use-apple-device";
 import { signUpFormSchema } from "@/lib/schema";
+import { cn } from "@/lib/utils";
 import { signInUsingGoogle, signUpUsingEmail } from "@/server/actions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { FcGoogle } from "react-icons/fc";
+import { FaGoogle } from "react-icons/fa";
 import { toast } from "sonner";
 import { z } from "zod";
 import AnimatedButton from "../ui/animated-button";
-import { PasswordField } from "../ui/password-input";
+import { PasswordField, PasswordStrengthField } from "../ui/password-input";
 import { Spinner } from "../ui/spinner";
 
-export default function SignUp() {
+export default function SignUp({
+  lastSignedInMethod,
+}: {
+  lastSignedInMethod?: string;
+}) {
   const isApple = useAppleDevice().isAppleDevice;
   const form = useForm<z.infer<typeof signUpFormSchema>>({
     resolver: zodResolver(signUpFormSchema),
@@ -105,25 +112,53 @@ export default function SignUp() {
   };
 
   return (
-    <Card className="mx-auto w-full max-w-sm space-y-8 border-0 px-1">
+    <Card className="mx-auto w-full max-w-sm space-y-6 border-0 px-1">
       <CardHeader>
-        <CardTitle className="mt-6 text-center text-2xl font-bold tracking-tight text-foreground/90 md:text-3xl">
-          Create new account
+        <CardTitle className="text-center text-2xl font-semibold tracking-tight text-foreground/90 md:text-3xl">
+          Get Started
         </CardTitle>
         <CardDescription className="text-center text-sm text-muted-foreground">
-          Or{" "}
-          <Link
-            href="/auth/signin"
-            className="font-medium text-foreground/80 underline hover:text-primary/90"
-          >
-            sign in with a existing account
-          </Link>
+          Create a new account
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-8">
+      <CardContent className="flex flex-col gap-5">
+        <Button
+          variant={lastSignedInMethod === "google" ? "secondary" : "outline"}
+          className={cn(
+            "relative",
+            lastSignedInMethod === "google" &&
+              "ring-1 ring-muted-foreground/25 ring-offset-[3px] ring-offset-background",
+          )}
+          onClick={handleSignUpWithGoogle}
+          disabled={isSignUpWithEmailPending || isSignUpWithGooglePending}
+        >
+          {isSignUpWithGooglePending ? (
+            <Spinner loadingSpanClassName="bg-primary" className="mr-2" />
+          ) : (
+            <FaGoogle className="mr-2 size-4" />
+          )}
+          Continue with Google
+          {lastSignedInMethod === "google" && (
+            <div className="absolute left-full top-1/2 ml-2 size-2.5 -translate-y-1/2 animate-pulse whitespace-nowrap rounded-full bg-primary md:hidden" />
+          )}
+          {lastSignedInMethod === "google" && (
+            <div className="absolute left-full top-1/2 ml-8 hidden -translate-y-1/2 whitespace-nowrap rounded-md bg-accent px-4 py-1 text-xs text-foreground/80 md:block">
+              <div className="absolute -left-5 top-0 border-[12px] border-background border-r-accent" />
+              Last used
+            </div>
+          )}
+        </Button>
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-muted" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-background px-2 text-muted-foreground">or</span>
+          </div>
+        </div>
         <Form {...form}>
           <form
-            className="space-y-6"
+            className="flex flex-col gap-4"
             onSubmit={form.handleSubmit(handleSignUpWithEmail)}
           >
             <FormField
@@ -131,12 +166,13 @@ export default function SignUp() {
               name="name"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>Name</FormLabel>
                   <FormControl>
                     <Input
                       className={isApple ? "text-base" : ""}
                       autoComplete="name"
                       id="name"
-                      placeholder="Zaid"
+                      placeholder="Sweetie Pie"
                       {...field}
                     />
                   </FormControl>
@@ -149,8 +185,11 @@ export default function SignUp() {
               name="username"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>Username</FormLabel>
                   <FormControl>
-                    <Input
+                    <InputWithLimit
+                      maxLength={16}
+                      characterCount={field.value.length}
                       className={isApple ? "text-base" : ""}
                       autoComplete="userName"
                       id="userName"
@@ -167,12 +206,13 @@ export default function SignUp() {
               name="email"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
                       className={isApple ? "text-base" : ""}
                       autoComplete="email"
                       id="email"
-                      placeholder="billicious@popular.com"
+                      placeholder="you@example.com"
                       {...field}
                     />
                   </FormControl>
@@ -180,7 +220,7 @@ export default function SignUp() {
                 </FormItem>
               )}
             />
-            <PasswordField />
+            <PasswordStrengthField />
             <AnimatedButton
               type="submit"
               variant="default"
@@ -188,35 +228,19 @@ export default function SignUp() {
               isDisabled={isSignUpWithEmailPending || isSignUpWithGooglePending}
               isLoading={isSignUpWithEmailPending}
             >
-              Create an account
+              Sign Up
             </AnimatedButton>
           </form>
         </Form>
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-muted" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="bg-background px-2 text-muted-foreground">
-              Or continue with
-            </span>
-          </div>
-        </div>
-        <div className="flex flex-col gap-2">
-          <Button
-            variant="outline"
-            className="relative"
-            onClick={handleSignUpWithGoogle}
-            disabled={isSignUpWithEmailPending || isSignUpWithGooglePending}
+        <CardFooter className="justify-center text-sm text-muted-foreground">
+          Have an account?{" "}
+          <Link
+            href="/auth/signin"
+            className="ml-1 text-foreground underline transition hover:text-muted-foreground"
           >
-            {isSignUpWithGooglePending ? (
-              <Spinner loadingSpanClassName="bg-primary" className="mr-2" />
-            ) : (
-              <FcGoogle className="mr-2 h-5 w-5" />
-            )}
-            Sign up with Google
-          </Button>
-        </div>
+            Sign In Now
+          </Link>
+        </CardFooter>
       </CardContent>
     </Card>
   );

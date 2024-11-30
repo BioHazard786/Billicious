@@ -25,37 +25,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import useDashboardStore from "@/store/dashboard-store";
-import { Link, MoreHorizontal, UserCheck, UserMinus } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
 import { CURRENCIES } from "@/constants/items";
-import { useMediaQuery } from "@/hooks/use-media-query";
 import { TMembers } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { createAdmin, declineInvite, deleteAdmin } from "@/server/fetchHelpers";
 import useMemberTabStore from "@/store/add-member-tab-store";
+import useDashboardStore from "@/store/dashboard-store";
 import useUserInfoStore from "@/store/user-info-store";
 import { useMutation } from "@tanstack/react-query";
+import { Link, MoreHorizontal, UserCheck, UserMinus } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Dispatch, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
+import ResponsiveDialog from "../ui/responsive-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import AddTemporaryMember from "./add-temporary-member";
 import InvitePermanentMember from "./invite-permanent-member";
@@ -400,50 +384,6 @@ const AddMemberDialog = ({
     </ResponsiveDialog>
   );
 };
-
-export function ResponsiveDialog({
-  children,
-  isOpen,
-  setIsOpen,
-  title,
-  description,
-}: {
-  children: React.ReactNode;
-  isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  title: string;
-  description?: string;
-}) {
-  const isDesktop = useMediaQuery("(min-width: 768px)");
-
-  if (isDesktop) {
-    return (
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="z-[101] sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            {description && (
-              <DialogDescription>{description}</DialogDescription>
-            )}
-          </DialogHeader>
-          {children}
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  return (
-    <Drawer open={isOpen} onOpenChange={setIsOpen}>
-      <DrawerContent className="z-[101]">
-        <DrawerHeader>
-          <DrawerTitle>{title}</DrawerTitle>
-          {description && <DrawerDescription>{description}</DrawerDescription>}
-        </DrawerHeader>
-        {children}
-      </DrawerContent>
-    </Drawer>
-  );
-}
 
 const MemberBadge = ({
   member,

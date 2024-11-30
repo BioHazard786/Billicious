@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAppleDevice } from "@/hooks/use-apple-device";
 import { signInFormSchema } from "@/lib/schema";
+import { cn } from "@/lib/utils";
 import {
   signInUsingEmail,
   signInUsingGoogle,
@@ -19,9 +20,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { FcGoogle } from "react-icons/fc";
+import { FaGoogle } from "react-icons/fa";
 import { GoPasskeyFill } from "react-icons/go";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -30,6 +30,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "../ui/card";
@@ -38,6 +39,7 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "../ui/form";
 import { PasswordField } from "../ui/password-input";
@@ -158,25 +160,87 @@ export default function SignIn({
   };
 
   return (
-    <Card className="mx-auto w-full max-w-sm space-y-8 border-0 px-1">
+    <Card className="mx-auto w-full max-w-sm space-y-6 border-0 px-1">
       <CardHeader>
-        <CardTitle className="mt-6 text-center text-2xl font-bold tracking-tight text-foreground/90 md:text-3xl">
-          Sign in to your account
+        <CardTitle className="text-center text-2xl font-semibold tracking-tight text-foreground/90 md:text-3xl">
+          Welcome Back
         </CardTitle>
         <CardDescription className="text-center text-sm text-muted-foreground">
-          Or{" "}
-          <Link
-            href="/auth/signup"
-            className="font-medium text-foreground/80 underline hover:text-primary/90"
-          >
-            sign up for a new account
-          </Link>
+          Sign in you account
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-8">
+      <CardContent className="flex flex-col gap-5">
+        <Button
+          variant={lastSignedInMethod === "google" ? "secondary" : "outline"}
+          className={cn(
+            "relative",
+            lastSignedInMethod === "google" &&
+              "ring-1 ring-muted-foreground/25 ring-offset-[3px] ring-offset-background",
+          )}
+          onClick={handleSignInWithGoogle}
+          disabled={
+            isSignInWithEmailPending ||
+            isSignInWithGooglePending ||
+            isSignInWithPasskeyPending
+          }
+        >
+          {isSignInWithGooglePending ? (
+            <Spinner loadingSpanClassName="bg-primary" className="mr-2" />
+          ) : (
+            <FaGoogle className="mr-2 size-4" />
+          )}
+          Continue with Google
+          {lastSignedInMethod === "google" && (
+            <div className="absolute left-full top-1/2 ml-2 size-2.5 -translate-y-1/2 animate-pulse whitespace-nowrap rounded-full bg-primary md:hidden" />
+          )}
+          {lastSignedInMethod === "google" && (
+            <div className="absolute left-full top-1/2 ml-8 hidden -translate-y-1/2 whitespace-nowrap rounded-md bg-accent px-4 py-1 text-xs text-foreground/80 md:block">
+              <div className="absolute -left-5 top-0 border-[12px] border-background border-r-accent" />
+              Last used
+            </div>
+          )}
+        </Button>
+        <Button
+          onClick={handleSignInWithPasskey}
+          variant={lastSignedInMethod === "passkey" ? "secondary" : "outline"}
+          className={cn(
+            "relative",
+            lastSignedInMethod === "passkey" &&
+              "ring-1 ring-muted-foreground/25 ring-offset-[3px] ring-offset-background",
+          )}
+          disabled={
+            isSignInWithEmailPending ||
+            isSignInWithGooglePending ||
+            isSignInWithPasskeyPending
+          }
+        >
+          {isSignInWithPasskeyPending ? (
+            <Spinner loadingSpanClassName="bg-primary" className="mr-2" />
+          ) : (
+            <GoPasskeyFill className="mr-2 size-4" />
+          )}
+          Continue with Passkey
+          {lastSignedInMethod === "passkey" && (
+            <div className="absolute left-full top-1/2 ml-2 size-2.5 -translate-y-1/2 animate-pulse whitespace-nowrap rounded-full bg-primary md:hidden" />
+          )}
+          {lastSignedInMethod === "passkey" && (
+            <div className="absolute left-full top-1/2 ml-8 hidden -translate-y-1/2 whitespace-nowrap rounded-md bg-accent px-4 py-1 text-xs text-foreground/80 md:block">
+              <div className="absolute -left-5 top-0 border-[12px] border-background border-r-accent" />
+              Last used
+            </div>
+          )}
+        </Button>
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-muted" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-background px-2 text-muted-foreground">or</span>
+          </div>
+        </div>
         <Form {...form}>
           <form
-            className="space-y-6"
+            className="flex flex-col gap-4"
             onSubmit={form.handleSubmit(handleSignInWithEmail)}
           >
             <FormField
@@ -184,12 +248,13 @@ export default function SignIn({
               name="email"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
                       className={isApple ? "text-base" : ""}
                       type="email"
                       id="email"
-                      placeholder="billicious@popular.com"
+                      placeholder="you@example.com"
                       {...field}
                     />
                   </FormControl>
@@ -210,11 +275,11 @@ export default function SignIn({
                 }
                 isLoading={isSignInWithEmailPending}
               >
-                <span>Sign in</span>
-                {lastSignedInMethod === "email" && (
-                  <span className="ml-2 inline md:hidden">(Last used)</span>
-                )}
+                Sign in
               </AnimatedButton>
+              {lastSignedInMethod === "email" && (
+                <div className="absolute left-full top-1/2 ml-2 size-2.5 -translate-y-1/2 animate-pulse whitespace-nowrap rounded-full bg-primary md:hidden" />
+              )}
               {lastSignedInMethod === "email" && (
                 <div className="absolute left-full top-1/2 ml-8 hidden -translate-y-1/2 whitespace-nowrap rounded-md bg-accent px-4 py-1 text-xs text-foreground/80 md:block">
                   <div className="absolute -left-5 top-0 border-[12px] border-background border-r-accent" />
@@ -224,70 +289,15 @@ export default function SignIn({
             </div>
           </form>
         </Form>
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-muted" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="bg-background px-2 text-muted-foreground">
-              Or continue with
-            </span>
-          </div>
-        </div>
-        <div className="flex flex-col gap-4">
-          <Button
-            variant="outline"
-            className="relative"
-            onClick={handleSignInWithGoogle}
-            disabled={
-              isSignInWithEmailPending ||
-              isSignInWithGooglePending ||
-              isSignInWithPasskeyPending
-            }
+        <CardFooter className="justify-center text-sm text-muted-foreground">
+          Don't have an account?{" "}
+          <Link
+            href="/auth/signup"
+            className="ml-1 text-foreground underline transition hover:text-muted-foreground"
           >
-            {isSignInWithGooglePending ? (
-              <Spinner loadingSpanClassName="bg-primary" className="mr-2" />
-            ) : (
-              <FcGoogle className="mr-2 h-5 w-5" />
-            )}
-            <span>Sign in with Google</span>
-            {lastSignedInMethod === "google" && (
-              <span className="ml-2 inline md:hidden">(Last used)</span>
-            )}
-            {lastSignedInMethod === "google" && (
-              <div className="absolute left-full top-1/2 ml-8 hidden -translate-y-1/2 whitespace-nowrap rounded-md bg-accent px-4 py-1 text-xs text-foreground/80 md:block">
-                <div className="absolute -left-5 top-0 border-[12px] border-background border-r-accent" />
-                Last used
-              </div>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleSignInWithPasskey}
-            className="relative"
-            disabled={
-              isSignInWithEmailPending ||
-              isSignInWithGooglePending ||
-              isSignInWithPasskeyPending
-            }
-          >
-            {isSignInWithPasskeyPending ? (
-              <Spinner loadingSpanClassName="bg-primary" className="mr-2" />
-            ) : (
-              <GoPasskeyFill className="mr-2 h-5 w-5" />
-            )}
-            <span>Sign in with Passkey</span>
-            {lastSignedInMethod === "passkey" && (
-              <span className="ml-2 inline md:hidden">(Last used)</span>
-            )}
-            {lastSignedInMethod === "passkey" && (
-              <div className="absolute left-full top-1/2 ml-8 hidden -translate-y-1/2 whitespace-nowrap rounded-md bg-accent px-4 py-1 text-xs text-foreground/80 md:block">
-                <div className="absolute -left-5 top-0 border-[12px] border-background border-r-accent" />
-                Last used
-              </div>
-            )}
-          </Button>
-        </div>
+            Sign Up Now
+          </Link>
+        </CardFooter>
       </CardContent>
     </Card>
   );

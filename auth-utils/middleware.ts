@@ -1,7 +1,14 @@
+import { isMemberInGroup } from "@/app/group/[slug]/utils";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const authRoutes = ["/auth/signin", "/auth/callback", "/auth/signup"];
+const authRoutes = [
+  "/auth/signin",
+  "/auth/callback",
+  "/auth/signup",
+  "/auth/forgot-password",
+  "/auth/confirm",
+];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -61,7 +68,8 @@ export async function updateSession(request: NextRequest) {
   if (
     user &&
     (request.nextUrl.pathname.startsWith("/auth/signin") ||
-      request.nextUrl.pathname.startsWith("/auth/signup"))
+      request.nextUrl.pathname.startsWith("/auth/signup") ||
+      request.nextUrl.pathname.startsWith("/auth/forgot-password"))
   ) {
     url.pathname = "/";
     return NextResponse.redirect(url);
