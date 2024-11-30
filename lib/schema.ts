@@ -19,7 +19,7 @@ export const signUpFormSchema = z.object({
   username: z
     .string()
     .min(4, { message: "Username must contain at least 4 character(s)" })
-    .max(12, { message: "Username must contain at most 12 character(s)" })
+    .max(16, { message: "Username must contain at most 12 character(s)" })
     .regex(/^[a-zA-Z0-9_]+$/, {
       message:
         "Username can only contain alphanumeric characters and underscores",
@@ -81,7 +81,7 @@ export const profileUpdateFormSchema = z.object({
   username: z
     .string()
     .min(4, { message: "Username must contain at least 4 character(s)" })
-    .max(12, { message: "Username must contain at most 12 character(s)" })
+    .max(16, { message: "Username must contain at most 12 character(s)" })
     .regex(/^[a-zA-Z0-9_]+$/, {
       message:
         "Username can only contain alphanumeric characters and underscores",

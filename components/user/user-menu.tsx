@@ -16,7 +16,13 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
-const UserMenu = () => {
+const UserMenu = ({
+  openDropdown,
+  setOpenDropdown,
+}: {
+  openDropdown: string | null;
+  setOpenDropdown: (value: string) => void;
+}) => {
   const user = useUserInfoStore((state) => state.user);
   const { slug: groupId } = useParams();
   const pathName = usePathname();
@@ -30,7 +36,10 @@ const UserMenu = () => {
   }, []);
 
   return (
-    <DropdownMenu>
+    <DropdownMenu
+      open={openDropdown === "user-menu-toggle"}
+      onOpenChange={() => setOpenDropdown("user-menu-toggle")}
+    >
       <DropdownMenuTrigger asChild>
         <Avatar className="size-8 cursor-pointer">
           <AvatarImage src={user!.avatar_url} alt={user!.name} />

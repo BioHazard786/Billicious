@@ -43,7 +43,7 @@ import AnimatedButton from "../ui/animated-button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { ImageUploader } from "../ui/image-upload";
-import { Input } from "../ui/input";
+import { Input, InputWithLimit } from "../ui/input";
 import PasskeyLogo from "../ui/passkey-logo";
 import { Spinner } from "../ui/spinner";
 import {
@@ -210,10 +210,12 @@ const UpdateUserInfo = () => {
             <FormItem>
               <FormLabel>Username</FormLabel>
               <FormControl>
-                <Input
-                  type="username"
-                  id="username"
-                  placeholder="Username"
+                <InputWithLimit
+                  maxLength={16}
+                  characterCount={field.value.length}
+                  autoComplete="userName"
+                  id="userName"
+                  placeholder="Unique Username"
                   {...field}
                 />
               </FormControl>
@@ -320,6 +322,7 @@ const RegisterNewPasskey = () => {
       });
     },
     onError: (error, variables, context) => {
+      console.error(error);
       return toast.error(error.message, {
         id: context?.toastId,
       });
@@ -342,7 +345,7 @@ const RegisterNewPasskey = () => {
         <div className="grid h-48 w-[80%] place-items-center rounded-md">
           <Spinner
             loadingSpanClassName="bg-muted-foreground"
-            className="size-6 md:size-7 lg:size-8"
+            className="size-6 md:size-6 lg:size-7"
           />
         </div>
       ) : (

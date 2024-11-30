@@ -84,8 +84,11 @@ const SettleUp = () => {
                     </div>
                   </div>
                 </SelectItem>
-                {members.map((member) => (
-                  <SelectItem value={member.memberIndex}>
+                {members.map((member, index) => (
+                  <SelectItem
+                    value={member.memberIndex}
+                    key={`select-member-${index}`}
+                  >
                     <div className="flex items-center">
                       <Avatar className="size-7">
                         <AvatarImage src={member.avatarUrl} alt={member.name} />

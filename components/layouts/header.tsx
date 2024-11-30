@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import useUserInfoStore from "@/store/user-info-store";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Notifications from "../notifications/notifications";
 import { Button } from "../ui/button";
 import UserMenu from "../user/user-menu";
@@ -23,6 +23,7 @@ const ELIGIBLE_PATHS = [
 const Header = () => {
   const pathName = usePathname();
   const user = useUserInfoStore((state) => state.user);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const showMascot = useMemo(
     () => ELIGIBLE_PATHS.includes(pathName),
@@ -33,6 +34,10 @@ const Header = () => {
     () => cn("h-8 cursor-pointer", showMascot ? "ml-2" : "lg:ml-12"),
     [showMascot],
   );
+
+  const handleToggle = (id: string) => {
+    setOpenDropdown((prev) => (prev === id ? null : id));
+  };
 
   return (
     <header className="fixed top-0 z-[75] flex h-[53px] w-full items-center border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -46,9 +51,15 @@ const Header = () => {
       </Link>
       <div className="ml-auto flex place-items-center justify-center gap-2">
         {user && <Notifications />}
-        <ThemeToggleButton />
+        <ThemeToggleButton
+          openDropdown={openDropdown}
+          setOpenDropdown={handleToggle}
+        />
         {user ? (
-          <UserMenu />
+          <UserMenu
+            openDropdown={openDropdown}
+            setOpenDropdown={handleToggle}
+          />
         ) : (
           <Link
             href={

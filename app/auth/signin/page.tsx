@@ -5,7 +5,7 @@ const Page = () => {
   const cookieJar = cookies();
   const lastSignedInMethod = cookieJar.get("lastSignedInMethod")?.value;
   return (
-    <div className="flex h-dvh w-full items-center justify-center">
+    <div className="mt-16 flex h-dvh w-full items-center justify-center">
       <SignIn lastSignedInMethod={lastSignedInMethod} />
     </div>
   );
