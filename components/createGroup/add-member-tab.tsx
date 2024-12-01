@@ -34,7 +34,7 @@ import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import ResponsiveHeader from "../ui/responsive-header";
 import { ScrollArea } from "../ui/scroll-area";
-import { AnimatedSpinner } from "../ui/spinner";
+import { AnimatedSpinner, Spinner } from "../ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
 const AddMemberTab = () => {
@@ -233,8 +233,8 @@ const AddPermanentMembers = () => {
             <CommandList>
               <CommandEmpty>
                 {isSearching ? (
-                  <AnimatedSpinner
-                    loadingSpanClassName="bg-primary"
+                  <Spinner
+                    loadingSpanClassName="bg-muted-foreground"
                     className="mx-auto"
                   />
                 ) : isSearchError ? (
@@ -273,8 +273,8 @@ const AddPermanentMembers = () => {
               )}
             </CommandList>
             <CommandInput
-              placeholder="Search currency..."
-              className="h-10"
+              placeholder="Search username..."
+              className={isAppleDevice ? "h-10 text-base" : "h-10"}
               containerClassName="md:hidden border-b-0 border-t"
               value={search}
               onValueChange={setSearch}

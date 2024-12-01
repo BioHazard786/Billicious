@@ -18,7 +18,7 @@ import { AspectRatio } from "../ui/aspect-ratio";
 
 const Settings = () => {
   return (
-    <Card className="mx-auto mt-12 w-full max-w-lg border-0 px-1">
+    <Card className="mx-auto mt-20 w-full max-w-lg border-0 px-1">
       <CardHeader>
         <CardTitle className="mt-6 text-center text-2xl font-bold tracking-tight text-foreground/90 md:text-3xl">
           Group Settings

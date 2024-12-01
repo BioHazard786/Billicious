@@ -61,7 +61,7 @@ const AmountSpentChart = () => {
               right: 12,
             }}
           >
-            <CartesianGrid vertical={false} />
+            {/* <CartesianGrid vertical={false} /> */}
             <XAxis
               dataKey="month"
               tickLine={false}

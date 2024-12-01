@@ -10,7 +10,7 @@ export const generateJWT = (userId: string) => {
     sub: userId, // user ID goes here
     aud: "authenticated",
     role: "authenticated", // Set the role to 'authenticated' or any other role
-    exp: Math.floor(Date.now() / 1000) + 60 * 60, // Expiration time (1 hour)
+    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30, // Expiration time (30 days)
   };
 
   // Generate a JWT token

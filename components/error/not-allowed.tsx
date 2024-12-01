@@ -7,16 +7,28 @@ import { useMemo } from "react";
 type NotAllowedProps = {
   groupId: string;
   memberStatus: number;
+  customTitle?: string;
+  customMessage?: string;
+  hideViewButton?: boolean;
 };
 
-export default function NotAllowed({ groupId, memberStatus }: NotAllowedProps) {
+export default function NotAllowed({
+  groupId,
+  memberStatus,
+  customTitle,
+  customMessage,
+  hideViewButton = false,
+}: NotAllowedProps) {
   const content = useMemo(
     () => ({
-      title: memberStatus === 0 ? "Access Not Allowed" : "Invitation Required",
+      title:
+        customTitle ||
+        (memberStatus === 0 ? "Access Not Allowed" : "Invitation Required"),
       message:
-        memberStatus === 0
+        customMessage ||
+        (memberStatus === 0
           ? "Oops! You are not allowed to access this group as you are not a member. Please check the group details or contact an admin for assistance."
-          : "You have been invited to this group. Please check your notifications to accept the invitation before accessing the group.",
+          : "You have been invited to this group. Please check your notifications to accept the invitation before accessing the group."),
       status:
         memberStatus === 0 ? (
           <>
@@ -32,7 +44,7 @@ export default function NotAllowed({ groupId, memberStatus }: NotAllowedProps) {
           </>
         ),
     }),
-    [memberStatus],
+    [memberStatus, customTitle, customMessage],
   );
 
   return (
@@ -52,12 +64,14 @@ export default function NotAllowed({ groupId, memberStatus }: NotAllowedProps) {
               Go back home
             </Link>
           </Button>
-          <Button asChild className="mt-8">
-            <Link href={`/view/group/${encodeURIComponent(groupId)}`}>
-              <Eye className="mr-2 h-4 w-4" />
-              View Group
-            </Link>
-          </Button>
+          {!hideViewButton && (
+            <Button asChild className="mt-8">
+              <Link href={`/view/group/${encodeURIComponent(groupId)}`}>
+                <Eye className="mr-2 h-4 w-4" />
+                View Group
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
       <div className="mt-16 text-sm text-muted-foreground">

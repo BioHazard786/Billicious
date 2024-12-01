@@ -65,7 +65,7 @@ const UserMenu = ({
             href={`/group/${encodeURIComponent(groupId as string)}/settings`}
           >
             <DropdownMenuItem className="cursor-pointer">
-              Settings
+              Group Settings
               <DropdownMenuShortcut>
                 <Settings className="size-4" />
               </DropdownMenuShortcut>
@@ -73,8 +73,8 @@ const UserMenu = ({
           </Link>
         )}
         <Link href="/settings/account">
-          <DropdownMenuItem className="cursor-pointer">
-            Profile
+          <DropdownMenuItem className="cursor-pointer gap-4">
+            Account Settings
             <DropdownMenuShortcut>
               <UserCog className="size-4" />
             </DropdownMenuShortcut>

@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import { animate, motion } from "framer-motion";
 import { useEffect, useMemo, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
+import { Progress } from "./progress";
 
 interface ProgressBarProps {
   name: string;
@@ -109,7 +110,12 @@ const ProgressBar = ({
             <span ref={totalPaidRef}>{totalPaid}</span>
           </p>
         </div>
-        <div className="flex h-[0.65rem] flex-col rounded-lg rounded-l-sm bg-muted">
+        <Progress
+          value={width * 100}
+          className="h-[0.65rem] rounded-lg rounded-l-sm"
+          progressBar="bg-gradient-to-r from-[#22d3ee] to-primary rounded-lg rounded-l-sm"
+        />
+        {/* <div className="flex h-[0.65rem] flex-col rounded-lg rounded-l-sm bg-muted">
           <motion.div
             animate={{
               opacity: 1,
@@ -119,7 +125,7 @@ const ProgressBar = ({
             initial={{ opacity: 0, width: 0 }}
             className="flex h-full items-center justify-center rounded-lg rounded-l-sm bg-gradient-to-r from-[#22d3ee] to-primary"
           />
-        </div>
+        </div> */}
       </div>
     </motion.div>
   );

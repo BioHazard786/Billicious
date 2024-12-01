@@ -3,7 +3,7 @@ import React from "react";
 
 const Page = () => {
   return (
-    <div className="flex h-dvh w-full items-center justify-center">
+    <div className="flex h-screen w-full items-center justify-center">
       <ForgotPassword />
     </div>
   );

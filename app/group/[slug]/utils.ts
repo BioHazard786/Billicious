@@ -40,7 +40,7 @@ export async function fetchGroupData(groupId: string): Promise<TGroupData> {
 }
 
 export async function isMemberInGroup(
-  userId: string,
+  userId: string | undefined,
   groupId: string,
 ): Promise<number> {
   const supabase = createClient();

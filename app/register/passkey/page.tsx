@@ -3,7 +3,7 @@ import React from "react";
 
 const Page = () => {
   return (
-    <div className="flex h-dvh w-full items-center justify-center">
+    <div className="grid min-h-screen place-items-center pt-16">
       <RegisterPasskey />
     </div>
   );

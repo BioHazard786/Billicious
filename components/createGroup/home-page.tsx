@@ -152,7 +152,7 @@ const HomePage = ({ userGroups }: { userGroups: userGroup[] }) => {
 
   if (userGroups.length === 0) {
     return (
-      <div className="flex h-dvh w-full items-center justify-center">
+      <div className="grid min-h-screen w-full place-items-center">
         <div className="flex flex-col items-center justify-center gap-4">
           <NoContent className="size-32 md:size-48" />
           <div className="text-center text-sm text-muted-foreground md:text-base">
@@ -161,7 +161,15 @@ const HomePage = ({ userGroups }: { userGroups: userGroup[] }) => {
             Click button to add one
           </div>
           <CreateGroupForm>
-            <Button>Create Group</Button>
+            <div className="blob relative size-16 md:size-20">
+              <span></span>
+              <span></span>
+              <span></span>
+              <span className="absolute inset-0 -z-[40] rounded-lg bg-primary opacity-40 blur-xl"></span>
+              <Button size="icon" className="size-16 rounded-full md:size-20">
+                <Plus className="size-6 md:size-7" />
+              </Button>
+            </div>
           </CreateGroupForm>
         </div>
       </div>

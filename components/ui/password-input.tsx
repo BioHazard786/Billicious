@@ -42,7 +42,7 @@ export function PasswordField({
             <span className="flex justify-between">
               Password
               <Link
-                href="/forgot-password"
+                href="/auth/forgot-password"
                 className="text-sm text-muted-foreground"
               >
                 Forgot password?
@@ -153,7 +153,7 @@ export function PasswordStrengthField({
             <Progress
               value={(strengthScore / 4) * 100}
               className="h-1 bg-border"
-              progressBarColor={getStrengthColor(strengthScore)}
+              progressBar={getStrengthColor(strengthScore)}
             />
 
             {/* Password requirements list */}
@@ -163,7 +163,7 @@ export function PasswordStrengthField({
                   {req.met ? (
                     <Check
                       size={16}
-                      className="text-primary"
+                      className="text-emerald-500"
                       aria-hidden="true"
                     />
                   ) : (
@@ -174,7 +174,7 @@ export function PasswordStrengthField({
                     />
                   )}
                   <span
-                    className={`text-xs ${req.met ? "text-primary" : "text-muted-foreground"}`}
+                    className={`text-xs ${req.met ? "text-emerald-500" : "text-muted-foreground"}`}
                   >
                     {req.text}
                     <span className="sr-only">

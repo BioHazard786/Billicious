@@ -1,7 +1,7 @@
 "use server";
 
 import { tenant } from "@teamhanko/passkeys-sdk";
-import { getUser } from "./actions";
+import { getSession } from "./actions";
 
 const passkeyApi = tenant({
   apiKey: process.env.PASSKEYS_API_KEY!,
@@ -9,7 +9,7 @@ const passkeyApi = tenant({
 });
 
 export async function startServerPasskeyRegistration() {
-  const sessionUser = await getUser();
+  const sessionUser = await getSession();
   if (!sessionUser) return { error: "Not signed in" };
   const createOptions = await passkeyApi.registration.initialize({
     userId: sessionUser!.id,
@@ -20,7 +20,7 @@ export async function startServerPasskeyRegistration() {
 }
 
 export async function finishServerPasskeyRegistration(credential: any) {
-  const session = await getUser();
+  const session = await getSession();
   if (!session) return { error: "Not signed in" };
   await passkeyApi.registration.finalize(credential);
 }
