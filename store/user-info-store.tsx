@@ -13,7 +13,6 @@ type Action = {
   setAvatarUrl: (avatarUrl: string) => void;
   setName: (name: string) => void;
   setUserName: (username: string) => void;
-  setHasPasskeys: () => void;
 };
 
 export type UserStore = ReturnType<typeof createUserStore>;
@@ -37,12 +36,6 @@ export const createUserStore = (user: User) => {
       set(
         produce((state: State) => {
           state.user!.username = username;
-        }),
-      ),
-    setHasPasskeys: () =>
-      set(
-        produce((state: State) => {
-          state.user!.has_passkey = true;
         }),
       ),
   }));
