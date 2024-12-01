@@ -1,10 +1,5 @@
 "use client";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
-import { passkeyRegistered } from "@/server/actions";
+
 import {
   finishServerPasskeyRegistration,
   startServerPasskeyRegistration,
@@ -31,11 +26,10 @@ import PasskeyLogo from "../ui/passkey-logo";
 import { AnimatedSpinner } from "../ui/spinner";
 
 const RegisterPasskey = () => {
-  const user = useUserInfoStore((state) => state.user);
   const router = useRouter();
 
   const { isPending, mutate: server_registerNewPasskey } = useMutation({
-    mutationFn: async ({ userId }: { userId: string }) => {
+    mutationFn: async () => {
       const createOptions = await startServerPasskeyRegistration();
       const credential = await create(
         createOptions as CredentialCreationOptionsJSON,
@@ -47,11 +41,6 @@ const RegisterPasskey = () => {
       return { toastId };
     },
     onSuccess: async (data, variables, context) => {
-      const response = await passkeyRegistered(variables.userId);
-      if (response)
-        return toast.error(response.error, {
-          id: context.toastId,
-        });
       toast.success("Passkey registered", {
         id: context.toastId,
       });
@@ -65,8 +54,8 @@ const RegisterPasskey = () => {
     },
   });
 
-  const handleRegisterPasskey = (userId: string) => {
-    server_registerNewPasskey({ userId });
+  const handleRegisterPasskey = () => {
+    server_registerNewPasskey();
   };
 
   return (
@@ -84,7 +73,7 @@ const RegisterPasskey = () => {
         <PasskeyLogo className="mb-8 mt-2 flex w-full items-center" />
         <div className="flex flex-col gap-4">
           <Button
-            onClick={() => handleRegisterPasskey(user!.id)}
+            onClick={handleRegisterPasskey}
             className="flex items-center justify-center space-x-2"
             disabled={isPending}
           >
