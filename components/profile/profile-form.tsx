@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/form";
 import { profileUpdateFormSchema } from "@/lib/schema";
 import { timeAgo } from "@/lib/utils";
-import { passkeyRegistered } from "@/server/actions";
 import { updateProfile } from "@/server/fetchHelpers";
 import {
   finishServerPasskeyRegistration,
@@ -69,10 +68,10 @@ export default function ProfileForm() {
   const [currentSelectedTab, setCurrentSelectedTab] = useState("info");
 
   return (
-    <Card className="mx-auto mt-12 w-full max-w-lg border-0 px-1">
+    <Card className="mx-auto mt-20 w-full max-w-lg border-0 px-1">
       <CardHeader>
-        <CardTitle className="mt-6 text-center text-2xl font-bold tracking-tight text-foreground/90 md:text-3xl">
-          Profile Settings
+        <CardTitle className="text-center text-2xl font-bold tracking-tight text-foreground/90 md:text-3xl">
+          Account Settings
         </CardTitle>
         <CardDescription className="text-center text-sm text-muted-foreground">
           Update your personal information here.
@@ -96,7 +95,7 @@ export default function ProfileForm() {
               </TabsTrigger>
               <TabsTrigger value="passkey">
                 <Lock className="mr-2 size-4" />
-                Security
+                Passkeys
               </TabsTrigger>
             </TabsList>
           </div>
@@ -297,7 +296,7 @@ const RegisterNewPasskey = () => {
   const { slug: groupId } = useParams();
 
   const { isPending, mutate: server_registerNewPasskey } = useMutation({
-    mutationFn: async ({ userId }: { userId: string }) => {
+    mutationFn: async () => {
       const createOptions = await startServerPasskeyRegistration();
       const credential = await create(
         createOptions as CredentialCreationOptionsJSON,
@@ -309,11 +308,6 @@ const RegisterNewPasskey = () => {
       return { toastId };
     },
     onSuccess: async (data, variables, context) => {
-      const response = await passkeyRegistered(variables.userId);
-      if (response)
-        return toast.error(response.error, {
-          id: context.toastId,
-        });
       queryClient.invalidateQueries({
         queryKey: ["passkeys", user?.id, groupId as string],
       });
@@ -334,13 +328,14 @@ const RegisterNewPasskey = () => {
     queryFn: () => getSavedPasskeys(user?.id as string),
   });
 
-  const handleRegisterPasskey = (userId: string) => {
-    server_registerNewPasskey({ userId });
+  const handleRegisterPasskey = () => {
+    server_registerNewPasskey();
   };
 
   return (
-    <div className="flex w-full flex-col items-center justify-center space-y-8">
+    <div className="flex w-full flex-col items-center justify-center space-y-8 overflow-hidden">
       <PasskeyLogo className="h-24 md:h-32 lg:h-40" />
+      {/* <PasskeysLogo /> */}
       {isLoading ? (
         <div className="grid h-48 w-[80%] place-items-center rounded-md">
           <Spinner
@@ -376,7 +371,7 @@ const RegisterNewPasskey = () => {
         </Table>
       )}
       <Button
-        onClick={() => handleRegisterPasskey(user!.id)}
+        onClick={handleRegisterPasskey}
         className="flex items-center justify-center space-x-2"
         disabled={isPending}
       >

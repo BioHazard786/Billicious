@@ -28,7 +28,7 @@ import {
 } from "../ui/command";
 import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { AnimatedSpinner } from "../ui/spinner";
+import { Spinner } from "../ui/spinner";
 
 type SearchData = {
   results: PermanentUser[];
@@ -194,8 +194,8 @@ const InvitePermanentMember = ({
               <CommandList>
                 <CommandEmpty>
                   {isSearching ? (
-                    <AnimatedSpinner
-                      loadingSpanClassName="bg-primary"
+                    <Spinner
+                      loadingSpanClassName="bg-muted-foreground"
                       className="mx-auto"
                     />
                   ) : isSearchError ? (
@@ -234,8 +234,8 @@ const InvitePermanentMember = ({
                 )}
               </CommandList>
               <CommandInput
-                placeholder="Search currency..."
-                className="h-10"
+                placeholder="Search username..."
+                className={isAppleDevice ? "h-10 text-base" : "h-10"}
                 containerClassName="md:hidden border-b-0 border-t"
                 value={search}
                 onValueChange={setSearch}

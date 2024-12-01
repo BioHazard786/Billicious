@@ -12,7 +12,7 @@ import {
 import useUserInfoStore from "@/store/user-info-store";
 import { create, CredentialCreationOptionsJSON } from "@github/webauthn-json";
 import { useMutation } from "@tanstack/react-query";
-import { ChevronLast, Info } from "lucide-react";
+import { ChevronLast, Info, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
@@ -70,24 +70,14 @@ const RegisterPasskey = () => {
   };
 
   return (
-    <Card className="max-w-sm">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between text-2xl">
-          <div>Register Passkey</div>
-          <HoverCard>
-            <HoverCardTrigger asChild>
-              <Info className="size-5 cursor-pointer text-muted-foreground" />
-            </HoverCardTrigger>
-            <HoverCardContent className="text-sm font-normal text-muted-foreground">
-              Passkeys replace passwords and allow users to login with, e.g.
-              Face ID or Touch ID, instead of passwords. They are a secure and
-              convenient form of passwordless authentication and
-              2-factor-authentication (2FA).
-            </HoverCardContent>
-          </HoverCard>
+    <Card className="max-w-sm border-0">
+      <CardHeader className="text-center">
+        <CardTitle className="text-center text-2xl font-semibold tracking-tight text-foreground/90 md:text-3xl">
+          Create Passkey
         </CardTitle>
         <CardDescription>
-          To make sign in seamless. You can always register in settings
+          Passkeys are a simple and secure way to authenticate using biometrics,
+          a hardware key, or PIN.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -107,12 +97,12 @@ const RegisterPasskey = () => {
           </Button>
           <Link href="/">
             <Button
-              variant="link"
+              variant="outline"
               className="flex w-full items-center justify-center"
               disabled={isPending}
             >
+              <ChevronLast className="mr-1 size-5" />
               Skip
-              <ChevronLast className="ml-1 h-5 w-5" />
             </Button>
           </Link>
         </div>

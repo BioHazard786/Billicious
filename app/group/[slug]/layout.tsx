@@ -2,7 +2,7 @@ import NotAllowed from "@/components/error/not-allowed";
 import BottomNavbar from "@/components/layouts/bottom-navbar";
 import SideNavbar from "@/components/layouts/side-navbar";
 import { DashboardStoreProvider } from "@/providers/dashboard-store-provider";
-import { getUser } from "@/server/actions";
+import { getSession } from "@/server/actions";
 import { fetchGroupData, isMemberInGroup } from "./utils";
 
 export default async function DashboardLayout({
@@ -13,7 +13,7 @@ export default async function DashboardLayout({
   params: { slug: string };
 }) {
   const groupId = params.slug;
-  const user = await getUser();
+  const user = await getSession();
 
   const memberStatus = await isMemberInGroup(user?.id, groupId);
   if (memberStatus === 0 || memberStatus === 1) {

@@ -16,7 +16,9 @@ const ELIGIBLE_PATHS = [
   "/",
   "/auth/signin",
   "/auth/signup",
+  "/auth/forgot-password",
   "/settings/account",
+  "/settings/account/update-password",
   "/notifications",
 ];
 

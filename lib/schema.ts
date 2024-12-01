@@ -31,8 +31,11 @@ export const signUpFormSchema = z.object({
   email: z.string().email(),
   password: z
     .string()
-    .min(8, { message: "Password must contain at least 8 character(s)" })
-    .max(32, { message: "Password must contain at most 32 character(s)" }),
+    .min(8, "Password must be at least 8 characters")
+    .max(32, { message: "Password must contain at most 32 character(s)" })
+    .regex(/[A-Z]/, "Password must include at least 1 uppercase letter")
+    .regex(/[a-z]/, "Password must include at least 1 lowercase letter")
+    .regex(/[0-9]/, "Password must include at least 1 number"),
 });
 
 export const createAddMemberFormSchema = (members: TMembers[]) =>
@@ -90,4 +93,14 @@ export const profileUpdateFormSchema = z.object({
       message: "Username cannot contain spaces",
     })
     .transform((username) => username.trim().toLowerCase()),
+});
+
+export const passwordSchema = z.object({
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(32, { message: "Password must contain at most 32 character(s)" })
+    .regex(/[A-Z]/, "Password must include at least 1 uppercase letter")
+    .regex(/[a-z]/, "Password must include at least 1 lowercase letter")
+    .regex(/[0-9]/, "Password must include at least 1 number"),
 });

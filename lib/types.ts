@@ -45,7 +45,6 @@ export type User = {
   username: string;
   avatar_url?: string;
   email: string;
-  has_passkey: boolean;
 } | null;
 
 export type userGroup = {

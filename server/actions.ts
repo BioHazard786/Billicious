@@ -2,21 +2,33 @@
 
 import { createClient } from "@/auth-utils/server";
 import { generateJWT } from "@/auth-utils/utils";
-import { signInFormSchema, signUpFormSchema } from "@/lib/schema";
+import {
+  passwordSchema,
+  signInFormSchema,
+  signUpFormSchema,
+} from "@/lib/schema";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-export const getUser = async () => {
+export const getSession = async () => {
   const supabase = createClient();
   const authUser = (await supabase.auth.getUser()).data.user;
+  if (!authUser) return null;
+
+  return authUser;
+};
+
+export const getUser = async () => {
+  const supabase = createClient();
+  const authUser = await getSession();
   if (!authUser) return null;
 
   // fetch user from database
   const dbUser = await supabase
     .from("users_table")
-    .select(`id, name, avatar_url, email, username, has_passkey`)
+    .select("id, name, avatar_url, email, username")
     .eq("id", authUser?.id)
     .single();
 
@@ -57,10 +69,15 @@ export async function signUpUsingEmail(data: z.infer<typeof signUpFormSchema>) {
     return { error: "Username not available" };
   }
 
+  const baseUrl =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000"
+      : process.env.DOMAIN;
+
   const { error } = await supabase.auth.signUp({
     ...data,
     options: {
-      emailRedirectTo: `${process.env.DOMAIN}/register/passkey`,
+      emailRedirectTo: `${baseUrl}/register/passkey`,
       data: {
         full_name: data.name,
         username: data.username,
@@ -73,7 +90,10 @@ export async function signUpUsingEmail(data: z.infer<typeof signUpFormSchema>) {
     return { error: error.message || "Something went wrong" };
   }
 
-  return { success: "Email verification sent. Please check your inbox." };
+  return {
+    success:
+      "Email verification sent. Please check your inbox, verification link expires in 10 minutes.",
+  };
 
   // revalidatePath("/", "layout");
   // redirect("/register/passkey");
@@ -135,15 +155,37 @@ export async function signOut() {
   return redirect("/auth/signin");
 }
 
-export async function passkeyRegistered(userId: string) {
+export async function resetPassword(email: string) {
   const supabase = createClient();
 
-  const { error } = await supabase
-    .from("users_table")
-    .update({ has_passkey: true }) // Set has_passkey to false or true
-    .eq("id", userId);
+  const baseUrl =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000"
+      : process.env.DOMAIN;
 
-  if (error) return { error: error.message || "Something went wrong" };
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${baseUrl}/settings/account/update-password`,
+  });
 
-  return revalidatePath("/", "layout");
+  if (error) {
+    console.error(error);
+    return { error: error.message || "Something went wrong" };
+  }
+
+  revalidatePath("/", "layout");
+  return redirect("/auth/signin");
+}
+
+export async function updatePassword(data: z.infer<typeof passwordSchema>) {
+  const supabase = createClient();
+
+  const { error } = await supabase.auth.updateUser(data);
+
+  if (error) {
+    console.error(error);
+    return { error: error.message || "Something went wrong" };
+  }
+
+  revalidatePath("/", "layout");
+  return redirect("/");
 }
