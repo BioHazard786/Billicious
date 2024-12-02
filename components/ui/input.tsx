@@ -64,7 +64,10 @@ const InputWithCurrency = React.forwardRef<
     <div className="relative w-[50%]">
       <Input
         {...props}
-        className={cn("peer pe-12 ps-6", className)}
+        className={cn("peer pe-12", className)}
+        style={{
+          paddingInlineStart: `calc(${currencySymbol.length}ch + 1.5ch)`,
+        }}
         ref={ref}
       />
       <span className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-sm text-muted-foreground peer-disabled:opacity-50">

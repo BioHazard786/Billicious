@@ -117,7 +117,7 @@ const DraweePercent = ({
           <span>{draweesSplitByPercent.get(memberIndex)?.percent ?? 0}</span>
           <span className="ml-[0.1rem]">%</span>
         </span>
-        <span className="flex text-sm text-muted-foreground/50">
+        <span className="flex text-sm text-muted-foreground">
           <span className="mr-[0.1rem]">{currencySymbol}</span>
           <AnimatedCounter
             value={

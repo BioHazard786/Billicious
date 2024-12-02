@@ -135,18 +135,18 @@ const AddTemporaryMembers = () => {
           className={isAppleDevice ? "text-base" : ""}
           autoComplete="name"
           id="temporaryMembers"
-          placeholder="Zaid"
+          placeholder="Sweetie Pie"
           value={memberName}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAddMember()}
         />
         <Button
-          variant="default"
+          variant="outline"
           size="icon"
-          className="h-10"
+          className="size-10"
           onClick={handleAddMember}
         >
-          <Plus className="size-5" />
+          <Plus className="size-4" />
         </Button>
       </div>
       <MemberList members={temporaryMembers} onRemove={removeTemporaryMember} />

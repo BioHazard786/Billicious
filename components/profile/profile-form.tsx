@@ -59,12 +59,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 type ProfileUpdateFormData = z.infer<typeof profileUpdateFormSchema>;
 
 export default function ProfileForm() {
-  const user = useUserInfoStore((state) => state.user);
-
-  if (!user) {
-    return <div>No User exists</div>;
-  }
-
   const [currentSelectedTab, setCurrentSelectedTab] = useState("info");
 
   return (

@@ -13,51 +13,167 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from "recharts";
+import { fetchBillCategories } from "@/server/fetchHelpers";
+import useExpensesTabStore from "@/store/expenses-tab-store";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Filter } from "lucide-react";
+import { useParams } from "next/navigation";
+import { Bar, BarChart, LabelList, XAxis, YAxis } from "recharts";
+import { toast } from "sonner";
+import { Button } from "../ui/button";
+import { DateRangePicker } from "../ui/date-range-picker";
+import NoContent from "../ui/no-content";
+import { Spinner } from "../ui/spinner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
-const chartData = [
-  { month: "January", desktop: 186 },
-  { month: "February", desktop: 305 },
-  { month: "March", desktop: 237 },
-  { month: "April", desktop: 273 },
-  { month: "May", desktop: 209 },
-  { month: "June", desktop: 214 },
-  { month: "July", desktop: 186 },
-  { month: "August", desktop: 305 },
-  { month: "September", desktop: 237 },
+let chartData = [
+  { category: "Default", amount: 0 },
+  { category: "Transport", amount: 0 },
+  { category: "Lodging", amount: 0 },
+  { category: "Shopping", amount: 0 },
+  { category: "Entertain", amount: 0 },
+  { category: "Food", amount: 0 },
+  { category: "Drinks", amount: 0 },
+  { category: "Snacks", amount: 0 },
+  { category: "Tickets", amount: 0 },
+  { category: "Others", amount: 0 },
 ];
+
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
+  amount: {
+    label: "Amount",
     color: "hsl(var(--chart-1))",
   },
 } satisfies ChartConfig;
 
+type billCategoriesDataType = {
+  category: string;
+  amount: number;
+};
+
 const CategoryChart = () => {
+  const { slug: groupId } = useParams();
+  const queryClient = useQueryClient();
+
+  const categoryDateRange = useExpensesTabStore.use.categoryChartDateRange();
+  const setCategoryDateRange =
+    useExpensesTabStore.use.setCategoryChartDateRange();
+
+  const { data, isLoading } = useQuery<billCategoriesDataType[]>({
+    queryKey: ["categoryChart", groupId as string],
+    queryFn: () =>
+      fetchBillCategories({
+        groupId: groupId as string,
+        from: categoryDateRange?.from,
+        to: categoryDateRange?.to,
+      }),
+    select: (originalData) =>
+      chartData.map((chData) => {
+        const originalDataEntry = originalData.find(
+          (ogData) => ogData.category === chData.category,
+        );
+        return {
+          category: chData.category,
+          amount: Number(originalDataEntry?.amount) || 0,
+        };
+      }),
+  });
+
+  const handleFiltering = () => {
+    if (!categoryDateRange) return toast.error("Select a date range to filter");
+    if (!categoryDateRange?.to) categoryDateRange.to = new Date();
+    queryClient.refetchQueries({
+      queryKey: ["categoryChart", groupId as string],
+      exact: true,
+    });
+  };
+
   return (
     <Card className="order-2 lg:order-3">
       <CardHeader>
-        <CardTitle>Radar Chart</CardTitle>
+        <CardTitle>Categories</CardTitle>
         <CardDescription>
-          Showing total visitors for the last 6 months
+          Showing total amount spent by categories
         </CardDescription>
+        <div className="flex gap-2">
+          <DateRangePicker
+            date={categoryDateRange}
+            setDate={setCategoryDateRange}
+          />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" onClick={handleFiltering}>
+                <Filter className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={5}>
+              Filter
+            </TooltipContent>
+          </Tooltip>
+        </div>
       </CardHeader>
-      <CardContent className="pb-0">
-        <ChartContainer
-          config={chartConfig}
-          className="aspect-square w-full lg:h-[400px]"
-        >
-          <RadarChart data={chartData}>
-            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            <PolarAngleAxis dataKey="month" />
-            <PolarGrid />
-            <Radar
-              dataKey="desktop"
-              fill="var(--color-desktop)"
-              fillOpacity={0.6}
+      <CardContent>
+        {isLoading && (
+          <div className="flex w-full items-center justify-center">
+            <Spinner
+              loadingSpanClassName="bg-muted-foreground"
+              className="size-6 md:size-6 lg:size-7"
             />
-          </RadarChart>
-        </ChartContainer>
+          </div>
+        )}
+        {data?.length === 0 ? (
+          <div className="flex h-full flex-col items-center justify-center gap-4">
+            <NoContent className="size-32 md:size-48" />
+            <div className="text-sm text-muted-foreground md:text-base">
+              No data here. Click + to add transactions
+            </div>
+          </div>
+        ) : (
+          <ChartContainer
+            config={chartConfig}
+            className="aspect-square h-full w-full lg:h-[400px]"
+          >
+            <BarChart
+              accessibilityLayer
+              data={data}
+              layout="vertical"
+              margin={{
+                right: 16,
+              }}
+            >
+              {/* <CartesianGrid vertical={false} /> */}
+              <XAxis type="number" dataKey="amount" hide />
+              <YAxis
+                dataKey="category"
+                type="category"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+                hide
+                // tickFormatter={(value) => value.slice(0, 3)}
+              />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent indicator="line" />}
+              />
+              <Bar
+                layout="vertical"
+                dataKey="amount"
+                opacity={0.3}
+                fill="var(--color-amount)"
+                radius={7}
+              >
+                <LabelList
+                  dataKey="category"
+                  position="insideLeft"
+                  offset={8}
+                  className="fill-foreground"
+                  fontSize={12}
+                />
+              </Bar>
+            </BarChart>
+          </ChartContainer>
+        )}
       </CardContent>
     </Card>
   );

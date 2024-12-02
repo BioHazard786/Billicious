@@ -3,25 +3,22 @@ import { NextResponse } from "next/server";
 import { getAllBalancesFromDB } from "../utils";
 
 export const POST = async (request: Request) => {
-  let balances;
   try {
-    const requestData = await request.json();
+    const { groupId } = await request.json();
 
-    if (requestData.groupId === undefined) {
+    if (!groupId) {
       throw new Error("Group Id is Required");
     }
 
-    await db.transaction(async (transaction) => {
-      balances = await getAllBalancesFromDB(transaction, requestData.groupId);
-    });
-  } catch (err) {
-    if (err instanceof Error) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    }
-    return NextResponse.json(
-      { error: "Something went Wrong" },
-      { status: 500 },
+    const balances = await db.transaction((transaction) =>
+      getAllBalancesFromDB(transaction, groupId),
     );
+
+    return NextResponse.json(balances, { status: 200 });
+  } catch (err) {
+    const errorMessage =
+      err instanceof Error ? err.message : "Something went wrong";
+    const statusCode = err instanceof Error ? 400 : 500;
+    return NextResponse.json({ error: errorMessage }, { status: statusCode });
   }
-  return NextResponse.json(balances, { status: 200 });
 };

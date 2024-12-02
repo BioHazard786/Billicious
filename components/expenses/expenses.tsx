@@ -4,13 +4,17 @@ import { CURRENCIES } from "@/constants/items";
 import { formatTransactionData } from "@/lib/utils";
 import { fetchTransactions } from "@/server/fetchHelpers";
 import useDashboardStore from "@/store/dashboard-store";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import useExpensesTabStore from "@/store/expenses-tab-store";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useIntersectionObserver } from "@uidotdev/usehooks";
 import { format } from "date-fns";
+import { Filter } from "lucide-react";
 import { useParams } from "next/navigation";
 import React, { useEffect, useMemo } from "react";
+import { toast } from "sonner";
 import { getCategoryIcon } from "../dashboard/recent-transactions";
 import AvatarCircles from "../ui/avatar-circles";
+import { Button } from "../ui/button";
 import {
   Card,
   CardContent,
@@ -18,6 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
+import { DateRangePicker } from "../ui/date-range-picker";
 import NoContent from "../ui/no-content";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import { Spinner } from "../ui/spinner";
@@ -29,11 +34,15 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 const Expenses = () => {
   const { slug: groupId } = useParams();
+  const queryClient = useQueryClient();
   const members = useDashboardStore((state) => state.members);
   const currencyCode = useDashboardStore((state) => state.currencyCode);
+  const expensesDateRange = useExpensesTabStore.use.expensesDateRange();
+  const setExpensesDateRange = useExpensesTabStore.use.setExpensesDateRange();
   const currencySymbol = useMemo(
     () => CURRENCIES[currencyCode || "INR"].currencySymbol,
     [currencyCode],
@@ -54,7 +63,12 @@ const Expenses = () => {
   } = useInfiniteQuery({
     queryKey: ["expenses", groupId as string],
     queryFn: async ({ pageParam }) => {
-      const data = await fetchTransactions(groupId as string, pageParam);
+      const data = await fetchTransactions(
+        groupId as string,
+        pageParam,
+        expensesDateRange?.from,
+        expensesDateRange?.to,
+      );
       return formatTransactionData(data);
     },
     initialPageParam: 1,
@@ -71,6 +85,15 @@ const Expenses = () => {
       return firstPageParam - 1;
     },
   });
+
+  const handleFiltering = () => {
+    if (!expensesDateRange) return toast.error("Select a date range to filter");
+    if (!expensesDateRange?.to) expensesDateRange.to = new Date();
+    queryClient.refetchQueries({
+      queryKey: ["expenses", groupId as string],
+      exact: true,
+    });
+  };
 
   useEffect(() => {
     if (entry?.isIntersecting && hasNextPage && !isFetchingNextPage) {
@@ -91,7 +114,25 @@ const Expenses = () => {
       <ScrollArea className="lg:h-full">
         <CardHeader>
           <CardTitle>Expenses</CardTitle>
-          <CardDescription>All expenses from your group</CardDescription>
+          <CardDescription>
+            Showing total expenses of your group
+          </CardDescription>
+          <div className="flex gap-2">
+            <DateRangePicker
+              date={expensesDateRange}
+              setDate={setExpensesDateRange}
+            />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" onClick={handleFiltering}>
+                  <Filter className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right" sideOffset={5}>
+                Filter
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </CardHeader>
         <CardContent>
           {status === "pending" && (
@@ -102,25 +143,27 @@ const Expenses = () => {
               />
             </div>
           )}
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead className="hidden sm:table-cell">Payees</TableHead>
-                <TableHead className="hidden sm:table-cell">Drawees</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data?.pages[0].length === 0 ? (
-                <div className="flex h-full flex-col items-center justify-center gap-4">
-                  <NoContent className="size-32 md:size-48" />
-                  <div className="text-sm text-muted-foreground md:text-base">
-                    No debts here. Click + to add transactions
-                  </div>
-                </div>
-              ) : (
-                data?.pages.map((transactions, index) => (
+          {data?.pages[0].length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center gap-4">
+              <NoContent className="size-32 md:size-48" />
+              <div className="text-sm text-muted-foreground md:text-base">
+                No debts here. Click + to add transactions
+              </div>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead className="hidden sm:table-cell">Payees</TableHead>
+                  <TableHead className="hidden sm:table-cell">
+                    Drawees
+                  </TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data?.pages.map((transactions, index) => (
                   <React.Fragment key={`infinite-transactions-${index}`}>
                     {transactions.map((transaction) => (
                       <TableRow
@@ -173,10 +216,11 @@ const Expenses = () => {
                       </TableRow>
                     ))}
                   </React.Fragment>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+
           {isFetchingNextPage && (
             <span className="flex items-center justify-center p-2">
               <Spinner

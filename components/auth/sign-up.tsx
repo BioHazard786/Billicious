@@ -59,22 +59,17 @@ export default function SignUp({
       return { toastId };
     },
     onSuccess: (data, variables, context) => {
-      if (data) {
-        if (data?.error?.startsWith("Username")) {
-          form.setError("username", { message: data?.error });
-          return toast.error(`Username ${variables.username} already taken`, {
-            id: context?.toastId,
-          });
-        }
-        if (data?.success) {
-          return toast.info(data?.success, { id: context?.toastId });
-        }
-        return toast.error(data?.error, {
+      if (data?.error?.startsWith("Username")) {
+        form.setError("username", { message: data?.error });
+        return toast.error(`Username ${variables.username} already taken`, {
           id: context?.toastId,
         });
       }
-      return toast.success("Signed In successfully", {
-        id: context.toastId,
+      if (data?.success) {
+        return toast.info(data?.success, { id: context?.toastId });
+      }
+      return toast.error(data?.error, {
+        id: context?.toastId,
       });
     },
     onError: (error, variables, context) => {

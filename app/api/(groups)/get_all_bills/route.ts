@@ -1,31 +1,24 @@
+import { db } from "@/database/dbConnect";
 import { NextResponse } from "next/server";
 import { getGroupBillsFromDB } from "../utils";
-import { db } from "@/database/dbConnect";
 
 export const POST = async (request: Request) => {
-  let bills;
   try {
-    const requestData = await request.json();
+    const { groupId, pageSize = 10, page = 1, from, to } = await request.json();
 
-    if (requestData.groupId === undefined) {
+    if (!groupId) {
       throw new Error("Group Id is Required");
     }
-    await db.transaction(async (transaction) => {
-      bills = await getGroupBillsFromDB(
-        transaction,
-        requestData.groupId,
-        requestData.hasOwnProperty("pageSize") ? requestData.pageSize : 10,
-        requestData.hasOwnProperty("page") ? requestData.page : 1,
-      );
-    });
-  } catch (err) {
-    if (err instanceof Error) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    }
-    return NextResponse.json(
-      { error: "Something went Wrong" },
-      { status: 500 },
+
+    const bills = await db.transaction((transaction) =>
+      getGroupBillsFromDB(transaction, groupId, pageSize, page, from, to),
     );
+
+    return NextResponse.json(bills, { status: 200 });
+  } catch (err) {
+    const errorMessage =
+      err instanceof Error ? err.message : "Something went wrong";
+    const statusCode = err instanceof Error ? 400 : 500;
+    return NextResponse.json({ error: errorMessage }, { status: statusCode });
   }
-  return NextResponse.json(bills, { status: 200 });
 };
