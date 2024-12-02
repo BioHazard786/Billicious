@@ -53,7 +53,7 @@ export async function updateSession(request: NextRequest) {
   if (!user && request.nextUrl.pathname.startsWith("/group/")) {
     const groupId = request.nextUrl.pathname.split("/")[2];
     if (groupId) {
-      url.pathname = `/view/group/${encodeURIComponent(groupId)}`;
+      url.pathname = "/view" + request.nextUrl.pathname;
       return NextResponse.redirect(url);
     }
   }

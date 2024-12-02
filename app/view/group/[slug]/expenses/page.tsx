@@ -1,6 +1,6 @@
-import AmountSpentChart from "@/components/expenses/amount-spent-chart";
 import CategoryChart from "@/components/expenses/category-chart";
 import Expenses from "@/components/expenses/expenses";
+import AmountSpentChart from "@/components/expenses/timeline-chart";
 
 const Page = async () => {
   return (

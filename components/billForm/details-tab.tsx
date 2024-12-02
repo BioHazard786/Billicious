@@ -201,7 +201,7 @@ const DetailsTable = ({ currencySymbol }: { currencySymbol: string }) => {
 
 const CategoryItem = memo(({ Icon, label, onClick }: CategoryItemProps) => (
   <div
-    className="flex cursor-pointer flex-col items-center rounded-md p-1 hover:bg-muted"
+    className="flex cursor-pointer flex-col items-center rounded-md p-1 transition-colors hover:bg-muted"
     onClick={onClick}
   >
     <Icon className="size-5 text-muted-foreground" />
@@ -220,13 +220,15 @@ const CategoryPopover = () => {
         <Button variant="link" size="icon" className="px-2">
           <div className="flex items-center">
             {getCategoryIcon(category, "size-5")}
-            {category === "Default" && <ChevronDown className="size-4" />}
+            {category === "Default" && (
+              <ChevronDown className="size-4 text-foreground" />
+            )}
           </div>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="z-[101] w-64">
         <div className="grid grid-cols-3 gap-2">
-          {Object.entries(categories).map(([label, { icon: Icon, color }]) => (
+          {Object.entries(categories).map(([label, { icon: Icon }]) => (
             <CategoryItem
               key={label}
               Icon={Icon}

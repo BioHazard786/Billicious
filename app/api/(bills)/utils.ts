@@ -7,7 +7,14 @@ import {
   payeesInBillsTable,
   transactionsTable,
 } from "@/database/schema";
-import { and, eq, ExtractTablesWithRelations, sql } from "drizzle-orm";
+import {
+  and,
+  eq,
+  ExtractTablesWithRelations,
+  gte,
+  lte,
+  sql,
+} from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
 import { getGroupFromDB, getMembersFromDB } from "../(groups)/utils";
@@ -454,6 +461,45 @@ function createBalances(userExpenseMap: Map<number, number>, groupId: any) {
   }
 
   return balances;
+}
+
+export async function fetchBillsCategoryWise(
+  groupId: any,
+  from?: any,
+  to?: any,
+) {
+  return await db
+    .select({
+      category: billsTable.category,
+      amount: sql<number>`SUM(${billsTable.amount})`,
+    })
+    .from(billsTable)
+    .where(
+      and(
+        eq(billsTable.groupId, groupId),
+        ...(from ? [gte(billsTable.createdAt, new Date(from))] : []),
+        ...(to ? [lte(billsTable.createdAt, new Date(to))] : []),
+      ),
+    )
+    .groupBy(billsTable.category);
+}
+
+export async function fetchBillsYearWise(groupId: any, from?: any, to?: any) {
+  return await db
+    .select({
+      month: sql<string>`TO_CHAR(DATE_TRUNC('month', ${billsTable.createdAt}), 'FMMonth')`,
+      amount: sql<number>`SUM(${billsTable.amount})`,
+    })
+    .from(billsTable)
+    .where(
+      and(
+        eq(billsTable.groupId, groupId),
+        ...(from ? [gte(billsTable.createdAt, new Date(from))] : []),
+        ...(to ? [lte(billsTable.createdAt, new Date(to))] : []),
+      ),
+    )
+    .groupBy(sql`DATE_TRUNC('month', ${billsTable.createdAt})`)
+    .orderBy(sql`DATE_TRUNC('month', ${billsTable.createdAt})`);
 }
 
 // export async function sendBillDataToKafka(bill: any, groupId: string) {

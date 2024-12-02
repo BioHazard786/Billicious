@@ -57,6 +57,12 @@ type CreateAdminData = {
   userIndex: number;
 };
 
+type BillCategoryData = {
+  groupId: string;
+  from?: Date;
+  to?: Date;
+};
+
 const postFetchHelper = async (endPoint: string, body: string) => {
   const response = await fetch(endPoint, {
     method: "POST",
@@ -139,10 +145,31 @@ export const fetchAllBalances = async (groupId: string) => {
   return postFetchHelper("/api/get_all_balances", JSON.stringify({ groupId }));
 };
 
-export const fetchTransactions = async (groupId: string, page: number) => {
+export const fetchTransactions = async (
+  groupId: string,
+  page: number,
+  from?: Date,
+  to?: Date,
+) => {
   return postFetchHelper(
     "/api/get_all_bills",
-    JSON.stringify({ groupId, page }),
+    JSON.stringify({ groupId, page, from, to }),
+  );
+};
+
+export const fetchBillCategories = async (
+  billCategoryData: BillCategoryData,
+) => {
+  return postFetchHelper(
+    "/api/view_bill/categories",
+    JSON.stringify(billCategoryData),
+  );
+};
+
+export const fetchBillTimeline = async (billCategoryData: BillCategoryData) => {
+  return postFetchHelper(
+    "/api/view_bill/timeline",
+    JSON.stringify(billCategoryData),
   );
 };
 

@@ -11,7 +11,9 @@ import {
   desc,
   eq,
   ExtractTablesWithRelations,
+  gte,
   inArray,
+  lte,
 } from "drizzle-orm";
 import { PgSelect, PgTransaction } from "drizzle-orm/pg-core";
 import { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
@@ -200,7 +202,7 @@ export async function createAdmin(
       if (member.status !== 2) {
         throw new Error("only permanent members can be made admins");
       } else {
-        transaction
+        await transaction
           .update(membersTable)
           .set({ isAdmin: true })
           .where(
@@ -209,6 +211,8 @@ export async function createAdmin(
               eq(membersTable.userIndex, userIndex),
             ),
           );
+
+        break;
       }
     }
   }
@@ -390,13 +394,21 @@ export async function getGroupBillsFromDB(
   groupId: string,
   pageSize: number,
   page: number,
+  from?: string,
+  to?: string,
 ) {
   let bills: any = [];
   let billsFromDB = await withPagination(
     transaction
       .select()
       .from(billsTable)
-      .where(eq(billsTable.groupId, groupId))
+      .where(
+        and(
+          eq(billsTable.groupId, groupId),
+          ...(from ? [gte(billsTable.createdAt, new Date(from))] : []),
+          ...(to ? [lte(billsTable.createdAt, new Date(to))] : []),
+        ),
+      )
       .orderBy(desc(billsTable.createdAt))
       .$dynamic(),
     page,

@@ -1,6 +1,6 @@
+import { db } from "@/database/dbConnect";
 import { NextResponse } from "next/server";
 import { createAdmin } from "../utils";
-import { db } from "@/database/dbConnect";
 
 export const POST = async (request: Request) => {
   try {

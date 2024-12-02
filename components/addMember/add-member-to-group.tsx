@@ -232,80 +232,90 @@ export default function AddMembers() {
                     {member.totalPaid}
                   </TableCell>
                   <TableCell>
-                    <DropdownMenu
-                      open={openDropdown === `add-member-${index}`}
-                      onOpenChange={() => handleToggle(`add-member-${index}`)}
-                    >
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-haspopup="true"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        {isOwner && member.status === 2 && !member.isAdmin && (
-                          <DropdownMenuItem
-                            disabled={isPendingMakingAdmin}
-                            onClick={() =>
-                              server_makeAdmin({
-                                groupId: groupId as string,
-                                ownerId: user?.id,
-                                userIndex: Number(member.memberIndex),
-                              })
-                            }
+                    {shouldRenderDropdown(
+                      { isOwner, isAdmin },
+                      {
+                        owner: member.memberIndex === "0",
+                        admin: member.isAdmin,
+                        permanent: member.status === 2 && !member.isAdmin,
+                      },
+                    ) && (
+                      <DropdownMenu
+                        open={openDropdown === `add-member-${index}`}
+                        onOpenChange={() => handleToggle(`add-member-${index}`)}
+                      >
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            aria-haspopup="true"
+                            size="icon"
+                            variant="ghost"
                           >
-                            Make Admin
-                          </DropdownMenuItem>
-                        )}
-                        {isOwner &&
-                          member.isAdmin &&
-                          member.memberId !== user?.id && (
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {isOwner &&
+                            member.status === 2 &&
+                            !member.isAdmin && (
+                              <DropdownMenuItem
+                                disabled={isPendingMakingAdmin}
+                                onClick={() =>
+                                  server_makeAdmin({
+                                    groupId: groupId as string,
+                                    ownerId: user?.id,
+                                    userIndex: Number(member.memberIndex),
+                                  })
+                                }
+                              >
+                                Make Admin
+                              </DropdownMenuItem>
+                            )}
+                          {isOwner &&
+                            member.isAdmin &&
+                            member.memberId !== user?.id && (
+                              <DropdownMenuItem
+                                disabled={isPendingRemovingAdmin}
+                                onClick={() =>
+                                  server_removeAdmin({
+                                    groupId: groupId as string,
+                                    ownerId: user?.id,
+                                    userIndex: Number(member.memberIndex),
+                                  })
+                                }
+                              >
+                                Remove Admin
+                              </DropdownMenuItem>
+                            )}
+                          {isAdmin && member.status === 1 && (
                             <DropdownMenuItem
-                              disabled={isPendingRemovingAdmin}
+                              disabled={isPendingDeleteInvite}
                               onClick={() =>
-                                server_removeAdmin({
+                                server_deleteInvite({
                                   groupId: groupId as string,
-                                  ownerId: user?.id,
+                                  userId: member.memberId,
                                   userIndex: Number(member.memberIndex),
                                 })
                               }
                             >
-                              Remove Admin
+                              Delete Invite
                             </DropdownMenuItem>
                           )}
-                        {isAdmin && member.status === 1 && (
-                          <DropdownMenuItem
-                            disabled={isPendingDeleteInvite}
-                            onClick={() =>
-                              server_deleteInvite({
-                                groupId: groupId as string,
-                                userId: member.memberId,
-                                userIndex: Number(member.memberIndex),
-                              })
-                            }
-                          >
-                            Delete Invite
-                          </DropdownMenuItem>
-                        )}
-                        {isAdmin && member.status === 0 && (
-                          <DropdownMenuItem
-                            onClick={() => {
-                              temporaryMember.current = member;
-                              setIsInviteMemberOpen(true);
-                            }}
-                          >
-                            Invite
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          {isAdmin && member.status === 0 && (
+                            <DropdownMenuItem
+                              onClick={() => {
+                                temporaryMember.current = member;
+                                setIsInviteMemberOpen(true);
+                              }}
+                            >
+                              Invite
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -416,4 +426,26 @@ const MemberBadge = ({
       {statusText}
     </Badge>
   );
+};
+
+const shouldRenderDropdown = (
+  currentUser: {
+    isOwner: boolean;
+    isAdmin: boolean;
+  },
+  rowMember: {
+    owner: boolean;
+    admin: boolean;
+    permanent?: boolean;
+  },
+): boolean => {
+  if (currentUser.isOwner) {
+    return !rowMember.owner;
+  }
+
+  if (currentUser.isAdmin) {
+    return !rowMember.admin && !rowMember.owner && !rowMember.permanent;
+  }
+
+  return false;
 };
