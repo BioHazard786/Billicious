@@ -179,10 +179,18 @@ const GroupCard = ({
       </Card>
       {group.isAdmin ? (
         <div className="flex">
+          <Button
+            className="w-full rounded-none rounded-bl-xl border border-r-0 border-t-0"
+            asChild
+          >
+            <Link href={`/group/${group.groupId}`}>
+              View Group <SquareArrowOutUpRight className="ml-2 size-4" />
+            </Link>
+          </Button>
           <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
             <AlertDialogTrigger asChild>
               <Button
-                className="w-full rounded-none rounded-bl-xl border border-r-0 border-t-0"
+                className="w-full rounded-none rounded-br-xl border border-l-0 border-t-0"
                 variant="destructive"
               >
                 Delete <Trash2 className="ml-2 size-4" />
@@ -210,14 +218,6 @@ const GroupCard = ({
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          <Button
-            className="w-full rounded-none rounded-br-xl border border-l-0 border-t-0"
-            asChild
-          >
-            <Link href={`/group/${group.groupId}`}>
-              View Group <SquareArrowOutUpRight className="ml-2 size-4" />
-            </Link>
-          </Button>
         </div>
       ) : (
         <Button

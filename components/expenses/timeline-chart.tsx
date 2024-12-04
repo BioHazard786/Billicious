@@ -117,7 +117,7 @@ const TimelineChart = () => {
             value={selectedYear}
             disabled={isRefetching}
           >
-            <SelectTrigger className="h-9 w-full md:w-60">
+            <SelectTrigger className="w-full md:w-60">
               <SelectValue placeholder="Pick a year to filter" />
             </SelectTrigger>
             <SelectContent>

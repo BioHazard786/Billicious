@@ -191,7 +191,7 @@ const CreateGroupForm = ({ children }: { children: React.ReactNode }) => {
 
   const createGroup = async () => {
     if (temporaryMembers.length === 0 && permanentMembers.length === 0) {
-      return toast.error("Add atleast one member temporary or primary");
+      return toast.error("Add atleast one member temporary or permanent");
     }
 
     let backgroundUrl = undefined;

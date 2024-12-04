@@ -52,7 +52,7 @@ const RegisterPasskey = () => {
     },
     onError: (error, variables, context) => {
       if (error.message.startsWith("The operation either timed out")) {
-        return toast.error("Your device is not supported, try anothe device", {
+        return toast.error("Your device is not supported, try another device", {
           id: context?.toastId,
         });
       }
