@@ -11,12 +11,17 @@ const passkeyApi = tenant({
 export async function startServerPasskeyRegistration() {
   const sessionUser = await getSession();
   if (!sessionUser) return { error: "Not signed in" };
-  const createOptions = await passkeyApi.registration.initialize({
-    userId: sessionUser!.id,
-    username: sessionUser!.email || "",
-  });
+  try {
+    const createOptions = await passkeyApi.registration.initialize({
+      userId: sessionUser!.id,
+      username: sessionUser!.email || "",
+    });
 
-  return createOptions;
+    return createOptions;
+  } catch (error: any) {
+    console.error(error);
+    return { error: error?.message || "An error occurred" };
+  }
 }
 
 export async function finishServerPasskeyRegistration(credential: any) {
@@ -26,8 +31,13 @@ export async function finishServerPasskeyRegistration(credential: any) {
 }
 
 export async function startServerPasskeyLogin() {
-  const options = await passkeyApi.login.initialize();
-  return options;
+  try {
+    const options = await passkeyApi.login.initialize();
+    return options;
+  } catch (error: any) {
+    console.error(error);
+    return { error: error?.message || "An error occurred" };
+  }
 }
 
 export async function finishServerPasskeyLogin(options: any) {

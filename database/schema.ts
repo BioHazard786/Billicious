@@ -23,7 +23,6 @@ export const usersTable = pgTable(
     email: text("email"),
     telegramId: text("telegram_id"),
     provider: text("provider"),
-    hasPasskey: boolean("has_passkey").default(false),
     updatedAt: timestamp("updated_at")
       .notNull()
       .$onUpdate(() => new Date()),

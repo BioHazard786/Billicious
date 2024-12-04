@@ -17,11 +17,11 @@ import {
 
 import { fetchBillTimeline } from "@/server/fetchHelpers";
 import useExpensesTabStore from "@/store/expenses-tab-store";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Filter } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import { Area, AreaChart, XAxis } from "recharts";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import NoContent from "../ui/no-content";
@@ -66,11 +66,12 @@ type billTimelineDataType = {
 
 const TimelineChart = () => {
   const { slug: groupId } = useParams();
-  const queryClient = useQueryClient();
   const selectedYear = useExpensesTabStore.use.timelineChartYear();
   const setSelectedYear = useExpensesTabStore.use.setTimelineChartYear();
 
-  const { data, isLoading } = useQuery<billTimelineDataType[]>({
+  const { data, isLoading, refetch, isRefetching } = useQuery<
+    billTimelineDataType[]
+  >({
     queryKey: ["timelineChart", groupId as string],
     queryFn: () =>
       fetchBillTimeline({
@@ -90,12 +91,9 @@ const TimelineChart = () => {
       }),
   });
 
-  const handleFiltering = () => {
+  const handleFiltering = async () => {
     if (!selectedYear) return toast.error("Select a year to filter");
-    queryClient.refetchQueries({
-      queryKey: ["timelineChart", groupId as string],
-      exact: true,
-    });
+    await refetch();
   };
 
   const years = useMemo(() => {
@@ -114,7 +112,11 @@ const TimelineChart = () => {
         <CardTitle>Timeline</CardTitle>
         <CardDescription>Showing total amount spent yearly</CardDescription>
         <div className="flex gap-2">
-          <Select onValueChange={setSelectedYear} value={selectedYear}>
+          <Select
+            onValueChange={setSelectedYear}
+            value={selectedYear}
+            disabled={isRefetching}
+          >
             <SelectTrigger className="h-9 w-full md:w-60">
               <SelectValue placeholder="Pick a year to filter" />
             </SelectTrigger>
@@ -131,8 +133,20 @@ const TimelineChart = () => {
           </Select>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="outline" size="icon" onClick={handleFiltering}>
-                <Filter className="size-4" />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleFiltering}
+                disabled={isRefetching}
+              >
+                {isRefetching ? (
+                  <Spinner
+                    className="size-4"
+                    loadingSpanClassName="bg-muted-foreground"
+                  />
+                ) : (
+                  <Filter className="size-4" />
+                )}
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={5}>
@@ -178,7 +192,10 @@ const TimelineChart = () => {
                 tickMargin={8}
                 tickFormatter={(value) => value.slice(0, 3)}
               />
-              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent indicator="line" />}
+              />
               <defs>
                 <linearGradient id="fillAmount" x1="0" y1="0" x2="0" y2="1">
                   <stop

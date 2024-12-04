@@ -213,20 +213,26 @@ export function formatDrawees(
 ): { [key: string]: number } {
   const formattedDrawees: { [key: string]: number } = {};
 
-  const roundToTwoDecimals = (num: number) => Math.round(num * 100) / 100;
+  const roundToTwoDecimals = (num: number) => Number(num.toFixed(2));
 
   const distributeRemainder = (
     drawees: Map<string, number>,
     remainder: number,
   ) => {
-    for (const [draweeIndex, amount] of drawees) {
-      if (remainder > 0) {
-        drawees.set(draweeIndex, roundToTwoDecimals(amount + 0.01));
-        remainder = roundToTwoDecimals(remainder - 0.01);
-      } else {
-        break;
-      }
+    if (remainder === 0) return drawees;
+
+    const draweeKeys = Array.from(drawees.keys());
+    let distributedRemainder = 0;
+    let i = 0;
+
+    while (distributedRemainder < remainder) {
+      const draweeIndex = draweeKeys[i % draweeKeys.length];
+      const currentAmount = drawees.get(draweeIndex)!;
+      drawees.set(draweeIndex, roundToTwoDecimals(currentAmount + 0.01));
+      distributedRemainder = roundToTwoDecimals(distributedRemainder + 0.01);
+      i++;
     }
+
     return drawees;
   };
 
@@ -236,15 +242,20 @@ export function formatDrawees(
       0,
     );
     const difference = roundToTwoDecimals(total - currentTotal);
+
     if (difference !== 0) {
-      const lastDraweeKey = [...drawees.keys()].pop();
+      const sortedKeys = [...drawees.keys()].sort();
+      const lastDraweeKey = sortedKeys[sortedKeys.length - 1];
+
       if (lastDraweeKey) {
+        const currentAmount = drawees.get(lastDraweeKey)!;
         drawees.set(
           lastDraweeKey,
-          roundToTwoDecimals(drawees.get(lastDraweeKey)! + difference),
+          roundToTwoDecimals(currentAmount + difference),
         );
       }
     }
+
     return drawees;
   };
 
@@ -252,13 +263,18 @@ export function formatDrawees(
     case "equally":
       const draweesCount = draweesSplitEqually.length;
       const baseBill = roundToTwoDecimals(payeesBill / draweesCount);
+
       let drawees = new Map(
         draweesSplitEqually.map((drawee) => [drawee, baseBill]),
       );
+
       const remainder = roundToTwoDecimals(
         payeesBill - baseBill * draweesCount,
       );
+
       drawees = distributeRemainder(drawees, remainder);
+      drawees = adjustToTotal(drawees, payeesBill);
+
       drawees.forEach((amount, drawee) => (formattedDrawees[drawee] = amount));
       break;
 
@@ -268,7 +284,9 @@ export function formatDrawees(
         currentSelectedTab === "amount"
           ? draweesSplitByAmount
           : draweesSplitByPercent;
+
       const draweesMap = new Map<string, number>();
+
       sourceMap.forEach((info, draweeIndex) => {
         const amount =
           currentSelectedTab === "amount"
@@ -278,18 +296,40 @@ export function formatDrawees(
             : "percent" in info
               ? (info.percent * payeesBill) / 100
               : 0;
-        draweesMap.set(draweeIndex, amount);
+        draweesMap.set(draweeIndex, roundToTwoDecimals(amount));
       });
-      const scaleFactor =
-        payeesBill /
-        Array.from(draweesMap.values()).reduce(
-          (sum, amount) => sum + amount,
-          0,
+
+      const currentTotal = Array.from(draweesMap.values()).reduce(
+        (sum, amount) => sum + amount,
+        0,
+      );
+
+      let adjustedDrawees: Map<string, number>;
+
+      if (currentTotal === 0) {
+        // If all amounts are zero, split equally
+        const draweesCount = draweesMap.size;
+        const baseBill = roundToTwoDecimals(payeesBill / draweesCount);
+
+        adjustedDrawees = new Map(
+          Array.from(draweesMap.keys()).map((key) => [key, baseBill]),
         );
-      draweesMap.forEach((amount, draweeIndex) => {
-        draweesMap.set(draweeIndex, roundToTwoDecimals(amount * scaleFactor));
-      });
-      const adjustedDrawees = adjustToTotal(draweesMap, payeesBill);
+
+        const remainder = roundToTwoDecimals(
+          payeesBill - baseBill * draweesCount,
+        );
+
+        adjustedDrawees = distributeRemainder(adjustedDrawees, remainder);
+      } else {
+        const scaleFactor = payeesBill / currentTotal;
+
+        draweesMap.forEach((amount, draweeIndex) => {
+          draweesMap.set(draweeIndex, roundToTwoDecimals(amount * scaleFactor));
+        });
+
+        adjustedDrawees = adjustToTotal(draweesMap, payeesBill);
+      }
+
       adjustedDrawees.forEach((amount, draweeIndex) => {
         formattedDrawees[draweeIndex] = amount;
       });

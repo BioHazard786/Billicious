@@ -10,6 +10,8 @@ import QueryProvider from "@/providers/query-provider";
 import ThemeProvider from "@/providers/theme-provider";
 import { UserInfoStoreProvider } from "@/providers/user-info-store-provider";
 import { getUser } from "@/server/actions";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
@@ -102,6 +104,8 @@ export default async function RootLayout({
             </TooltipProvider>
           </ThemeProvider>
         </QueryProvider>
+        <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );

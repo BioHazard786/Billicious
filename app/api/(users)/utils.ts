@@ -140,6 +140,7 @@ export async function getUserGroupsFromDB(
         currencyCode: group.currencyCode,
         createdAt: group.createdAt,
         updatedAt: group.updatedAt,
+        isAdmin: memberGroup.isAdmin,
       });
     } else {
       userGroups.push({
@@ -147,6 +148,7 @@ export async function getUserGroupsFromDB(
         userNameInGroup: memberGroup.userNameInGroup,
         totalSpent: memberGroup.totalSpent,
         totalPaid: memberGroup.totalPaid,
+        isAdmin: memberGroup.isAdmin,
       });
     }
   }

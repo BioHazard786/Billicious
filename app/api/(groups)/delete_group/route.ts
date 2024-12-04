@@ -1,30 +1,27 @@
+import { db } from "@/database/dbConnect";
 import { NextResponse } from "next/server";
 import { deleteGroupInDB } from "../utils";
-import { db } from "@/database/dbConnect";
 
-export const DELETE = async (request: Request) => {
-  let groupId;
+export const POST = async (request: Request) => {
   try {
-    const requestData = await request.json();
+    const { groupId } = await request.json();
 
-    if (requestData.groupId === undefined) {
+    if (!groupId) {
       throw new Error("Group Id is Required");
     }
 
     await db.transaction(async (transaction) => {
-      groupId = await deleteGroupInDB(transaction, requestData.groupId);
+      await deleteGroupInDB(transaction, groupId);
     });
-  } catch (err) {
-    if (err instanceof Error) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    }
+
     return NextResponse.json(
-      { error: "Something went Wrong" },
-      { status: 500 },
+      { message: `Group ${groupId} is Deleted.` },
+      { status: 200 },
     );
+  } catch (err) {
+    const errorMessage =
+      err instanceof Error ? err.message : "Something went Wrong";
+    const statusCode = err instanceof Error ? 400 : 500;
+    return NextResponse.json({ error: errorMessage }, { status: statusCode });
   }
-  return NextResponse.json(
-    { groupId: groupId + " is Deleted." },
-    { status: 200 },
-  );
 };

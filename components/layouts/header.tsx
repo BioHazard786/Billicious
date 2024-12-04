@@ -12,30 +12,10 @@ import Notifications from "../notifications/notifications";
 import { Button } from "../ui/button";
 import UserMenu from "../user/user-menu";
 
-const ELIGIBLE_PATHS = [
-  "/",
-  "/auth/signin",
-  "/auth/signup",
-  "/auth/forgot-password",
-  "/settings/account",
-  "/settings/account/update-password",
-  "/notifications",
-];
-
 const Header = () => {
   const pathName = usePathname();
   const user = useUserInfoStore((state) => state.user);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-
-  const showMascot = useMemo(
-    () => ELIGIBLE_PATHS.includes(pathName),
-    [pathName],
-  );
-
-  const logoClassName = useMemo(
-    () => cn("h-8 cursor-pointer", showMascot ? "ml-2" : "lg:ml-12"),
-    [showMascot],
-  );
 
   const handleToggle = (id: string) => {
     setOpenDropdown((prev) => (prev === id ? null : id));
@@ -43,13 +23,11 @@ const Header = () => {
 
   return (
     <header className="fixed top-0 z-[75] flex h-[53px] w-full items-center border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      {showMascot && (
-        <Link href="/">
-          <Mascot className="h-8 cursor-pointer" />
-        </Link>
-      )}
       <Link href="/">
-        <Logo className={logoClassName} />
+        <Mascot className="size-8 cursor-pointer" />
+      </Link>
+      <Link href="/">
+        <Logo className="ml-2 h-8 cursor-pointer" />
       </Link>
       <div className="ml-auto flex place-items-center justify-center gap-2">
         {user && <Notifications />}

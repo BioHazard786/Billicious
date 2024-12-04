@@ -58,7 +58,7 @@ const SettleUp = () => {
   }, [data, selectedMember]);
 
   return (
-    <Card className="m-3 mb-[5.25rem] mt-16 lg:mb-3 lg:ml-[4.2rem]">
+    <Card className="m-3 mb-[5.563rem] mt-[4.063rem] lg:mb-3 lg:ml-[4.313rem]">
       <CardHeader>
         <CardTitle>Settle Up</CardTitle>
         <CardDescription>Settle up your group's balances here</CardDescription>

@@ -5,13 +5,14 @@ import { formatTransactionData } from "@/lib/utils";
 import { fetchTransactions } from "@/server/fetchHelpers";
 import useDashboardStore from "@/store/dashboard-store";
 import useExpensesTabStore from "@/store/expenses-tab-store";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useIntersectionObserver } from "@uidotdev/usehooks";
 import { format } from "date-fns";
 import { Filter } from "lucide-react";
 import { useParams } from "next/navigation";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import BillDetails from "../bill/bill-details";
 import { getCategoryIcon } from "../dashboard/recent-transactions";
 import AvatarCircles from "../ui/avatar-circles";
 import { Button } from "../ui/button";
@@ -24,6 +25,7 @@ import {
 } from "../ui/card";
 import { DateRangePicker } from "../ui/date-range-picker";
 import NoContent from "../ui/no-content";
+import ResponsiveDialog from "../ui/responsive-dialog";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import { Spinner } from "../ui/spinner";
 import {
@@ -38,11 +40,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 const Expenses = () => {
   const { slug: groupId } = useParams();
-  const queryClient = useQueryClient();
   const members = useDashboardStore((state) => state.members);
   const currencyCode = useDashboardStore((state) => state.currencyCode);
   const expensesDateRange = useExpensesTabStore.use.expensesDateRange();
   const setExpensesDateRange = useExpensesTabStore.use.setExpensesDateRange();
+  const [isBillDetailsOpen, setIsBillDetailsOpen] = useState(false);
+  const [selectedBill, setSelectedBill] = useState<{
+    billId: string | undefined;
+    billName: string | undefined;
+  }>({ billId: undefined, billName: undefined });
   const currencySymbol = useMemo(
     () => CURRENCIES[currencyCode || "INR"].currencySymbol,
     [currencyCode],
@@ -56,19 +62,21 @@ const Expenses = () => {
   const {
     data,
     error,
+    refetch,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
     status,
+    isRefetching,
   } = useInfiniteQuery({
     queryKey: ["expenses", groupId as string],
     queryFn: async ({ pageParam }) => {
-      const data = await fetchTransactions(
-        groupId as string,
-        pageParam,
-        expensesDateRange?.from,
-        expensesDateRange?.to,
-      );
+      const data = await fetchTransactions({
+        groupId: groupId as string,
+        page: pageParam,
+        from: expensesDateRange?.from,
+        to: expensesDateRange?.to,
+      });
       return formatTransactionData(data);
     },
     initialPageParam: 1,
@@ -86,13 +94,10 @@ const Expenses = () => {
     },
   });
 
-  const handleFiltering = () => {
+  const handleFiltering = async () => {
     if (!expensesDateRange) return toast.error("Select a date range to filter");
     if (!expensesDateRange?.to) expensesDateRange.to = new Date();
-    queryClient.refetchQueries({
-      queryKey: ["expenses", groupId as string],
-      exact: true,
-    });
+    await refetch();
   };
 
   useEffect(() => {
@@ -110,129 +115,164 @@ const Expenses = () => {
   }
 
   return (
-    <Card className="order-3 row-span-2 lg:order-2">
-      <ScrollArea className="lg:h-full">
-        <CardHeader>
-          <CardTitle>Expenses</CardTitle>
-          <CardDescription>
-            Showing total expenses of your group
-          </CardDescription>
-          <div className="flex gap-2">
-            <DateRangePicker
-              date={expensesDateRange}
-              setDate={setExpensesDateRange}
-            />
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="icon" onClick={handleFiltering}>
-                  <Filter className="size-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right" sideOffset={5}>
-                Filter
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {status === "pending" && (
-            <div className="flex h-screen w-full items-center justify-center [@supports(height:100dvh)]:h-dvh">
-              <Spinner
-                loadingSpanClassName="bg-muted-foreground"
-                className="size-6 md:size-6 lg:size-7"
+    <>
+      <ResponsiveDialog
+        isOpen={isBillDetailsOpen}
+        setIsOpen={setIsBillDetailsOpen}
+        title="Bill Details"
+        description={`View details of the bill ${selectedBill.billName}`}
+      >
+        <BillDetails billId={selectedBill.billId} />
+      </ResponsiveDialog>
+      <Card className="order-3 row-span-2 lg:order-2">
+        <ScrollArea className="lg:h-full">
+          <CardHeader>
+            <CardTitle>Expenses</CardTitle>
+            <CardDescription>
+              Showing total expenses of your group
+            </CardDescription>
+            <div className="flex gap-2">
+              <DateRangePicker
+                disabled={isRefetching}
+                date={expensesDateRange}
+                setDate={setExpensesDateRange}
               />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleFiltering}
+                    disabled={isRefetching}
+                  >
+                    {isRefetching ? (
+                      <Spinner
+                        className="size-4"
+                        loadingSpanClassName="bg-muted-foreground"
+                      />
+                    ) : (
+                      <Filter className="size-4" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right" sideOffset={5}>
+                  Filter
+                </TooltipContent>
+              </Tooltip>
             </div>
-          )}
-          {data?.pages[0].length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center gap-4">
-              <NoContent className="size-32 md:size-48" />
-              <div className="text-sm text-muted-foreground md:text-base">
-                No debts here. Click + to add transactions
+          </CardHeader>
+          <CardContent>
+            {status === "pending" && (
+              <div className="flex h-screen w-full items-center justify-center">
+                <Spinner
+                  loadingSpanClassName="bg-muted-foreground"
+                  className="size-6 md:size-6 lg:size-7"
+                />
               </div>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="hidden sm:table-cell">Payees</TableHead>
-                  <TableHead className="hidden sm:table-cell">
-                    Drawees
-                  </TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data?.pages.map((transactions, index) => (
-                  <React.Fragment key={`infinite-transactions-${index}`}>
-                    {transactions.map((transaction) => (
-                      <TableRow
-                        key={transaction.id}
-                        className="no-hover"
-                        ref={
-                          index === data?.pages.length - 1
-                            ? lastTransactionRef
-                            : undefined
-                        }
-                      >
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            {getCategoryIcon(transaction.category)}
-                            <div>
-                              <div className="max-w-32 truncate font-medium md:max-w-40 lg:w-full">
-                                {transaction.name}
-                              </div>
-                              <div className="hidden text-muted-foreground md:inline">
-                                {format(transaction.createdAt, "EEEE, MMMM d")}
-                              </div>
-                              <div className="max-w-32 truncate text-sm text-muted-foreground md:hidden">
-                                {format(transaction.createdAt, "EEE, MMM d")}
+            )}
+            {data?.pages[0].length === 0 ? (
+              <div className="flex h-full flex-col items-center justify-center gap-4">
+                <NoContent className="size-32 md:size-48" />
+                <div className="text-sm text-muted-foreground md:text-base">
+                  No debts here. Click + to add transactions
+                </div>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      Payees
+                    </TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      Drawees
+                    </TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data?.pages.map((transactions, index) => (
+                    <React.Fragment key={`infinite-transactions-${index}`}>
+                      {transactions.map((transaction) => (
+                        <TableRow
+                          key={transaction.id}
+                          className="no-hover cursor-pointer"
+                          onClick={(e) => {
+                            setSelectedBill({
+                              billId: transaction.id,
+                              billName: transaction.name,
+                            });
+                            setIsBillDetailsOpen(true);
+                          }}
+                          ref={
+                            index === data?.pages.length - 1
+                              ? lastTransactionRef
+                              : undefined
+                          }
+                        >
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              {getCategoryIcon(transaction.category)}
+                              <div>
+                                <div className="max-w-32 truncate font-medium md:max-w-40 lg:w-full">
+                                  {transaction.name}
+                                </div>
+                                <div className="hidden text-muted-foreground md:inline">
+                                  {format(
+                                    transaction.createdAt,
+                                    "EEEE, MMMM d",
+                                  )}
+                                </div>
+                                <div className="max-w-32 truncate text-sm text-muted-foreground md:hidden">
+                                  {format(transaction.createdAt, "EEE, MMM d")}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden sm:table-cell">
-                          <AvatarCircles
-                            className="size-8"
-                            limit={4}
-                            members={transaction.payees.map(
-                              (payeeIndex) => members[payeeIndex],
-                            )}
-                          />
-                        </TableCell>
-                        <TableCell className="hidden sm:table-cell">
-                          <AvatarCircles
-                            className="size-8"
-                            limit={4}
-                            members={transaction.drawees.map(
-                              (draweeIndex) => members[draweeIndex],
-                            )}
-                          />
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-destructive">
-                          -{currencySymbol}
-                          {transaction.amount}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </React.Fragment>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            <AvatarCircles
+                              className="size-8"
+                              limit={4}
+                              members={transaction.payees.map(
+                                (payeeIndex) => members[payeeIndex],
+                              )}
+                            />
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            <AvatarCircles
+                              className="size-8"
+                              limit={4}
+                              members={transaction.drawees.map(
+                                (draweeIndex) => members[draweeIndex],
+                              )}
+                            />
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-destructive">
+                            -{currencySymbol}
+                            {transaction.amount.toFixed(2)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
 
-          {isFetchingNextPage && (
-            <span className="flex items-center justify-center p-2">
-              <Spinner
-                loadingSpanClassName="bg-muted-foreground"
-                className="size-6 md:size-6 lg:size-7"
-              />
-            </span>
-          )}
-        </CardContent>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
-    </Card>
+            {isFetchingNextPage && (
+              <span className="flex items-center justify-center p-2">
+                <Spinner
+                  loadingSpanClassName="bg-muted-foreground"
+                  className="size-6 md:size-6 lg:size-7"
+                />
+              </span>
+            )}
+          </CardContent>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
+      </Card>
+    </>
   );
 };
 

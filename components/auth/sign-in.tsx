@@ -108,6 +108,9 @@ export default function SignIn({
   } = useMutation({
     mutationFn: async (next: string) => {
       const assertion = await startServerPasskeyLogin();
+      if ("error" in assertion) {
+        return { error: assertion.error };
+      }
       const credential = await get(assertion as any);
       const response = await finishServerPasskeyLogin(credential);
       if (!response || !response.token) {

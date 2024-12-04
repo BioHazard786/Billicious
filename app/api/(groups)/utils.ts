@@ -350,38 +350,33 @@ export async function deleteGroupInDB(
   >,
   groupId: string,
 ) {
-  // Delete Transactions
-  await transaction
-    .delete(transactionsTable)
-    .where(eq(transactionsTable.groupId, groupId));
-
-  // delete drawees and payees
-  let bills = await transaction
-    .select()
+  // Fetch bills and their IDs in a single query
+  const bills = await transaction
+    .select({ id: billsTable.id })
     .from(billsTable)
     .where(eq(billsTable.groupId, groupId));
 
-  for (let bill of bills) {
-    await transaction
+  const billIds = bills.map((bill) => bill.id);
+
+  // Perform bulk deletes in parallel
+  await Promise.all([
+    // Delete related bill entities in parallel
+    transaction
       .delete(draweesInBillsTable)
-      .where(eq(draweesInBillsTable.billId, bill.id));
-    await transaction
+      .where(inArray(draweesInBillsTable.billId, billIds)),
+    transaction
       .delete(payeesInBillsTable)
-      .where(eq(payeesInBillsTable.billId, bill.id));
-  }
+      .where(inArray(payeesInBillsTable.billId, billIds)),
 
-  // delete usersInGroup
-  await transaction
-    .delete(membersTable)
-    .where(eq(membersTable.groupId, groupId));
+    // Delete other group-related entities
+    transaction
+      .delete(transactionsTable)
+      .where(eq(transactionsTable.groupId, groupId)),
+    transaction.delete(membersTable).where(eq(membersTable.groupId, groupId)),
+    transaction.delete(billsTable).where(eq(billsTable.groupId, groupId)),
+    transaction.delete(groupsTable).where(eq(groupsTable.id, groupId)),
+  ]);
 
-  // Delete Bills
-  await transaction.delete(billsTable).where(eq(billsTable.groupId, groupId));
-
-  // Delete Group
-  await transaction.delete(groupsTable).where(eq(groupsTable.id, groupId));
-
-  // deleteKafkaTopics(groupId);
   return groupId;
 }
 
@@ -397,8 +392,7 @@ export async function getGroupBillsFromDB(
   from?: string,
   to?: string,
 ) {
-  let bills: any = [];
-  let billsFromDB = await withPagination(
+  return await withPagination(
     transaction
       .select()
       .from(billsTable)
@@ -417,27 +411,26 @@ export async function getGroupBillsFromDB(
 
   // console.log(billsFromDB);
 
-  for (let bill of billsFromDB) {
-    let drawees = await transaction
-      .select()
-      .from(draweesInBillsTable)
-      .where(eq(draweesInBillsTable.billId, bill.id));
-    let payees = await transaction
-      .select()
-      .from(payeesInBillsTable)
-      .where(eq(payeesInBillsTable.billId, bill.id));
+  // for (let bill of billsFromDB) {
+  //   let drawees = await transaction
+  //     .select()
+  //     .from(draweesInBillsTable)
+  //     .where(eq(draweesInBillsTable.billId, bill.id));
+  //   let payees = await transaction
+  //     .select()
+  //     .from(payeesInBillsTable)
+  //     .where(eq(payeesInBillsTable.billId, bill.id));
 
-    bills.push({
-      ...bill,
-      drawees: drawees,
-      payees: payees,
-    });
-    // console.log(bills);
-  }
-  return bills;
+  //   bills.push({
+  //     ...bill,
+  //     drawees: drawees,
+  //     payees: payees,
+  //   });
+  //   // console.log(bills);
+  // }
 }
 
-function withPagination<T extends PgSelect>(
+export function withPagination<T extends PgSelect>(
   qb: T,
   page: number = 1,
   pageSize: number = 10,

@@ -76,13 +76,8 @@ const SideNavbar = ({
   ];
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-[76] hidden h-full flex-col border-r border-border lg:flex">
-      <div className="p-2 pt-[0.6rem]">
-        <Link href="/">
-          <Mascot className="cursor-pointer" />
-        </Link>
-      </div>
-      <nav className="grid gap-3 p-2">
+    <aside className="fixed inset-y-0 left-0 z-[76] mt-[3.313rem] hidden h-full flex-col border-r border-border lg:flex">
+      <nav className="mt-3 grid gap-3 p-2 pt-0">
         {navItems.slice(0, 2).map((item) => (
           <NavItem key={item.label} {...item} />
         ))}

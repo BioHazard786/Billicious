@@ -139,7 +139,7 @@ function AddBillForm() {
       );
       return { toastId };
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: async (data, variables, context) => {
       addBillToGroup({
         updatedMemberData: data.members,
         totalAmount: Number(data.totalGroupExpense),
@@ -159,12 +159,24 @@ function AddBillForm() {
           (payee: { userIndex: number }) => payee.userIndex,
         ),
       });
-      queryClient.invalidateQueries({
-        queryKey: ["settleUp", groupId as string],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["expenses", groupId as string],
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["settleUp", groupId as string],
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["expenses", groupId as string],
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["timelineChart", groupId as string],
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["categoryChart", groupId as string],
+          exact: true,
+        }),
+      ]);
       resetBillFormStores();
       return toast.success(`${variables.name} transaction added successfully`, {
         id: context.toastId,
@@ -189,6 +201,21 @@ function AddBillForm() {
       toast.error("Bill Name should be atmost 32 characters");
       return setBillName("");
     }
+
+    const drawees = formatDrawees(
+      draweesSplitEqually,
+      draweesSplitByAmount,
+      draweesSplitByPercent,
+      payeesBill,
+      currentSelectedTab,
+    );
+
+    console.log(
+      `Bill: ${Object.values(payees).reduce((acc, value) => acc + value, 0)}`,
+      `Total Split: ${Object.values(drawees).reduce((acc, value) => acc + value, 0)}`,
+      `Drawees: `,
+      drawees,
+    );
 
     server_createTransaction({
       groupId: groupId as string,

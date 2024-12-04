@@ -1,7 +1,8 @@
 import HomePage from "@/components/createGroup/home-page";
 import { db } from "@/database/dbConnect";
 import { formatUserGroupsData } from "@/lib/utils";
-import { getUser } from "@/server/actions";
+import { UserGroupsDataStoreProvider } from "@/providers/user-groups-data-store-provider";
+import { getSession } from "@/server/actions";
 import { getUserGroupsFromDB } from "./api/(users)/utils";
 // import { redpanda } from "@/database/kafka";
 
@@ -36,13 +37,17 @@ const Page = async () => {
   //   }
   // });
 
-  const user = await getUser();
+  const user = await getSession();
 
   const usersGroup = await db.transaction(async (transaction) => {
-    return getUserGroupsFromDB(transaction, user?.id);
+    return getUserGroupsFromDB(transaction, user!.id);
   });
 
-  return <HomePage userGroups={formatUserGroupsData(usersGroup)} />;
+  return (
+    <UserGroupsDataStoreProvider userGroups={formatUserGroupsData(usersGroup)}>
+      <HomePage />
+    </UserGroupsDataStoreProvider>
+  );
 };
 
 export default Page;

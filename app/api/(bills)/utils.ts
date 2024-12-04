@@ -134,27 +134,27 @@ export async function getBillFromDB(
   >,
   billId: string,
 ) {
-  let bill: any = {};
-  let bills = await transaction
-    .select()
-    .from(billsTable)
-    .where(eq(billsTable.id, billId));
+  const [bills, drawees, payees] = await Promise.all([
+    transaction.select().from(billsTable).where(eq(billsTable.id, billId)),
+    transaction
+      .select()
+      .from(draweesInBillsTable)
+      .where(eq(draweesInBillsTable.billId, billId)),
+    transaction
+      .select()
+      .from(payeesInBillsTable)
+      .where(eq(payeesInBillsTable.billId, billId)),
+  ]);
 
-  if (bills.length == 0) {
+  if (bills.length === 0) {
     throw new Error("Invalid Bill Id");
   }
 
-  bill.drawees = await transaction
-    .select()
-    .from(draweesInBillsTable)
-    .where(eq(draweesInBillsTable.billId, billId));
-  bill.payees = await transaction
-    .select()
-    .from(payeesInBillsTable)
-    .where(eq(payeesInBillsTable.billId, billId));
-
-  bill.bill = bills[0];
-  return bill;
+  return {
+    bill: bills[0],
+    drawees,
+    payees,
+  };
 }
 
 export async function deleteBillInDB(
@@ -353,6 +353,7 @@ function validateDraweesAndPayees(
     payeesString: string = "";
   // CHECK IF EACH DRAWEE INDEX IS LESS THAN MEMBERS' LENGTH
   // ADD EACH DRAWEE AMOUNT TO TOTALDRAWN
+
   for (let [idx, amt] of Object.entries(drawees)) {
     let index = parseFloat(idx),
       amount = parseFloat(amt as string);
@@ -365,6 +366,10 @@ function validateDraweesAndPayees(
 
   // CHECK IF EACH PAYEE INDEX IS LESS THAN MEMBERS' LENGTH
   // ADD EACH PAYEE AMOUNT TO TOTALPAID
+  console.log(drawees);
+  console.log(
+    Object.values(drawees).reduce((acc, value) => acc + Number(value), 0),
+  );
   for (let [idx, amt] of Object.entries(payees)) {
     let index = parseFloat(idx),
       amount = parseFloat(amt as string);
@@ -374,6 +379,7 @@ function validateDraweesAndPayees(
     payeesString += idx + "|";
     totalPaid += amount;
   }
+  console.log(totalDrawn, totalPaid);
 
   // CHECK IF TOTALPAID AMOUNT IS EQUAL TO TOTAL DRAWN AMOUNT
   if (totalDrawn != totalPaid) {

@@ -39,7 +39,7 @@ const ProgressBar = ({
     const controls = animate(previousBill.current, totalPaid, {
       duration: 0.5,
       onUpdate: (value) => {
-        node.textContent = value.toFixed(0);
+        node.textContent = value.toFixed(2);
       },
     });
     previousBill.current = totalPaid;
@@ -107,7 +107,7 @@ const ProgressBar = ({
           </p>
           <p className="font-mono text-sm">
             <span className="mr-[0.1rem]">{currencySymbol}</span>
-            <span ref={totalPaidRef}>{totalPaid}</span>
+            <span ref={totalPaidRef}>{totalPaid.toFixed(2)}</span>
           </p>
         </div>
         <Progress
