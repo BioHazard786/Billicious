@@ -20,32 +20,34 @@ import { getUserInvitesFromDB } from "./api/(invites)/utils";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.DOMAIN!),
+  title: {
+    default: "Billcious | Simplify Group Expense Splitting",
+    template: "%s | Billcious",
+  },
+  description:
+    "Effortlessly split bills, track group expenses, and settle debts with our user-friendly open-source expense sharing app.",
+  applicationName: "Billicious",
   keywords: [
     "Bill Splitting App",
     "Split Bills Online",
-    "Expense Sharing App",
+    "Expense Sharing",
     "Group Payment Tool",
-    "Shared Expenses Manager",
-    "Split the Bill",
-    "Group Expense Tracker",
+    "Debt Tracker",
+    "Expense Management",
     "Split Bills with Friends",
-    "Group Finance App",
-    "Roommate Expense Tracker",
-    "Trip Expense Manager",
-    "Shared Bills Calculator",
-    "Automated Bill Splitting",
-    "Settle Up Payments",
-    "Group Spending Tracker",
-    "Split Dinner Bill",
-    "Shared Payment App",
-    "Bill Splitting Made Easy",
-    "Expense Splitter",
-    "Group Cost Sharing",
+    "Trip Expense Splitter",
+    "Roommate Bill Sharing",
+    "Group Finance Tracker",
   ],
-  title: "Billicious | Simplify the calculation of splitting group expenses",
-  description:
-    "Split your bills easily! Billicious is an open-source Webapp built for tracking debts and payments quickly",
-  applicationName: "Billicious",
+  authors: [
+    {
+      name: "Mohd Zaid and Keshav Singh",
+      url: "https://github.com/BioHazard786",
+    },
+  ],
+  creator: "Mohd Zaid and Keshav Singh",
+  publisher: "Mohd Zaid and Keshav Singh",
   icons: {
     icon: [
       {
@@ -60,6 +62,35 @@ export const metadata: Metadata = {
       },
     ],
   },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: process.env.DOMAIN!,
+    title: "Billcious | Simplify Group Expense Splitting",
+    description:
+      "Effortlessly split bills, track group expenses, and settle debts with our user-friendly open-source expense sharing app.",
+    siteName: "Billicious",
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Billicious - Group Expense Splitting App",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Billcious | Simplify Group Expense Splitting",
+    description:
+      "Effortlessly split bills, track group expenses, and settle debts with our user-friendly open-source expense sharing app.",
+    images: ["/twitter-image.png"],
+  },
+  alternates: {
+    canonical: process.env.DOMAIN!,
+  },
+  category: "Finance",
+  generator: "Next.js",
 };
 
 export default async function RootLayout({

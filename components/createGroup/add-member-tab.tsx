@@ -61,17 +61,17 @@ const AddMemberTab = () => {
         <div className="flex w-full justify-center">
           <TabsList className="w-min">
             <TabsTrigger value="temporary">
-              <UserMinus className="mr-2 hidden size-4 md:block" />
+              <UserMinus className="mr-2 size-4" />
               Temporary
             </TabsTrigger>
             <TabsTrigger value="permanent">
-              <UserCheck className="mr-2 hidden size-4 md:block" />
+              <UserCheck className="mr-2 size-4" />
               Permanent
             </TabsTrigger>
-            <TabsTrigger value="invite">
+            {/* <TabsTrigger value="invite">
               <Link className="mr-2 hidden size-4 md:block" />
               Invite Link
-            </TabsTrigger>
+            </TabsTrigger> */}
           </TabsList>
         </div>
         <TabsContent value="temporary">
@@ -80,9 +80,9 @@ const AddMemberTab = () => {
         <TabsContent value="permanent">
           <AddPermanentMembers />
         </TabsContent>
-        <TabsContent value="invite">
+        {/* <TabsContent value="invite">
           <div> </div>
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
     </>
   );

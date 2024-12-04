@@ -368,17 +368,17 @@ const AddMemberDialog = ({
         <div className="flex w-full justify-center">
           <TabsList className="w-min">
             <TabsTrigger value="temporary">
-              <UserMinus className="mr-2 hidden size-4 md:visible" />
+              <UserMinus className="mr-2 size-4" />
               Temporary
             </TabsTrigger>
             <TabsTrigger value="permanent">
-              <UserCheck className="mr-2 hidden size-4 md:visible" />
+              <UserCheck className="mr-2 size-4" />
               Permanent
             </TabsTrigger>
-            <TabsTrigger value="invite">
+            {/* <TabsTrigger value="invite">
               <Link className="mr-2 hidden size-4 md:visible" />
               Invite Link
-            </TabsTrigger>
+            </TabsTrigger> */}
           </TabsList>
         </div>
         <TabsContent value="temporary" className="p-4 pt-0 md:p-0">
@@ -387,9 +387,9 @@ const AddMemberDialog = ({
         <TabsContent value="permanent" className="p-4 pt-0 md:p-0">
           <InvitePermanentMember setIsOpen={setIsOpen} />
         </TabsContent>
-        <TabsContent value="invite" className="p-4 pt-0 md:p-0">
+        {/* <TabsContent value="invite" className="p-4 pt-0 md:p-0">
           <div> </div>
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
     </ResponsiveDialog>
   );

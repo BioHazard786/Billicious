@@ -12,11 +12,38 @@ import {
 import { ImageUploader } from "@/components/ui/image-upload";
 import { Spinner } from "@/components/ui/spinner";
 import useDashboardStore from "@/store/dashboard-store";
+import useUserInfoStore from "@/store/user-info-store";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import { AspectRatio } from "../ui/aspect-ratio";
+import NoContent from "../ui/no-content";
 
 const Settings = () => {
+  const members = useDashboardStore((state) => state.members);
+  const user = useUserInfoStore((state) => state.user);
+
+  const isAdmin = useMemo(() => {
+    return (
+      members.find((member) => member.memberId === user?.id)?.isAdmin ?? false
+    );
+  }, [members, user]);
+
+  if (!isAdmin) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-4 p-4">
+        <NoContent className="size-24 md:size-40" />
+        <div className="space-y-1 text-center">
+          <p className="text-sm font-medium md:text-base">
+            A Lonely Loner Like Me
+          </p>
+          <p className="text-sm text-muted-foreground md:text-base">
+            You don't have the privilege to access group settings.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Card className="mx-auto mt-20 w-full max-w-lg border-0 px-1">
       <CardHeader>
