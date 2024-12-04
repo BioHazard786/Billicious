@@ -38,6 +38,7 @@ next-env.d.ts
 
 # dev
 test.mjs
+test.ts
 group_schema.json
 bill_schema.json
 accent-colors.css
