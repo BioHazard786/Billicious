@@ -11,10 +11,9 @@ import {
 } from "@/server/fetchHelpers";
 import useNotificationStore from "@/store/notification-store";
 import useUserInfoStore from "@/store/user-info-store";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { SquareArrowOutUpRight } from "lucide-react";
-import { nanoid } from "nanoid";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
@@ -227,7 +226,9 @@ const NotificationCard = ({
   notification: Notifications[0];
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
+  const queryClient = useQueryClient();
   const router = useRouter();
+  const admin = useUserInfoStore((state) => state.user);
   const removeNotification = useNotificationStore(
     (state) => state.removeNotification,
   );
@@ -242,6 +243,10 @@ const NotificationCard = ({
         return { toastId };
       },
       onSuccess: (data, variables, context) => {
+        queryClient.refetchQueries({
+          queryKey: ["homepage", admin!.id],
+          exact: true,
+        });
         router.push(`/group/${encodeURIComponent(notification.groupId!)}`);
         removeNotification(notification.id);
         return toast.success(`Joined ${notification.groupName} successfully`, {

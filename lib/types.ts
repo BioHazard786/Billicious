@@ -56,6 +56,7 @@ export type userGroup = {
   totalExpense: number;
   backgroundUrl: string;
   currencyCode: string;
+  isAdmin: boolean;
   createdAt: Date;
   updatedAt: Date;
 };

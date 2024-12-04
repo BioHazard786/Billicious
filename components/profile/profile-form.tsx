@@ -30,7 +30,7 @@ import {
   type CredentialCreationOptionsJSON,
 } from "@github/webauthn-json";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Camera, Lock, User } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -286,12 +286,19 @@ const UpdateUserAvatar = () => {
 
 const RegisterNewPasskey = () => {
   const user = useUserInfoStore((state) => state.user);
-  const queryClient = useQueryClient();
   const { slug: groupId } = useParams();
+
+  const { isLoading, data, refetch, isRefetching } = useQuery({
+    queryKey: ["passkeys", user?.id, groupId as string],
+    queryFn: () => getSavedPasskeys(user?.id as string),
+  });
 
   const { isPending, mutate: server_registerNewPasskey } = useMutation({
     mutationFn: async () => {
       const createOptions = await startServerPasskeyRegistration();
+      if ("error" in createOptions) {
+        throw new Error(createOptions.error);
+      }
       const credential = await create(
         createOptions as CredentialCreationOptionsJSON,
       );
@@ -302,24 +309,22 @@ const RegisterNewPasskey = () => {
       return { toastId };
     },
     onSuccess: async (data, variables, context) => {
-      queryClient.invalidateQueries({
-        queryKey: ["passkeys", user?.id, groupId as string],
-      });
+      await refetch();
       return toast.success("Passkey registered", {
         id: context.toastId,
       });
     },
     onError: (error, variables, context) => {
       console.error(error);
+      if (error.message.startsWith("The operation either timed out")) {
+        return toast.error("Your device is not supported, try anothe device", {
+          id: context?.toastId,
+        });
+      }
       return toast.error(error.message, {
         id: context?.toastId,
       });
     },
-  });
-
-  const { isLoading, data } = useQuery({
-    queryKey: ["passkeys", user?.id, groupId as string],
-    queryFn: () => getSavedPasskeys(user?.id as string),
   });
 
   const handleRegisterPasskey = () => {
@@ -330,7 +335,7 @@ const RegisterNewPasskey = () => {
     <div className="flex w-full flex-col items-center justify-center space-y-8 overflow-hidden">
       <PasskeyLogo className="h-24 md:h-32 lg:h-40" />
       {/* <PasskeysLogo /> */}
-      {isLoading ? (
+      {isLoading || isRefetching ? (
         <div className="grid h-48 w-[80%] place-items-center rounded-md">
           <Spinner
             loadingSpanClassName="bg-muted-foreground"

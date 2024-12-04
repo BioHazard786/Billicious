@@ -63,6 +63,14 @@ type BillCategoryData = {
   to?: Date;
 };
 
+type TransactionData = {
+  groupId: string;
+  page: number;
+  pageSize?: number;
+  from?: Date;
+  to?: Date;
+};
+
 const postFetchHelper = async (endPoint: string, body: string) => {
   const response = await fetch(endPoint, {
     method: "POST",
@@ -145,16 +153,12 @@ export const fetchAllBalances = async (groupId: string) => {
   return postFetchHelper("/api/get_all_balances", JSON.stringify({ groupId }));
 };
 
-export const fetchTransactions = async (
-  groupId: string,
-  page: number,
-  from?: Date,
-  to?: Date,
-) => {
-  return postFetchHelper(
-    "/api/get_all_bills",
-    JSON.stringify({ groupId, page, from, to }),
-  );
+export const fetchTransactions = async (transactionData: TransactionData) => {
+  return postFetchHelper("/api/get_all_bills", JSON.stringify(transactionData));
+};
+
+export const fetchBillDetails = async (billId: string) => {
+  return postFetchHelper("/api/view_bill", JSON.stringify({ billId }));
 };
 
 export const fetchBillCategories = async (
@@ -179,4 +183,12 @@ export const createAdmin = async (createAdminData: CreateAdminData) => {
 
 export const deleteAdmin = async (deleteAdminData: CreateAdminData) => {
   return postFetchHelper("/api/remove_admin", JSON.stringify(deleteAdminData));
+};
+
+export const deleteGroup = async (groupId: string) => {
+  return postFetchHelper("/api/delete_group", JSON.stringify({ groupId }));
+};
+
+export const fetchUserGroupsData = async (userId: string) => {
+  return postFetchHelper("/api/get_all_groups", JSON.stringify({ userId }));
 };

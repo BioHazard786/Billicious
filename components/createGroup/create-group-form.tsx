@@ -22,7 +22,7 @@ import useCreateGroup from "@/store/create-group-store";
 import useGroupImageTabStore from "@/store/group-image-tab-store";
 import useGroupNameTabStore from "@/store/group-name-tab-store";
 import useUserStore from "@/store/user-info-store";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { nanoid } from "nanoid";
 import { useRouter } from "next/navigation";
@@ -71,6 +71,7 @@ const variants = {
 };
 
 const CreateGroupForm = ({ children }: { children: React.ReactNode }) => {
+  const queryClient = useQueryClient();
   const supabase = useMemo(() => createClient(), []);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const toastIdRef = useRef<string | number | undefined>(undefined);
@@ -168,6 +169,10 @@ const CreateGroupForm = ({ children }: { children: React.ReactNode }) => {
       }
     },
     onSuccess: (data: { group: { id: string } }, variables, context) => {
+      queryClient.refetchQueries({
+        queryKey: ["homepage", admin!.id],
+        exact: true,
+      });
       router.replace(`/group/${encodeURIComponent(data.group.id)}`);
       resetGroupFormStores();
       return toast.success(`${variables.name} group created successfully`, {

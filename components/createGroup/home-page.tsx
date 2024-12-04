@@ -1,13 +1,28 @@
 "use client";
 
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { CURRENCIES } from "@/constants/items";
 import { userGroup } from "@/lib/types";
-import { cn, timeAgo } from "@/lib/utils";
+import { cn, formatUserGroupsData, timeAgo } from "@/lib/utils";
+import { deleteGroup, fetchUserGroupsData } from "@/server/fetchHelpers";
+import useUserGroupsDataStore from "@/store/user-groups-data-store";
 import useUserStore from "@/store/user-info-store";
-import { Plus, SquareArrowOutUpRight } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Plus, SquareArrowOutUpRight, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import AnimatedButton from "../ui/animated-button";
 import { AspectRatio } from "../ui/aspect-ratio";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
@@ -20,6 +35,7 @@ import {
 } from "../ui/card";
 import { GridPattern } from "../ui/grid-pattern";
 import NoContent from "../ui/no-content";
+
 import CreateGroupForm from "./create-group-form";
 
 const GroupCard = ({
@@ -29,16 +45,52 @@ const GroupCard = ({
   group: userGroup;
   userAvatarUrl?: string;
 }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const deleteUserGroup = useUserGroupsDataStore(
+    (state) => state.deleteUserGroup,
+  );
   const currencySymbol = useMemo(
     () => CURRENCIES[group.currencyCode || "INR"].currencySymbol,
     [group.currencyCode],
   );
 
+  const { isPending, mutateAsync: server_deleteGroup } = useMutation({
+    mutationFn: deleteGroup,
+    onMutate: () => {
+      const toastId = toast.loading(`Deleting ${group.groupName} group...`);
+      return { toastId };
+    },
+    onSuccess: async (data, variables, context) => {
+      deleteUserGroup(group.groupId);
+      return toast.success(`${group.groupName} deleted successfully`, {
+        id: context.toastId,
+      });
+    },
+    onError: (error, variables, context) => {
+      console.log(error);
+      return toast.error(error.message, {
+        id: context?.toastId,
+      });
+    },
+    onSettled: () => {
+      setIsOpen(false);
+    },
+  });
+
+  const handleDeleteGroup = async () => {
+    await server_deleteGroup(group.groupId);
+  };
+
+  const balanceText =
+    group.balance < 0
+      ? `-${currencySymbol}${(-group.balance).toFixed(2)}`
+      : `${currencySymbol}${group.balance.toFixed(2)}`;
+
   return (
     <div>
       <AspectRatio
         ratio={20 / 9}
-        className="flex items-center justify-center overflow-hidden rounded-none rounded-t-xl border border-b-0 bg-muted"
+        className="relative flex items-center justify-center overflow-hidden rounded-none rounded-t-xl border border-b-0 bg-muted"
       >
         {group.backgroundUrl ? (
           <Image
@@ -81,8 +133,8 @@ const GroupCard = ({
       </AspectRatio>
       <Card className="w-full rounded-none border-t-0">
         <CardHeader>
-          <CardTitle className="flex flex-row items-center justify-between gap-16">
-            {group.groupName}
+          <CardTitle className="flex items-center justify-between">
+            <span className="max-w-40 truncate">{group.groupName}</span>
             <span className="text-sm font-normal text-muted-foreground">
               {timeAgo(group.updatedAt)}
             </span>
@@ -97,7 +149,7 @@ const GroupCard = ({
             </span>
           </CardDescription>
         </CardHeader>
-        <CardContent className="text-sm">
+        <CardContent className="flex flex-col gap-1 text-sm">
           <div className="flex items-center justify-between">
             Total Expense:{" "}
             <span className="font-mono">
@@ -120,35 +172,94 @@ const GroupCard = ({
                 group.balance >= 0 ? "text-primary" : "text-destructive",
               )}
             >
-              <span>
-                {currencySymbol}
-                {group.balance.toFixed(2)}
-              </span>
+              <span>{balanceText}</span>
             </span>
           </div>
         </CardContent>
       </Card>
-      <Link href={`/group/${group.groupId}`}>
-        <Button className="w-full rounded-none rounded-b-xl border border-t-0">
-          View Group <SquareArrowOutUpRight className="ml-2 size-4" />
+      {group.isAdmin ? (
+        <div className="flex">
+          <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+            <AlertDialogTrigger asChild>
+              <Button
+                className="w-full rounded-none rounded-bl-xl border border-r-0 border-t-0"
+                variant="destructive"
+              >
+                Delete <Trash2 className="ml-2 size-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete
+                  your group and remove your data from our servers.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isPending}>
+                  Cancel
+                </AlertDialogCancel>
+                <AnimatedButton
+                  isLoading={isPending}
+                  variant="destructive"
+                  onClick={handleDeleteGroup}
+                >
+                  Delete
+                </AnimatedButton>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <Button
+            className="w-full rounded-none rounded-br-xl border border-l-0 border-t-0"
+            asChild
+          >
+            <Link href={`/group/${group.groupId}`}>
+              View Group <SquareArrowOutUpRight className="ml-2 size-4" />
+            </Link>
+          </Button>
+        </div>
+      ) : (
+        <Button
+          className="w-full rounded-none rounded-b-xl border border-t-0"
+          asChild
+        >
+          <Link href={`/group/${group.groupId}`}>
+            View Group <SquareArrowOutUpRight className="ml-2 size-4" />
+          </Link>
         </Button>
-      </Link>
+      )}
     </div>
   );
 };
 
-const HomePage = ({ userGroups }: { userGroups: userGroup[] }) => {
+const HomePage = () => {
   const user = useUserStore((state) => state.user);
+  const userGroups = useUserGroupsDataStore((state) => state.userGroupsData);
+  const addUserGroups = useUserGroupsDataStore((state) => state.addUserGroups);
+  const query = useQuery({
+    queryKey: ["homepage", user!.id],
+    queryFn: () => fetchUserGroupsData(user!.id),
+    select: (data) => formatUserGroupsData(data.groups),
+  });
 
   const sortedGroups = useMemo(
     () =>
-      [...userGroups].sort((a, b) => {
-        const dateA = new Date(a.updatedAt).getTime();
-        const dateB = new Date(b.updatedAt).getTime();
-        return dateB - dateA;
-      }),
+      userGroups
+        ? [...userGroups].sort((a, b) => {
+            const dateA = new Date(a.updatedAt).getTime();
+            const dateB = new Date(b.updatedAt).getTime();
+            return dateB - dateA;
+          })
+        : [],
     [userGroups],
   );
+
+  useEffect(() => {
+    if (query.data) {
+      addUserGroups(query.data);
+    }
+  }, [query.data]);
 
   if (userGroups.length === 0) {
     return (
@@ -178,7 +289,7 @@ const HomePage = ({ userGroups }: { userGroups: userGroup[] }) => {
 
   return (
     <div>
-      <div className="grid grid-cols-1 gap-3 p-3 pt-16 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 p-3 pt-[4.063rem] md:grid-cols-2 lg:grid-cols-3">
         {sortedGroups.map((group) => (
           <GroupCard
             key={group.groupId}

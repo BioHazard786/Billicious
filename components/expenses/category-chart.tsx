@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/chart";
 import { fetchBillCategories } from "@/server/fetchHelpers";
 import useExpensesTabStore from "@/store/expenses-tab-store";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Filter } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Bar, BarChart, LabelList, XAxis, YAxis } from "recharts";
@@ -53,13 +53,14 @@ type billCategoriesDataType = {
 
 const CategoryChart = () => {
   const { slug: groupId } = useParams();
-  const queryClient = useQueryClient();
 
   const categoryDateRange = useExpensesTabStore.use.categoryChartDateRange();
   const setCategoryDateRange =
     useExpensesTabStore.use.setCategoryChartDateRange();
 
-  const { data, isLoading } = useQuery<billCategoriesDataType[]>({
+  const { data, isLoading, isRefetching, refetch } = useQuery<
+    billCategoriesDataType[]
+  >({
     queryKey: ["categoryChart", groupId as string],
     queryFn: () =>
       fetchBillCategories({
@@ -79,13 +80,10 @@ const CategoryChart = () => {
       }),
   });
 
-  const handleFiltering = () => {
+  const handleFiltering = async () => {
     if (!categoryDateRange) return toast.error("Select a date range to filter");
     if (!categoryDateRange?.to) categoryDateRange.to = new Date();
-    queryClient.refetchQueries({
-      queryKey: ["categoryChart", groupId as string],
-      exact: true,
-    });
+    await refetch();
   };
 
   return (
@@ -97,13 +95,26 @@ const CategoryChart = () => {
         </CardDescription>
         <div className="flex gap-2">
           <DateRangePicker
+            disabled={isRefetching}
             date={categoryDateRange}
             setDate={setCategoryDateRange}
           />
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="outline" size="icon" onClick={handleFiltering}>
-                <Filter className="size-4" />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleFiltering}
+                disabled={isRefetching}
+              >
+                {isRefetching ? (
+                  <Spinner
+                    className="size-4"
+                    loadingSpanClassName="bg-muted-foreground"
+                  />
+                ) : (
+                  <Filter className="size-4" />
+                )}
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={5}>

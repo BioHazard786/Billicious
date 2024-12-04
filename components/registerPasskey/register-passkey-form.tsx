@@ -31,6 +31,9 @@ const RegisterPasskey = () => {
   const { isPending, mutate: server_registerNewPasskey } = useMutation({
     mutationFn: async () => {
       const createOptions = await startServerPasskeyRegistration();
+      if ("error" in createOptions) {
+        throw new Error(createOptions.error);
+      }
       const credential = await create(
         createOptions as CredentialCreationOptionsJSON,
       );
@@ -48,6 +51,11 @@ const RegisterPasskey = () => {
       return router.replace("/");
     },
     onError: (error, variables, context) => {
+      if (error.message.startsWith("The operation either timed out")) {
+        return toast.error("Your device is not supported, try anothe device", {
+          id: context?.toastId,
+        });
+      }
       return toast.error(error.message, {
         id: context?.toastId,
       });

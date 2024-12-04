@@ -18,15 +18,18 @@ export function DateRangePicker({
   className,
   date,
   setDate,
+  disabled,
 }: React.HTMLAttributes<HTMLDivElement> & {
   date: DateRange | undefined;
   setDate: (dateRange: DateRange | undefined) => void;
+  disabled?: boolean;
 }) {
   return (
     <div className={cn("grid gap-2", className)}>
       <Popover>
         <PopoverTrigger asChild>
           <Button
+            disabled={disabled}
             id="date"
             variant={"outline"}
             className="flex w-full items-center justify-start gap-2 text-sm md:w-64"

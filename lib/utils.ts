@@ -11,6 +11,7 @@ import useSplitByPercentTabStore from "@/store/split-by-percent-tab-store";
 import useSplitTabStore from "@/store/split-tab-store";
 import { clsx, type ClassValue } from "clsx";
 import { formatDistanceToNow } from "date-fns";
+import { is } from "drizzle-orm";
 import {
   Bed,
   Bus,
@@ -69,12 +70,12 @@ export function formatTransactionData(data: any): TransactionT[] {
     isPayment: transaction.isPayment,
     category: transaction.category,
     createdAt: new Date(transaction.createdAt),
-    drawees: transaction.drawees.map(
-      (drawee: { userIndex: any }) => drawee.userIndex,
-    ),
-    payees: transaction.payees.map(
-      (payee: { userIndex: any }) => payee.userIndex,
-    ),
+    drawees: transaction.draweesString
+      ? transaction.draweesString.split("|").map(Number)
+      : [],
+    payees: transaction.payeesString
+      ? transaction.payeesString.split("|").map(Number)
+      : [],
   }));
   return transactions;
 }
@@ -181,6 +182,7 @@ export function formatUserGroupsData(data: any): userGroup[] {
     updatedAt: group.updatedAt,
     currencyCode: group.currencyCode,
     backgroundUrl: group.backgroundUrl,
+    isAdmin: group.isAdmin,
   }));
   return userGroups;
 }

@@ -7,14 +7,18 @@ export async function GET(request: Request) {
   const next = searchParams.get("next") ?? "/";
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/auth/auth-code-error`);
+    return NextResponse.redirect(
+      `${origin}/auth/error?type=google&error=code_not_found`,
+    );
   }
 
   const supabase = createClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
-    return NextResponse.redirect(`${origin}/auth/auth-code-error`);
+    return NextResponse.redirect(
+      `${origin}/auth/error?type=google&error=${error.message}`,
+    );
   }
 
   const baseUrl =

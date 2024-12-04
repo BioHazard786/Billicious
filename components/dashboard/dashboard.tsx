@@ -4,7 +4,7 @@ import { createClient } from "@/auth-utils/client";
 import { viewGroup } from "@/server/fetchHelpers";
 import useDashboardStore from "@/store/dashboard-store";
 import useSplitEquallyTabStore from "@/store/split-equally-tab-store";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import EventName from "./event-name";
@@ -14,6 +14,7 @@ import TotalExpense from "./total-expense";
 
 const Dashboard = () => {
   const supabase = useMemo(() => createClient(), []);
+  const queryClient = useQueryClient();
   const { slug: groupId } = useParams();
   const members = useDashboardStore((state) => state.members);
   const addBillToGroup = useDashboardStore((state) => state.addBill);
@@ -49,6 +50,25 @@ const Dashboard = () => {
           filter: `group_id=eq.${groupId}`,
         },
         async (payload) => {
+          await Promise.all([
+            queryClient.refetchQueries({
+              queryKey: ["settleUp", groupId as string],
+              exact: true,
+            }),
+            queryClient.refetchQueries({
+              queryKey: ["expenses", groupId as string],
+              exact: true,
+            }),
+            queryClient.refetchQueries({
+              queryKey: ["timelineChart", groupId as string],
+              exact: true,
+            }),
+            queryClient.refetchQueries({
+              queryKey: ["categoryChart", groupId as string],
+              exact: true,
+            }),
+          ]);
+
           await server_fetchNewGroupData(groupId as string);
           addTransaction({
             name: payload.new.name,
@@ -71,7 +91,7 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <main className="relative grid h-full w-full grid-cols-1 gap-3 overflow-x-hidden p-3 pb-[5.25rem] pt-16 md:grid-cols-2 lg:h-dvh lg:grid-cols-3 lg:grid-rows-[auto_1fr] lg:pb-3 lg:pl-[4.2rem]">
+    <main className="relative grid h-full w-full grid-cols-1 gap-3 overflow-x-hidden p-3 pb-[5.563rem] pt-[4.063rem] md:grid-cols-2 lg:h-dvh lg:grid-cols-3 lg:grid-rows-[auto_1fr] lg:pb-3 lg:pl-[4.313rem]">
       <EventName />
       <TotalExpense />
       <ExpenseChart />
