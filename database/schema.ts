@@ -64,6 +64,7 @@ export const billsTable = pgTable(
     category: text("category").notNull(),
     draweesString: text("drawees_string"),
     payeesString: text("payees_string"),
+    createdBy: integer("created_by").notNull(),
     createdAt: timestamp("created_at").notNull(),
     updatedAt: timestamp("updated_at")
       .notNull()

@@ -35,6 +35,7 @@ export async function createBillInDB(
   notes: string,
   category: string,
   isPayment: boolean,
+  createdBy: number,
   createdAt: Date,
 ) {
   let bill: any = {};
@@ -71,6 +72,7 @@ export async function createBillInDB(
     draweesString: draweesAndPayees[0],
     payeesString: draweesAndPayees[1],
     createdAt: createdAt,
+    createdBy: createdBy,
     groupId: groupId,
   };
   let bills = await transaction.insert(billsTable).values(newBill).returning();
