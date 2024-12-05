@@ -22,7 +22,7 @@ export const POST = async (request: Request) => {
     if (!drawees) throw new Error("drawees are required");
     if (!payees) throw new Error("payees are required");
     if (!category) throw new Error("category is required");
-    if (!createdBy) throw new Error("created by is required");
+    if (createdBy === undefined) throw new Error("created by is required");
 
     const bill = await db.transaction(async (transaction) => {
       return await createBillInDB(

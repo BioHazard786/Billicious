@@ -366,10 +366,6 @@ function validateDraweesAndPayees(
 
   // CHECK IF EACH PAYEE INDEX IS LESS THAN MEMBERS' LENGTH
   // ADD EACH PAYEE AMOUNT TO TOTALPAID
-  console.log(drawees);
-  console.log(
-    Object.values(drawees).reduce((acc, value) => acc + Number(value), 0),
-  );
   for (let [idx, amt] of Object.entries(payees)) {
     let index = parseFloat(idx),
       amount = parseFloat(amt as string);
@@ -379,7 +375,6 @@ function validateDraweesAndPayees(
     payeesString += idx + "|";
     totalPaid += amount;
   }
-  console.log(totalDrawn, totalPaid);
 
   // CHECK IF TOTALPAID AMOUNT IS EQUAL TO TOTAL DRAWN AMOUNT
   if (totalDrawn != totalPaid) {
