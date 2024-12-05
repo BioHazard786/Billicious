@@ -19,7 +19,9 @@ type BillData = {
   groupId: string;
   name: string;
   category: string;
+  createdBy: number;
   createdAt?: number;
+  isPayment?: boolean;
   notes?: string;
   drawees: { [key: string]: number };
   payees: { [key: string]: number };

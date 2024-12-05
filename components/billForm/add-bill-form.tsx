@@ -6,7 +6,10 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 
@@ -31,9 +34,10 @@ import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
 import useSplitByPercentTabStore from "@/store/split-by-percent-tab-store";
 import useSplitEquallyTabStore from "@/store/split-equally-tab-store";
 import useSplitTabStore from "@/store/split-tab-store";
+import useUserInfoStore from "@/store/user-info-store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus } from "lucide-react";
+import { Plus, Repeat, Users } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -81,6 +85,8 @@ const variants = {
 function AddBillForm() {
   const { slug: groupId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
+  const [choiceSelected, setChoiceSelected] = useState(false);
+
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const queryClient = useQueryClient();
 
@@ -90,6 +96,9 @@ function AddBillForm() {
   const setActiveTab = useAddBillStore.use.setActiveTab();
   const setDirection = useAddBillStore.use.setDirection();
   const setIsAnimating = useAddBillStore.use.setIsAnimating();
+
+  const user = useUserInfoStore((state) => state.user);
+  const members = useDashboardStore((state) => state.members);
 
   const addBillToGroup = useDashboardStore((state) => state.addBill);
   const addTransaction = useDashboardStore((state) => state.addTransaction);
@@ -178,6 +187,7 @@ function AddBillForm() {
         }),
       ]);
       resetBillFormStores();
+      // setChoiceSelected(false);
       return toast.success(`${variables.name} transaction added successfully`, {
         id: context.toastId,
       });
@@ -202,26 +212,15 @@ function AddBillForm() {
       return setBillName("");
     }
 
-    const drawees = formatDrawees(
-      draweesSplitEqually,
-      draweesSplitByAmount,
-      draweesSplitByPercent,
-      payeesBill,
-      currentSelectedTab,
-    );
-
-    console.log(
-      `Bill: ${Object.values(payees).reduce((acc, value) => acc + value, 0)}`,
-      `Total Split: ${Object.values(drawees).reduce((acc, value) => acc + value, 0)}`,
-      `Drawees: `,
-      drawees,
-    );
+    const billCreatedBy =
+      members.find((member) => member.memberId === user?.id)?.memberIndex || 0;
 
     server_createTransaction({
       groupId: groupId as string,
       name: titleCase(billName),
       category: category,
       createdAt: createdAt.getTime(),
+      createdBy: Number(billCreatedBy),
       notes: notes,
       payees: payees,
       drawees: formatDrawees(
@@ -248,50 +247,89 @@ function AddBillForm() {
           </Button>
         </DialogTrigger>
         <DialogContent className="z-[101] placeholder:sm:max-w-[425px]">
-          <div className="relative mx-auto h-full w-full overflow-hidden">
-            <AnimatePresence
-              initial={false}
-              custom={direction}
-              mode="popLayout"
-              onExitComplete={() => setIsAnimating(false)}
-            >
-              <motion.div
-                key={activeTab}
-                variants={variants}
-                initial="initial"
-                animate="active"
-                exit="exit"
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                custom={direction}
-                onAnimationStart={() => setIsAnimating(true)}
-                onAnimationComplete={() => setIsAnimating(false)}
-              >
-                {content}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-          <DialogFooter className="flex-row items-center sm:justify-between">
-            <CustomBreadcrumb
-              handleTabClick={handleTabClick}
-              tabs={tabs}
-              activeTab={activeTab}
-            />
-            <AnimatedButton
-              type="submit"
-              variant="default"
-              onClick={() => {
-                if (activeTab + 1 < tabs.length) {
-                  handleTabClick(activeTab + 1);
-                } else {
-                  createTransaction();
-                }
-              }}
-              isDisabled={isPending || Object.keys(payees).length === 0}
-              isLoading={isPending}
-            >
-              {activeTab + 1 === tabs.length ? "Create" : "Next"}
-            </AnimatedButton>
-          </DialogFooter>
+          {true ? (
+            <>
+              <div className="relative mx-auto h-full w-full overflow-hidden">
+                <AnimatePresence
+                  initial={false}
+                  custom={direction}
+                  mode="popLayout"
+                  onExitComplete={() => setIsAnimating(false)}
+                >
+                  <motion.div
+                    key={activeTab}
+                    variants={variants}
+                    initial="initial"
+                    animate="active"
+                    exit="exit"
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    custom={direction}
+                    onAnimationStart={() => setIsAnimating(true)}
+                    onAnimationComplete={() => setIsAnimating(false)}
+                  >
+                    {content}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+              <DialogFooter className="flex-row items-center sm:justify-between">
+                <CustomBreadcrumb
+                  handleTabClick={handleTabClick}
+                  tabs={tabs}
+                  activeTab={activeTab}
+                />
+                <AnimatedButton
+                  type="submit"
+                  variant="default"
+                  onClick={() => {
+                    if (activeTab + 1 < tabs.length) {
+                      handleTabClick(activeTab + 1);
+                    } else {
+                      createTransaction();
+                    }
+                  }}
+                  isDisabled={isPending || Object.keys(payees).length === 0}
+                  isLoading={isPending}
+                >
+                  {activeTab + 1 === tabs.length ? "Create" : "Next"}
+                </AnimatedButton>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>Edit profile</DialogTitle>
+                <DialogDescription>
+                  Make changes to your profile here. Click save when you're
+                  done.
+                </DialogDescription>
+                <div className="flex items-center justify-center gap-4 md:h-[366px]">
+                  <Button
+                    className="size-[13rem] bg-[--accent-bg]"
+                    data-accent-color="crimson"
+                    variant="secondary"
+                    size="icon"
+                    onClick={() => setChoiceSelected(true)}
+                  >
+                    <Users
+                      className="size-[7rem] text-[--accent-fg]"
+                      data-accent-color="crimson"
+                    />
+                  </Button>
+                  <Button
+                    className="size-[13rem] bg-[--accent-bg]"
+                    data-accent-color="sky"
+                    variant="secondary"
+                    size="icon"
+                  >
+                    <Repeat
+                      className="size-[7rem] text-[--accent-fg]"
+                      data-accent-color="sky"
+                    />
+                  </Button>
+                </div>
+              </DialogHeader>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     );

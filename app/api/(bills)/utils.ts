@@ -105,14 +105,12 @@ export async function createBillInDB(
   }
 
   // Create Drawees and Payees in DB
-  bill.drawees = await transaction
-    .insert(draweesInBillsTable)
-    .values(draweesInBill)
-    .returning();
-  bill.payees = await transaction
-    .insert(payeesInBillsTable)
-    .values(payeesInBill)
-    .returning();
+  const [draweesResult, payeesResult] = await Promise.all([
+    transaction.insert(draweesInBillsTable).values(draweesInBill).returning(),
+    transaction.insert(payeesInBillsTable).values(payeesInBill).returning(),
+  ]);
+  bill.drawees = draweesResult;
+  bill.payees = payeesResult;
 
   // Update GroupTotalExpense
   if (bills[0].isPayment === false) {

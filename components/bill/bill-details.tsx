@@ -8,11 +8,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CURRENCIES } from "@/constants/items";
+import { timeAgo } from "@/lib/utils";
 import { fetchBillDetails } from "@/server/fetchHelpers";
 import useDashboardStore from "@/store/dashboard-store";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarClock, CalendarPlus } from "lucide-react";
+import { CalendarClock, CalendarPlus, ReceiptText } from "lucide-react";
 import React, { useMemo } from "react";
 import { getCategoryIcon } from "../dashboard/recent-transactions";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -178,6 +179,24 @@ const BillDetails = ({ billId }: { billId?: string }) => {
             ))}
           </TableBody>
         </Table>
+        <Separator />
+        <div className="flex items-center gap-1.5 text-sm">
+          <ReceiptText className="size-6" /> Created By{" "}
+          <span className="flex items-center gap-2 font-medium">
+            <Avatar className="size-6">
+              <AvatarImage
+                src={members[data.bill.createdBy].avatarUrl}
+                alt={members[data.bill.createdBy].name}
+              />
+              <AvatarFallback>
+                {members[data.bill.createdBy].name[0]}
+              </AvatarFallback>
+            </Avatar>
+            {members[data.bill.createdBy].name}
+          </span>
+          at
+          <span className="font-medium">{timeAgo(data.bill.createdAt)}</span>
+        </div>
       </div>
     </ScrollArea>
   );

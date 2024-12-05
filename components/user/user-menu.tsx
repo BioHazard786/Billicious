@@ -41,22 +41,28 @@ const UserMenu = ({
       onOpenChange={() => setOpenDropdown("user-menu-toggle")}
     >
       <DropdownMenuTrigger asChild>
-        <Avatar className="size-8 cursor-pointer">
+        <Avatar className="size-8 cursor-pointer rounded-md">
           <AvatarImage src={user!.avatar_url} alt={user!.name} />
-          <AvatarFallback>{user!.name[0]}</AvatarFallback>
+          <AvatarFallback className="rounded-md">
+            {user!.name[0]}
+          </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="z-[99]">
-        <DropdownMenuLabel className="flex items-center gap-2">
-          <Avatar className="size-6 cursor-pointer">
-            <AvatarImage src={user!.avatar_url} alt={user!.name} />
-            <AvatarFallback>{user!.name[0]}</AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <span>{user?.name}</span>
-            <span className="text-xs font-normal text-muted-foreground">
-              @{user?.username}
-            </span>
+        <DropdownMenuLabel>
+          <div className="flex items-center gap-2 text-left">
+            <Avatar className="size-8 cursor-pointer rounded-md">
+              <AvatarImage src={user!.avatar_url} alt={user!.name} />
+              <AvatarFallback className="rounded-md">
+                {user!.name[0]}
+              </AvatarFallback>
+            </Avatar>
+            <div className="grid flex-1 text-left leading-tight">
+              <span className="truncate">{user?.name}</span>
+              <span className="text-xs font-normal text-muted-foreground">
+                @{user?.username}
+              </span>
+            </div>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

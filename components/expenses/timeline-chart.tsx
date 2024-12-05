@@ -134,6 +134,7 @@ const TimelineChart = () => {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
+                className="flex-none"
                 variant="outline"
                 size="icon"
                 onClick={handleFiltering}

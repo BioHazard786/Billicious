@@ -133,6 +133,7 @@ const Expenses = () => {
             </CardDescription>
             <div className="flex gap-2">
               <DateRangePicker
+                className="flex-1 md:flex-initial"
                 disabled={isRefetching}
                 date={expensesDateRange}
                 setDate={setExpensesDateRange}
