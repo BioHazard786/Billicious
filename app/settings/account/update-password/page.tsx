@@ -11,7 +11,6 @@ const Page = async () => {
       <div className="grid min-h-screen w-full place-items-center">
         <NotAllowed
           groupId="update-password"
-          hideViewButton={true}
           memberStatus={0}
           customTitle="Access Not Allowed"
           customMessage="You must sign through to update your password. Please sign up with an email account to continue."

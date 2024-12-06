@@ -1,3 +1,4 @@
+import Realtime from "@/components/dashboard/realtime";
 import NotAllowed from "@/components/error/not-allowed";
 import BottomNavbar from "@/components/layouts/bottom-navbar";
 import SideNavbar from "@/components/layouts/side-navbar";
@@ -25,6 +26,7 @@ export default async function DashboardLayout({
   return (
     <section>
       <DashboardStoreProvider initialGroupData={groupData}>
+        <Realtime />
         <BottomNavbar />
         <SideNavbar />
         {children}

@@ -191,6 +191,10 @@ export const deleteGroup = async (groupId: string) => {
   return postFetchHelper("/api/delete_group", JSON.stringify({ groupId }));
 };
 
+export const deleteBill = async (billId: string) => {
+  return postFetchHelper("/api/delete_bill", JSON.stringify({ billId }));
+};
+
 export const fetchUserGroupsData = async (userId: string) => {
   return postFetchHelper("/api/get_all_groups", JSON.stringify({ userId }));
 };

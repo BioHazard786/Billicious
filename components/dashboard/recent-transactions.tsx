@@ -22,7 +22,6 @@ import { useMemo, useState } from "react";
 import BillDetails from "../bill/bill-details";
 import AvatarCircles from "../ui/avatar-circles";
 import NoContent from "../ui/no-content";
-import ResponsiveDialog from "../ui/responsive-dialog";
 
 export default function RecentTransactions() {
   const transactions = useDashboardStore((state) => state.transactions);
@@ -58,14 +57,15 @@ export default function RecentTransactions() {
 
   return (
     <>
-      <ResponsiveDialog
-        isOpen={isBillDetailsOpen}
-        setIsOpen={setIsBillDetailsOpen}
-        title="Bill Details"
-        description={`View details of the bill ${selectedBill.billName}`}
-      >
-        <BillDetails billId={selectedBill.billId} />
-      </ResponsiveDialog>
+      {isBillDetailsOpen && (
+        <BillDetails
+          billId={selectedBill.billId}
+          billName={selectedBill.billName}
+          isBillDetailsOpen={isBillDetailsOpen}
+          setIsBillDetailsOpen={setIsBillDetailsOpen}
+          setSelectedBill={setSelectedBill}
+        />
+      )}
       <Card className="h-full md:col-span-2">
         <CardHeader className="px-7">
           <CardTitle>Expenses</CardTitle>

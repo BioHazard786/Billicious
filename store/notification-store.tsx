@@ -22,6 +22,7 @@ export const createNotificationStore = (notifications: Notifications) => {
     addNotification: (notification) =>
       set(
         produce((state: State) => {
+          if (state.notifications.some((n) => n.id === notification.id)) return;
           state.notifications.push(notification);
         }),
       ),

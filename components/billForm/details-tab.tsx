@@ -73,6 +73,10 @@ const DetailsTab = () => {
   const notes = useDetailsTabStore.use.notes();
   const setNotes = useDetailsTabStore.use.setNotes();
   const currencyCode = useDashboardStore((state) => state.currencyCode);
+  const [date, setDate] = useDetailsTabStore((state) => [
+    state.createdAt,
+    state.setCreatedAt,
+  ]);
   const currencySymbol = useMemo(
     () => CURRENCIES[currencyCode || "INR"].currencySymbol,
     [currencyCode],
@@ -121,7 +125,7 @@ const DetailsTab = () => {
           <div className="flex flex-col gap-4 pl-2">
             <div className="flex items-center gap-4">
               <CalendarDays className="size-5" />
-              <DatePicker />
+              <DatePicker date={date} setDate={setDate} />
             </div>
             <div className="flex items-center gap-4">
               <MessageSquare className="size-5" />

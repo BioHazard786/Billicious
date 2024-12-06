@@ -1,4 +1,5 @@
 import { fetchGroupData, isMemberInGroup } from "@/app/group/[slug]/utils";
+import Realtime from "@/components/dashboard/realtime";
 import BottomNavbar from "@/components/layouts/bottom-navbar";
 import SideNavbar from "@/components/layouts/side-navbar";
 import { DashboardStoreProvider } from "@/providers/dashboard-store-provider";
@@ -24,6 +25,7 @@ export default async function DashboardLayout({
   return (
     <section>
       <DashboardStoreProvider initialGroupData={groupData}>
+        <Realtime />
         <BottomNavbar removeBillForm={true} />
         <SideNavbar removeBillForm={true} />
         {children}

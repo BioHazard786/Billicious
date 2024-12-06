@@ -8,15 +8,16 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import useDetailsTabStore from "@/store/details-tab-store";
 import { format } from "date-fns";
 import { useState } from "react";
 
-export function DatePicker() {
-  const [date, setDate] = useDetailsTabStore((state) => [
-    state.createdAt,
-    state.setCreatedAt,
-  ]);
+export function DatePicker({
+  date,
+  setDate,
+}: {
+  date: Date;
+  setDate: (date: Date) => void;
+}) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   return (

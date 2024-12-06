@@ -6,10 +6,11 @@ import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";
 
 type Action = {
-  addBill: (bill: { totalAmount: number; updatedMemberData: any }) => void;
+  updateGroup: (data: { totalAmount: number; updatedMemberData: any }) => void;
   addMember: (member: TMembers[]) => void;
   updateMember: (member: TMembers) => void;
   addTransaction: (transaction: TransactionT) => void;
+  removeTransaction: (transactionId: string) => void;
   updateBackgroundUrl: (url: string) => void;
   makeAdmin: (userIndex: number) => void;
   removeAdmin: (userIndex: number) => void;
@@ -38,11 +39,11 @@ export const createDashboardStore = (initialGroupData: TGroupData) => {
           }
         }),
       ),
-    addBill: (bill) =>
+    updateGroup: (data) =>
       set(
         produce((state: TGroupData) => {
-          state.totalBill = bill.totalAmount;
-          bill.updatedMemberData.forEach((data: any) => {
+          state.totalBill = data.totalAmount;
+          data.updatedMemberData.forEach((data: any) => {
             const member = state.members[data.userIndex];
             if (member) {
               member.balance = Number(data.totalPaid) - Number(data.totalSpent);
@@ -64,6 +65,14 @@ export const createDashboardStore = (initialGroupData: TGroupData) => {
               state.transactions = state.transactions.slice(0, 9);
             }
           }
+        }),
+      ),
+    removeTransaction: (transactionId: string) =>
+      set(
+        produce((state: TGroupData) => {
+          state.transactions = state.transactions.filter(
+            (transaction) => transaction.id !== transactionId,
+          );
         }),
       ),
     updateBackgroundUrl: (url: string) =>

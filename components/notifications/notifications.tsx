@@ -41,6 +41,9 @@ const Notifications = () => {
   const addNotification = useNotificationStore(
     (state) => state.addNotification,
   );
+  const removeNotification = useNotificationStore(
+    (state) => state.removeNotification,
+  );
   const [open, setIsOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const supabase = useMemo(() => createClient(), []);
@@ -87,6 +90,17 @@ const Notifications = () => {
             };
             addNotification(notification);
           }
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "invite_table",
+        },
+        async (payload) => {
+          removeNotification(payload.old.id);
         },
       )
       .subscribe();

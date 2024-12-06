@@ -1,37 +1,32 @@
 import { Button } from "@/components/ui/button";
 import { Eye, Home } from "lucide-react";
 import Link from "next/link";
+import Error404 from "../ui/404";
 import Stop from "../ui/stop";
 
-type NotAllowedProps = {
+type NotFoundProps = {
   groupId?: string;
-  memberStatus: number;
   customTitle?: string;
   customMessage?: string;
 };
 
-export default function NotAllowed({
+export default function NotFound({
   groupId,
-  memberStatus,
   customTitle,
   customMessage,
-}: NotAllowedProps) {
+}: NotFoundProps) {
   const content = {
-    title:
-      customTitle ||
-      (memberStatus === 0 ? "Access Not Allowed" : "Invitation Required"),
+    title: customTitle || "Access Not Allowed",
     message:
       customMessage ||
-      (memberStatus === 0
-        ? "Oops! You are not allowed to access this group as you are not a member. Please check the group details or contact an admin for assistance."
-        : "You have been invited to this group. Please check your notifications to accept the invitation before accessing the group."),
+      "Oops! You are not allowed to access this group as you are not a member. Please check the group details or contact an admin for assistance.",
   };
 
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-background p-4 text-foreground">
       <div className="space-y-6 text-center">
         <h1 className="flex items-center justify-center gap-2 text-8xl font-extrabold md:text-9xl">
-          <Stop className="size-32 md:size-48" />
+          <Error404 className="size-32 md:size-48" />
         </h1>
         <h2 className="text-2xl font-semibold md:text-4xl">{content.title}</h2>
         <p className="max-w-lg text-sm text-muted-foreground md:text-base">

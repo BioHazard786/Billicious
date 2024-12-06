@@ -2,6 +2,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -10,6 +11,7 @@ import {
   Drawer,
   DrawerContent,
   DrawerDescription,
+  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
@@ -17,12 +19,14 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 
 export default function ResponsiveDialog({
   children,
+  footerContent,
   isOpen,
   setIsOpen,
   title,
   description,
 }: {
   children: React.ReactNode;
+  footerContent?: React.ReactNode;
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   title: string;
@@ -33,7 +37,7 @@ export default function ResponsiveDialog({
   if (isDesktop) {
     return (
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="z-[101] sm:max-w-[425px]">
+        <DialogContent className="z-[101] placeholder:sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
             {description && (
@@ -41,6 +45,7 @@ export default function ResponsiveDialog({
             )}
           </DialogHeader>
           {children}
+          {footerContent && <DialogFooter>{footerContent}</DialogFooter>}
         </DialogContent>
       </Dialog>
     );
@@ -54,6 +59,7 @@ export default function ResponsiveDialog({
           {description && <DrawerDescription>{description}</DrawerDescription>}
         </DrawerHeader>
         {children}
+        {footerContent && <DrawerFooter>{footerContent}</DrawerFooter>}
       </DrawerContent>
     </Drawer>
   );

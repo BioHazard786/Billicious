@@ -54,14 +54,15 @@ InputWithLimit.displayName = "InputWithLimit";
 export interface InputWithCurrencyProps extends InputProps {
   currencyCode: string;
   currencySymbol: string;
+  width?: string;
 }
 
 const InputWithCurrency = React.forwardRef<
   HTMLInputElement,
   InputWithCurrencyProps
->(({ currencyCode, currencySymbol, className, ...props }, ref) => {
+>(({ currencyCode, currencySymbol, className, width, ...props }, ref) => {
   return (
-    <div className="relative w-[50%]">
+    <div className={cn("relative w-[50%]", width)}>
       <Input
         {...props}
         className={cn("peer pe-12", className)}

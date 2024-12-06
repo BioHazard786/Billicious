@@ -1,23 +1,26 @@
 import useAddBillStore from "@/store/add-bill-store";
 import useMemberTabStore from "@/store/add-member-tab-store";
+import useAddPaymentStore from "@/store/add-payment-store";
+import useChocieTabStore from "@/store/choice-tab-store";
 import useContributionsTabStore from "@/store/contributions-tab-store";
 import useCreateGroupFormStore from "@/store/create-group-form-store";
 import useCreateGroup from "@/store/create-group-store";
 import useDetailsTabStore from "@/store/details-tab-store";
 import useGroupImageTabStore from "@/store/group-image-tab-store";
 import useGroupNameTabStore from "@/store/group-name-tab-store";
+import usePaymentDetailsTabStore from "@/store/payment-details-tab-store";
 import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
 import useSplitByPercentTabStore from "@/store/split-by-percent-tab-store";
 import useSplitTabStore from "@/store/split-tab-store";
 import { clsx, type ClassValue } from "clsx";
 import { formatDistanceToNow } from "date-fns";
-import { is } from "drizzle-orm";
 import {
   Bed,
   Bus,
   GlassWater,
   LucideProps,
   Pizza,
+  Repeat,
   ShoppingCart,
   Ticket,
   Tv,
@@ -91,6 +94,7 @@ export function formatGroupData(groupData: any): TGroupData {
     transactions: transactions,
     currencyCode: groupData.group.currencyCode || "INR",
     backgroundUrl: groupData.group.backgroundUrl,
+    createdAt: groupData.group.createdAt,
   };
 }
 
@@ -101,6 +105,9 @@ export function resetBillFormStores() {
   useSplitTabStore.getState().reset();
   useSplitByAmountTabStore.getState().reset();
   useSplitByPercentTabStore.getState().reset();
+  useChocieTabStore.getState().reset();
+  usePaymentDetailsTabStore.getState().reset();
+  useAddPaymentStore.getState().reset();
 }
 
 export function resetGroupFormStores() {
@@ -120,6 +127,7 @@ export const categories: Record<
     color: string;
   }
 > = {
+  Transfer: { icon: Repeat, color: "plum" },
   Transport: { icon: Bus, color: "brown" },
   Lodging: { icon: Bed, color: "amber" },
   Shopping: { icon: ShoppingCart, color: "tomato" },

@@ -87,7 +87,10 @@ const UserMenu = ({
           </DropdownMenuItem>
         </Link>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+        <DropdownMenuItem
+          onClick={handleSignOut}
+          className="cursor-pointer focus:bg-destructive-foreground focus:text-destructive"
+        >
           Sign Out
           <DropdownMenuShortcut>
             <LogOut className="size-4" />

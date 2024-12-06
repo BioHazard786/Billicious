@@ -25,7 +25,6 @@ import {
 } from "../ui/card";
 import { DateRangePicker } from "../ui/date-range-picker";
 import NoContent from "../ui/no-content";
-import ResponsiveDialog from "../ui/responsive-dialog";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import { Spinner } from "../ui/spinner";
 import {
@@ -116,14 +115,15 @@ const Expenses = () => {
 
   return (
     <>
-      <ResponsiveDialog
-        isOpen={isBillDetailsOpen}
-        setIsOpen={setIsBillDetailsOpen}
-        title="Bill Details"
-        description={`View details of the bill ${selectedBill.billName}`}
-      >
-        <BillDetails billId={selectedBill.billId} />
-      </ResponsiveDialog>
+      {isBillDetailsOpen && (
+        <BillDetails
+          billId={selectedBill.billId}
+          billName={selectedBill.billName}
+          isBillDetailsOpen={isBillDetailsOpen}
+          setIsBillDetailsOpen={setIsBillDetailsOpen}
+          setSelectedBill={setSelectedBill}
+        />
+      )}
       <Card className="order-3 row-span-2 lg:order-2">
         <ScrollArea className="lg:h-full">
           <CardHeader>

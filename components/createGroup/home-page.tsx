@@ -1,28 +1,17 @@
 "use client";
 
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { CURRENCIES } from "@/constants/items";
 import { userGroup } from "@/lib/types";
 import { cn, formatUserGroupsData, timeAgo } from "@/lib/utils";
-import { deleteGroup, fetchUserGroupsData } from "@/server/fetchHelpers";
+import { fetchUserGroupsData } from "@/server/fetchHelpers";
 import useUserGroupsDataStore from "@/store/user-groups-data-store";
 import useUserStore from "@/store/user-info-store";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Plus, SquareArrowOutUpRight, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
-import AnimatedButton from "../ui/animated-button";
+import { useEffect, useMemo } from "react";
+
 import { AspectRatio } from "../ui/aspect-ratio";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
@@ -45,41 +34,10 @@ const GroupCard = ({
   group: userGroup;
   userAvatarUrl?: string;
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const deleteUserGroup = useUserGroupsDataStore(
-    (state) => state.deleteUserGroup,
-  );
   const currencySymbol = useMemo(
     () => CURRENCIES[group.currencyCode || "INR"].currencySymbol,
     [group.currencyCode],
   );
-
-  const { isPending, mutateAsync: server_deleteGroup } = useMutation({
-    mutationFn: deleteGroup,
-    onMutate: () => {
-      const toastId = toast.loading(`Deleting ${group.groupName} group...`);
-      return { toastId };
-    },
-    onSuccess: async (data, variables, context) => {
-      deleteUserGroup(group.groupId);
-      return toast.success(`${group.groupName} deleted successfully`, {
-        id: context.toastId,
-      });
-    },
-    onError: (error, variables, context) => {
-      console.log(error);
-      return toast.error(error.message, {
-        id: context?.toastId,
-      });
-    },
-    onSettled: () => {
-      setIsOpen(false);
-    },
-  });
-
-  const handleDeleteGroup = async () => {
-    await server_deleteGroup(group.groupId);
-  };
 
   const balanceText =
     group.balance < 0
@@ -177,58 +135,14 @@ const GroupCard = ({
           </div>
         </CardContent>
       </Card>
-      {group.isAdmin ? (
-        <div className="flex">
-          <Button
-            className="w-full rounded-none rounded-bl-xl border border-r-0 border-t-0"
-            asChild
-          >
-            <Link href={`/group/${group.groupId}`}>
-              View Group <SquareArrowOutUpRight className="ml-2 size-4" />
-            </Link>
-          </Button>
-          <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-            <AlertDialogTrigger asChild>
-              <Button
-                className="w-full rounded-none rounded-br-xl border border-l-0 border-t-0"
-                variant="destructive"
-              >
-                Delete <Trash2 className="ml-2 size-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete
-                  your group and remove your data from our servers.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel disabled={isPending}>
-                  Cancel
-                </AlertDialogCancel>
-                <AnimatedButton
-                  isLoading={isPending}
-                  variant="destructive"
-                  onClick={handleDeleteGroup}
-                >
-                  Delete
-                </AnimatedButton>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      ) : (
-        <Button
-          className="w-full rounded-none rounded-b-xl border border-t-0"
-          asChild
-        >
-          <Link href={`/group/${group.groupId}`}>
-            View Group <SquareArrowOutUpRight className="ml-2 size-4" />
-          </Link>
-        </Button>
-      )}
+      <Button
+        className="w-full rounded-none rounded-b-xl border border-t-0"
+        asChild
+      >
+        <Link href={`/group/${group.groupId}`}>
+          View Group <SquareArrowOutUpRight className="ml-2 size-4" />
+        </Link>
+      </Button>
     </div>
   );
 };

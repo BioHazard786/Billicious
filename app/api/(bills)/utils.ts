@@ -165,48 +165,46 @@ export async function deleteBillInDB(
   >,
   billId: string,
 ) {
-  let bill: any = {};
-  let bills = await transaction
+  const bills = await transaction
     .select()
     .from(billsTable)
     .where(eq(billsTable.id, billId));
 
-  if (bills.length == 0) {
+  if (bills.length === 0) {
     throw new Error("Invalid Bill Id");
   }
 
-  let groupId = bills[0].groupId;
-
+  const groupId = bills[0].groupId;
   const members = await getMembersFromDB(transaction, groupId as string);
 
-  let totalDrawn = 0,
-    totalPaid = 0;
+  const [draweesInBill, payeesInBill] = await Promise.all([
+    transaction
+      .select()
+      .from(draweesInBillsTable)
+      .where(eq(draweesInBillsTable.billId, billId)),
+    transaction
+      .select()
+      .from(payeesInBillsTable)
+      .where(eq(payeesInBillsTable.billId, billId)),
+  ]);
 
-  let draweesInBill = await transaction
-    .select()
-    .from(draweesInBillsTable)
-    .where(eq(draweesInBillsTable.billId, billId));
-
-  let drawees: any = [];
-  for (let drawee of draweesInBill) {
+  const drawees: any = [];
+  let totalDrawn = 0;
+  draweesInBill.forEach((drawee) => {
     drawees[drawee.userIndex] = "-" + drawee.amount;
     totalDrawn -= parseFloat(drawee.amount as string);
-  }
+  });
 
-  let payees: any = [];
-  let payeesInBill = await transaction
-    .select()
-    .from(payeesInBillsTable)
-    .where(eq(payeesInBillsTable.billId, billId));
-
-  for (let payee of payeesInBill) {
+  const payees: any = [];
+  let totalPaid = 0;
+  payeesInBill.forEach((payee) => {
     payees[payee.userIndex] = "-" + payee.amount;
     totalPaid -= parseFloat(payee.amount as string);
-  }
+  });
 
-  let totalAmount = totalPaid;
+  const totalAmount = totalPaid;
 
-  bill.members = await updateMembersAndBalances(
+  const updatedMembers = await updateMembersAndBalances(
     transaction,
     groupId as string,
     members,
@@ -214,29 +212,29 @@ export async function deleteBillInDB(
     payees,
   );
 
-  // Delete Drawees and Payees in DB
-  await transaction
-    .delete(draweesInBillsTable)
-    .where(eq(draweesInBillsTable.billId, billId));
-  await transaction
-    .delete(payeesInBillsTable)
-    .where(eq(payeesInBillsTable.billId, billId));
+  await Promise.all([
+    transaction
+      .delete(draweesInBillsTable)
+      .where(eq(draweesInBillsTable.billId, billId)),
+    transaction
+      .delete(payeesInBillsTable)
+      .where(eq(payeesInBillsTable.billId, billId)),
+    transaction.delete(billsTable).where(eq(billsTable.id, billId)),
+  ]);
 
-  // Delete the Bill
-  await transaction.delete(billsTable).where(eq(billsTable.id, billId));
-
-  // Update GroupTotalExpense
-  if (bills[0].isPayment === false) {
-    bill.totalGroupExpense = await updateGroup(
+  let totalGroupExpense;
+  if (!bills[0].isPayment) {
+    totalGroupExpense = await updateGroup(
       transaction,
       groupId as string,
       totalAmount,
     );
   }
 
-  // sendBillDataToKafka(bill, groupId as string);
-
-  return bill;
+  return {
+    members: updatedMembers,
+    totalGroupExpense,
+  };
 }
 
 async function updateGroup(

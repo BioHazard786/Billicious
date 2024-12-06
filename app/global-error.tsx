@@ -1,5 +1,6 @@
 "use client";
 
+import Error404 from "@/components/ui/404";
 import { Button } from "@/components/ui/button";
 import Mascot from "@/components/ui/mascot";
 import { Home } from "lucide-react";
@@ -23,9 +24,10 @@ export default function Error({ error, reset }: ErrorProps) {
         <div className="flex h-dvh flex-col items-center justify-center bg-background p-4 text-foreground">
           <div className="space-y-6 text-center">
             <h1 className="flex items-center justify-center gap-2 text-8xl font-extrabold text-primary md:text-9xl">
-              <span>4</span>
+              {/* <span>4</span>
               <Mascot className="size-[4.5rem] md:size-[7rem]" />
-              <span>4</span>
+              <span>4</span> */}
+              <Error404 className="size-32 md:size-48" />
             </h1>
             <h2 className="text-2xl font-semibold md:text-4xl">
               Page Not Found

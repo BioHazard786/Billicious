@@ -28,6 +28,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 let chartData = [
   { category: "Default", amount: 0 },
+  { category: "Transfer", amount: 0 },
   { category: "Transport", amount: 0 },
   { category: "Lodging", amount: 0 },
   { category: "Shopping", amount: 0 },

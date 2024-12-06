@@ -8,6 +8,7 @@ export type TGroupData = {
   transactions: TransactionT[];
   currencyCode: string;
   backgroundUrl: string;
+  createdAt: string;
 };
 
 export type TMembers = {
