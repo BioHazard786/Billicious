@@ -274,24 +274,24 @@ function AddBillForm() {
       },
       onSuccess: async (data, variables, context) => {
         console.log(data);
-        // addBillToGroup({
-        //   updatedMemberData: data.members,
-        // });
-        // addTransaction({
-        //   name: variables.name,
-        //   category: variables.category,
-        //   createdAt: createdAt,
-        //   notes: variables.notes,
-        //   id: data.bill_id,
-        //   amount: amountToBePaid,
-        //   isPayment: true,
-        //   drawees: data.drawees.map(
-        //     (drawee: { userIndex: number }) => drawee.userIndex,
-        //   ),
-        //   payees: data.payees.map(
-        //     (payee: { userIndex: number }) => payee.userIndex,
-        //   ),
-        // });
+        addBillToGroup({
+          updatedMemberData: data.members,
+        });
+        addTransaction({
+          name: variables.name,
+          category: variables.category,
+          createdAt: createdAt,
+          notes: variables.notes,
+          id: data.bill_id,
+          amount: amountToBePaid,
+          isPayment: true,
+          drawees: data.drawees.map(
+            (drawee: { userIndex: number }) => drawee.userIndex,
+          ),
+          payees: data.payees.map(
+            (payee: { userIndex: number }) => payee.userIndex,
+          ),
+        });
         // queryClient.invalidateQueries({
         //   queryKey: ["settleUp", groupId as string],
         //   exact: true,

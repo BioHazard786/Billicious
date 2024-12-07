@@ -14,7 +14,10 @@ import { ScrollArea } from "../ui/scroll-area";
 
 const ExpenseChart = () => {
   const members = useDashboardStore((group) => group.members);
-  const totalBill = useDashboardStore((group) => group.totalBill);
+  const totalBill = useMemo(
+    () => members.reduce((acc, member) => acc + member.totalPaid, 0),
+    [members],
+  );
   const currencyCode = useDashboardStore((group) => group.currencyCode);
 
   const currencySymbol = useMemo(
