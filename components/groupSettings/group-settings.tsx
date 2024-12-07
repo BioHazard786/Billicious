@@ -53,11 +53,15 @@ const Settings = () => {
 
   if (!isAdmin) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center gap-4 p-4">
+      <div className="flex h-screen flex-col items-center justify-center gap-4 px-4">
         <Stop className="size-32 md:size-48" />
-        <p className="text-sm text-muted-foreground md:text-base">
-          You don't have the privilege to access group settings.
-        </p>
+        <div className="space-y-1 text-center">
+          <p className="text-lg font-semibold md:text-xl">Access Denied</p>
+          <p className="text-sm text-muted-foreground md:text-base">
+            Hold up! It seems like you don’t have permission to manage this
+            group’s settings. Contact an admin to gain access.
+          </p>
+        </div>
       </div>
     );
   }
@@ -210,7 +214,7 @@ const DeleteGroup = () => {
 
   return (
     <div className="pb-[5.563rem]">
-      <div className="space-y-4 rounded-md rounded-b-none border border-b-0 border-destructive-foreground p-4">
+      <div className="space-y-4 rounded-md rounded-b-none border-2 border-b-0 border-destructive-foreground p-4">
         <h2 className="text-xl font-semibold">Delete this group</h2>
         <p className="text-sm">
           Once you delete a group, there is no going back. Please be certain.
@@ -260,7 +264,7 @@ const DeleteGroup = () => {
           )}
         </AspectRatio>
       </div>
-      <div className="flex justify-end rounded-md rounded-t-none border border-destructive-foreground bg-destructive-foreground/50 p-4">
+      <div className="flex justify-end rounded-md rounded-t-none border-2 border-destructive-foreground bg-destructive-foreground/70 p-4">
         <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
           <AlertDialogTrigger asChild>
             <Button variant="destructive" className="w-full md:w-auto">

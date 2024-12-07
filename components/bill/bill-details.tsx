@@ -81,7 +81,7 @@ const BillDetails = ({
   const { data, isLoading } = useQuery({
     queryKey: ["bill", billId],
     queryFn: () => fetchBillDetails(billId!),
-    retry: false,
+    enabled: !!billId,
   });
 
   const { isPending, mutateAsync: server_deleteGroup } = useMutation({

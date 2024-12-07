@@ -109,8 +109,8 @@ const TimelineChart = () => {
   return (
     <Card className="order-1">
       <CardHeader>
-        <CardTitle>Timeline</CardTitle>
-        <CardDescription>Showing total amount spent yearly</CardDescription>
+        <CardTitle>Monthly Expense Timeline</CardTitle>
+        <CardDescription>Track monthly expenses for the year</CardDescription>
         <div className="flex gap-2">
           <Select
             onValueChange={setSelectedYear}

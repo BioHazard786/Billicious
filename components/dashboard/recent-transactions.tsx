@@ -22,13 +22,12 @@ import { Tags } from "lucide-react";
 import { useMemo, useState } from "react";
 import BillDetails from "../bill/bill-details";
 import AvatarCircles from "../ui/avatar-circles";
-import NoContent from "../ui/no-content";
+import Cash from "../ui/cash";
 
 export default function RecentTransactions() {
   const transactions = useDashboardStore((state) => state.transactions);
   const members = useDashboardStore((state) => state.members);
   const currencyCode = useDashboardStore((state) => state.currencyCode);
-  const isBillDetailsOpen = useBillDeatilsState.use.isOpen();
   const setIsBillDetailsOpen = useBillDeatilsState.use.setIsOpen();
   const [selectedBill, setSelectedBill] = useState<{
     billId: string | undefined;
@@ -48,9 +47,12 @@ export default function RecentTransactions() {
         </CardHeader>
 
         <CardContent className="flex h-full flex-col items-center justify-center gap-4">
-          <NoContent className="size-32 md:size-48" />
-          <div className="text-sm text-muted-foreground md:text-base">
-            No expenses here. Click + to add one
+          <Cash className="size-32 md:size-48" />
+          <div className="space-y-1 text-center">
+            <p className="text-lg font-semibold md:text-xl">No Expenses Yet!</p>
+            <p className="text-sm text-muted-foreground md:text-base">
+              Your wallet’s still full! Add expenses to start tracking spending.
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -59,17 +61,17 @@ export default function RecentTransactions() {
 
   return (
     <>
-      {isBillDetailsOpen && (
-        <BillDetails
-          billId={selectedBill.billId}
-          billName={selectedBill.billName}
-          setSelectedBill={setSelectedBill}
-        />
-      )}
+      <BillDetails
+        billId={selectedBill.billId}
+        billName={selectedBill.billName}
+        setSelectedBill={setSelectedBill}
+      />
       <Card className="h-full md:col-span-2">
         <CardHeader className="px-7">
-          <CardTitle>Expenses</CardTitle>
-          <CardDescription>Recent expenses from your group.</CardDescription>
+          <CardTitle>Recent Expenses</CardTitle>
+          <CardDescription>
+            See the latest expenses in your group
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>

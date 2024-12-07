@@ -26,8 +26,10 @@ const ExpenseChart = () => {
     <Card className="h-min md:col-span-2 lg:col-span-1 lg:row-span-2 lg:h-full">
       <ScrollArea className="lg:h-full">
         <CardHeader>
-          <CardTitle>Paid Till Now</CardTitle>
-          <CardDescription>Total money spent by each user</CardDescription>
+          <CardTitle>User Spend Overview</CardTitle>
+          <CardDescription>
+            Track the total amount spent by each user
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <AnimatePresence initial={false}>

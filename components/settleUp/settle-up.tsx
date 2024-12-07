@@ -28,6 +28,7 @@ import {
 import NoContent from "../ui/no-content";
 import { Separator } from "../ui/separator";
 import { Spinner } from "../ui/spinner";
+import Split from "../ui/split";
 
 type settleUpDataType = {
   groupId: string;
@@ -61,7 +62,10 @@ const SettleUp = () => {
     <Card className="m-3 mb-[5.563rem] mt-[4.063rem] lg:mb-3 lg:ml-[4.313rem]">
       <CardHeader>
         <CardTitle>Settle Up</CardTitle>
-        <CardDescription>Settle up your group's balances here</CardDescription>
+        <CardDescription>
+          Clear your group’s balances effortlessly. Review, settle, and keep
+          everything fair and square
+        </CardDescription>
         {data && data.length > 0 && (
           <Select
             onValueChange={setSelectedMember}
@@ -123,9 +127,15 @@ const SettleUp = () => {
         )}
         {filteredData?.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center gap-4">
-            <NoContent className="size-32 md:size-48" />
-            <div className="text-sm text-muted-foreground md:text-base">
-              No debts here. Click + to add transactions
+            <Split className="size-32 md:size-48" />
+            <div className="space-y-1 text-center">
+              <p className="text-lg font-semibold md:text-xl">
+                All Squared Away!
+              </p>
+              <p className="text-sm text-muted-foreground md:text-base">
+                Looks like there’s nothing to settle up right now. Time to relax
+                until the next split comes around!
+              </p>
             </div>
           </div>
         ) : (

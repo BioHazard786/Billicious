@@ -89,10 +89,8 @@ const CategoryChart = () => {
   return (
     <Card className="order-2 lg:order-3">
       <CardHeader>
-        <CardTitle>Categories</CardTitle>
-        <CardDescription>
-          Showing total amount spent by categories
-        </CardDescription>
+        <CardTitle>Category Breakdown</CardTitle>
+        <CardDescription>See your group's expenses by category</CardDescription>
         <div className="flex gap-2">
           <DateRangePicker
             className="flex-1 md:flex-initial"

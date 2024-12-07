@@ -114,7 +114,7 @@ const Notifications = () => {
     return (
       <Popover open={open} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative">
+          <Button variant="ghost" size="icon" className="relative size-8">
             <IoNotifications className="size-5" />
             {notifications.length > 0 && (
               <span className="absolute right-0 top-0 flex size-[0.6rem]">

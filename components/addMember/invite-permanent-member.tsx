@@ -162,7 +162,7 @@ const InvitePermanentMember = ({
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4 pt-0 md:p-0">
       <div className="space-y-2">
         <Label>Invite Members</Label>
         <Popover open={open} onOpenChange={setOpen}>

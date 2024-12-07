@@ -29,14 +29,14 @@ export default function NotAllowed({
 
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-background p-4 text-foreground">
-      <div className="space-y-6 text-center">
-        <h1 className="flex items-center justify-center gap-2 text-8xl font-extrabold md:text-9xl">
-          <Stop className="size-32 md:size-48" />
-        </h1>
-        <h2 className="text-2xl font-semibold md:text-4xl">{content.title}</h2>
-        <p className="max-w-lg text-sm text-muted-foreground md:text-base">
-          {content.message}
-        </p>
+      <div className="flex flex-col items-center justify-center gap-4 px-4">
+        <Stop className="size-32 md:size-48" />
+        <div className="space-y-2 text-center">
+          <p className="text-lg font-semibold md:text-xl">{content.title}</p>
+          <p className="max-w-lg text-sm text-muted-foreground md:text-base">
+            {content.message}
+          </p>
+        </div>
         <div className="flex items-center justify-center gap-3">
           <Button asChild className="mt-8">
             <Link href="/">

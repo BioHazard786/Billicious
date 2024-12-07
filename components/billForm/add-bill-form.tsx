@@ -591,8 +591,8 @@ function AddBillForm() {
                 variant="default"
                 className="w-full"
                 onClick={() => {
-                  if (activeTab2 + 1 < tabs2.length) {
-                    handleTabClick(activeTab2 + 1);
+                  if (activeTab + 1 < tabs.length) {
+                    handleTabClick(activeTab + 1);
                   } else {
                     createTransaction();
                   }
@@ -600,7 +600,7 @@ function AddBillForm() {
                 isDisabled={isPending || Object.keys(payees).length === 0}
                 isLoading={isPending}
               >
-                {activeTab2 + 1 === tabs2.length ? "Create" : "Next"}
+                {activeTab + 1 === tabs.length ? "Create" : "Next"}
               </AnimatedButton>
             </DrawerFooter>
           </>

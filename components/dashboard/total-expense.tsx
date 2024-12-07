@@ -25,12 +25,12 @@ export default function TotalExpense() {
     <Card className="h-min">
       <CardHeader>
         <div className="flex items-center justify-between space-y-0">
-          <CardTitle>Total Expense</CardTitle>
+          <CardTitle>Total Spent</CardTitle>
           <span className="leading-none text-muted-foreground">
             {currencySymbol}
           </span>
         </div>
-        <CardDescription>Total money spent till now</CardDescription>
+        <CardDescription>Total money spent so far</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="mt-[0.5rem] flex font-mono text-3xl font-bold">

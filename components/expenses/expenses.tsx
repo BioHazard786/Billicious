@@ -24,8 +24,8 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
+import Cash from "../ui/cash";
 import { DateRangePicker } from "../ui/date-range-picker";
-import NoContent from "../ui/no-content";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import { Spinner } from "../ui/spinner";
 import {
@@ -117,20 +117,16 @@ const Expenses = () => {
 
   return (
     <>
-      {isBillDetailsOpen && (
-        <BillDetails
-          billId={selectedBill.billId}
-          billName={selectedBill.billName}
-          setSelectedBill={setSelectedBill}
-        />
-      )}
+      <BillDetails
+        billId={selectedBill.billId}
+        billName={selectedBill.billName}
+        setSelectedBill={setSelectedBill}
+      />
       <Card className="order-3 row-span-2 lg:order-2">
         <ScrollArea className="lg:h-full">
           <CardHeader>
-            <CardTitle>Expenses</CardTitle>
-            <CardDescription>
-              Showing total expenses of your group
-            </CardDescription>
+            <CardTitle>Total Expenses</CardTitle>
+            <CardDescription>View your group's total expenses</CardDescription>
             <div className="flex gap-2">
               <DateRangePicker
                 className="flex-1 md:flex-initial"
@@ -173,9 +169,15 @@ const Expenses = () => {
             )}
             {data?.pages[0].length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center gap-4">
-                <NoContent className="size-32 md:size-48" />
-                <div className="text-sm text-muted-foreground md:text-base">
-                  No debts here. Click + to add transactions
+                <Cash className="size-32 md:size-48" />
+                <div className="space-y-1 text-center">
+                  <p className="text-lg font-semibold md:text-xl">
+                    No Expenses Yet!
+                  </p>
+                  <p className="text-sm text-muted-foreground md:text-base">
+                    Your wallet’s still full! Add expenses to start tracking
+                    spending.
+                  </p>
                 </div>
               </div>
             ) : (
