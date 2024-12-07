@@ -384,7 +384,7 @@ const AddMemberDialog = ({
         <TabsContent value="temporary" className="p-4 pt-0 md:p-0">
           <AddTemporaryMember setIsOpen={setIsOpen} />
         </TabsContent>
-        <TabsContent value="permanent" className="p-4 pt-0 md:p-0">
+        <TabsContent value="permanent">
           <InvitePermanentMember setIsOpen={setIsOpen} />
         </TabsContent>
         {/* <TabsContent value="invite" className="p-4 pt-0 md:p-0">

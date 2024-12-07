@@ -63,8 +63,7 @@ const SettleUp = () => {
       <CardHeader>
         <CardTitle>Settle Up</CardTitle>
         <CardDescription>
-          Clear your group’s balances effortlessly. Review, settle, and keep
-          everything fair and square
+          Easily clear your group’s balances and keep things fair
         </CardDescription>
         {data && data.length > 0 && (
           <Select
@@ -133,8 +132,7 @@ const SettleUp = () => {
                 All Squared Away!
               </p>
               <p className="text-sm text-muted-foreground md:text-base">
-                Looks like there’s nothing to settle up right now. Time to relax
-                until the next split comes around!
+                No splits to settle right now. Relax until the next one!
               </p>
             </div>
           </div>
