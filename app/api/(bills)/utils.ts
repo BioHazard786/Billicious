@@ -476,6 +476,7 @@ export async function fetchBillsCategoryWise(
     .where(
       and(
         eq(billsTable.groupId, groupId),
+        eq(billsTable.isPayment, false),
         ...(from ? [gte(billsTable.createdAt, new Date(from))] : []),
         ...(to ? [lte(billsTable.createdAt, new Date(to))] : []),
       ),
@@ -493,6 +494,7 @@ export async function fetchBillsYearWise(groupId: any, from?: any, to?: any) {
     .where(
       and(
         eq(billsTable.groupId, groupId),
+        eq(billsTable.isPayment, false),
         ...(from ? [gte(billsTable.createdAt, new Date(from))] : []),
         ...(to ? [lte(billsTable.createdAt, new Date(to))] : []),
       ),

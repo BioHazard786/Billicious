@@ -3,6 +3,7 @@
 import { CURRENCIES } from "@/constants/items";
 import { formatTransactionData } from "@/lib/utils";
 import { fetchTransactions } from "@/server/fetchHelpers";
+import useBillDeatilsState from "@/store/bill-details-state-store";
 import useDashboardStore from "@/store/dashboard-store";
 import useExpensesTabStore from "@/store/expenses-tab-store";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -43,7 +44,8 @@ const Expenses = () => {
   const currencyCode = useDashboardStore((state) => state.currencyCode);
   const expensesDateRange = useExpensesTabStore.use.expensesDateRange();
   const setExpensesDateRange = useExpensesTabStore.use.setExpensesDateRange();
-  const [isBillDetailsOpen, setIsBillDetailsOpen] = useState(false);
+  const isBillDetailsOpen = useBillDeatilsState.use.isOpen();
+  const setIsBillDetailsOpen = useBillDeatilsState.use.setIsOpen();
   const [selectedBill, setSelectedBill] = useState<{
     billId: string | undefined;
     billName: string | undefined;
@@ -119,8 +121,6 @@ const Expenses = () => {
         <BillDetails
           billId={selectedBill.billId}
           billName={selectedBill.billName}
-          isBillDetailsOpen={isBillDetailsOpen}
-          setIsBillDetailsOpen={setIsBillDetailsOpen}
           setSelectedBill={setSelectedBill}
         />
       )}

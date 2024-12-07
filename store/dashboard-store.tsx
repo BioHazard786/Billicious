@@ -1,4 +1,6 @@
 import { TGroupData, TMembers, TransactionT } from "@/lib/types";
+import { formatTransactionData } from "@/lib/utils";
+import { fetchTransactions } from "@/server/fetchHelpers";
 import { produce } from "immer";
 import { createContext, useContext } from "react";
 import { createStore } from "zustand";
@@ -6,11 +8,11 @@ import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";
 
 type Action = {
-  updateGroup: (data: { totalAmount: number; updatedMemberData: any }) => void;
+  updateGroup: (data: { totalAmount?: number; updatedMemberData: any }) => void;
   addMember: (member: TMembers[]) => void;
   updateMember: (member: TMembers) => void;
   addTransaction: (transaction: TransactionT) => void;
-  removeTransaction: (transactionId: string) => void;
+  removeTransaction: (transactionId: string, groupId: string) => void;
   updateBackgroundUrl: (url: string) => void;
   makeAdmin: (userIndex: number) => void;
   removeAdmin: (userIndex: number) => void;
@@ -42,7 +44,7 @@ export const createDashboardStore = (initialGroupData: TGroupData) => {
     updateGroup: (data) =>
       set(
         produce((state: TGroupData) => {
-          state.totalBill = data.totalAmount;
+          state.totalBill = data?.totalAmount || state.totalBill;
           data.updatedMemberData.forEach((data: any) => {
             const member = state.members[data.userIndex];
             if (member) {
@@ -67,14 +69,27 @@ export const createDashboardStore = (initialGroupData: TGroupData) => {
           }
         }),
       ),
-    removeTransaction: (transactionId: string) =>
+    removeTransaction: async (transactionId, groupId) => {
       set(
         produce((state: TGroupData) => {
           state.transactions = state.transactions.filter(
             (transaction) => transaction.id !== transactionId,
           );
         }),
-      ),
+      );
+
+      try {
+        const data = await fetchTransactions({
+          groupId: groupId,
+          page: 1,
+          pageSize: 9,
+        });
+        const transactions = formatTransactionData(data);
+        set({ transactions });
+      } catch (err) {
+        console.error(err);
+      }
+    },
     updateBackgroundUrl: (url: string) =>
       set(
         produce((state: TGroupData) => {

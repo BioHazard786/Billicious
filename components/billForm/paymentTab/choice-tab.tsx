@@ -39,7 +39,7 @@ const ChoiceTab = () => {
   return (
     <>
       <DialogHeader className="hidden pb-4 md:block">
-        <DialogTitle>Transfer</DialogTitle>
+        <DialogTitle>Payment</DialogTitle>
         <div className="flex gap-1 text-sm text-muted-foreground">
           Total Amount:{" "}
           <span className="flex">
@@ -53,7 +53,7 @@ const ChoiceTab = () => {
         </div>
       </DialogHeader>
       <DrawerHeader className="justify-center pb-4 md:hidden">
-        <DrawerTitle className="text-center">Transfer</DrawerTitle>
+        <DrawerTitle className="text-center">Payment</DrawerTitle>
         <div className="flex justify-center gap-1 text-sm text-muted-foreground">
           Total Amount:{" "}
           <span className="flex">

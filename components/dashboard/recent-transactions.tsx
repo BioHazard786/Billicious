@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { CURRENCIES } from "@/constants/items";
 import { categories, cn } from "@/lib/utils";
+import useBillDeatilsState from "@/store/bill-details-state-store";
 import useDashboardStore from "@/store/dashboard-store";
 import { format } from "date-fns";
 import { Tags } from "lucide-react";
@@ -27,7 +28,8 @@ export default function RecentTransactions() {
   const transactions = useDashboardStore((state) => state.transactions);
   const members = useDashboardStore((state) => state.members);
   const currencyCode = useDashboardStore((state) => state.currencyCode);
-  const [isBillDetailsOpen, setIsBillDetailsOpen] = useState(false);
+  const isBillDetailsOpen = useBillDeatilsState.use.isOpen();
+  const setIsBillDetailsOpen = useBillDeatilsState.use.setIsOpen();
   const [selectedBill, setSelectedBill] = useState<{
     billId: string | undefined;
     billName: string | undefined;
@@ -61,8 +63,6 @@ export default function RecentTransactions() {
         <BillDetails
           billId={selectedBill.billId}
           billName={selectedBill.billName}
-          isBillDetailsOpen={isBillDetailsOpen}
-          setIsBillDetailsOpen={setIsBillDetailsOpen}
           setSelectedBill={setSelectedBill}
         />
       )}

@@ -21,10 +21,10 @@ import useChocieTabStore from "@/store/choice-tab-store";
 import useDashboardStore from "@/store/dashboard-store";
 import usePaymentDetailsTabStore from "@/store/payment-details-tab-store";
 import {
+  Banknote,
   CalendarDays,
   ChevronsRight,
   MessageSquare,
-  Repeat,
 } from "lucide-react";
 import { useMemo } from "react";
 
@@ -74,8 +74,8 @@ const PaymentDetailsTab = () => {
         <div className="flex flex-col gap-5 p-4 md:px-0 md:pr-4">
           <div className="flex items-center gap-2">
             <div className="flex items-center">
-              <Repeat
-                data-accent-color="gold"
+              <Banknote
+                data-accent-color="jade"
                 className="size-5 text-[--accent-fg]"
               />
             </div>

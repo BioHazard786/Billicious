@@ -232,17 +232,19 @@ const CategoryPopover = () => {
       </PopoverTrigger>
       <PopoverContent className="z-[101] w-64">
         <div className="grid grid-cols-3 gap-2">
-          {Object.entries(categories).map(([label, { icon: Icon }]) => (
-            <CategoryItem
-              key={label}
-              Icon={Icon}
-              label={label}
-              onClick={() => {
-                setCategory(label);
-                setIsOpen(false);
-              }}
-            />
-          ))}
+          {Object.entries(categories).map(([label, { icon: Icon }]) =>
+            label === "Payment" ? null : (
+              <CategoryItem
+                key={label}
+                Icon={Icon}
+                label={label}
+                onClick={() => {
+                  setCategory(label);
+                  setIsOpen(false);
+                }}
+              />
+            ),
+          )}
         </div>
       </PopoverContent>
     </Popover>

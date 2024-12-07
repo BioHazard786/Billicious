@@ -20,7 +20,9 @@ import {
 import { CURRENCIES } from "@/constants/items";
 import { timeAgo } from "@/lib/utils";
 import { deleteBill, fetchBillDetails } from "@/server/fetchHelpers";
+import useBillDeatilsState from "@/store/bill-details-state-store";
 import useDashboardStore from "@/store/dashboard-store";
+import useUserInfoStore from "@/store/user-info-store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarClock, CalendarPlus, ReceiptText, Trash2 } from "lucide-react";
@@ -43,14 +45,10 @@ import { Textarea } from "../ui/textarea";
 const BillDetails = ({
   billId,
   billName,
-  isBillDetailsOpen,
-  setIsBillDetailsOpen,
   setSelectedBill,
 }: {
   billId?: string;
   billName?: string;
-  isBillDetailsOpen: boolean;
-  setIsBillDetailsOpen: Dispatch<SetStateAction<boolean>>;
   setSelectedBill: (
     value: SetStateAction<{
       billId: string | undefined;
@@ -60,6 +58,9 @@ const BillDetails = ({
 }) => {
   const { slug: groupId } = useParams();
   const queryClient = useQueryClient();
+  const user = useUserInfoStore((state) => state.user);
+  const isBillDetailsOpen = useBillDeatilsState.use.isOpen();
+  const setIsBillDetailsOpen = useBillDeatilsState.use.setIsOpen();
   const members = useDashboardStore((state) => state.members);
   const currencyCode = useDashboardStore((state) => state.currencyCode);
   const removeBillFromGroup = useDashboardStore((state) => state.updateGroup);
@@ -72,9 +73,15 @@ const BillDetails = ({
     [currencyCode],
   );
 
+  const isMembersOfThisGroup = useMemo(
+    () => members.some((member) => member.memberId === user?.id),
+    [members, user?.id],
+  );
+
   const { data, isLoading } = useQuery({
     queryKey: ["bill", billId],
     queryFn: () => fetchBillDetails(billId!),
+    retry: false,
   });
 
   const { isPending, mutateAsync: server_deleteGroup } = useMutation({
@@ -88,25 +95,23 @@ const BillDetails = ({
         updatedMemberData: data.members,
         totalAmount: Number(data.totalGroupExpense),
       });
-      removeTransaction(billId!);
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: ["settleUp", groupId as string],
-          exact: true,
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ["expenses", groupId as string],
-          exact: true,
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ["timelineChart", groupId as string],
-          exact: true,
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ["categoryChart", groupId as string],
-          exact: true,
-        }),
-      ]);
+      removeTransaction(billId!, groupId as string);
+      queryClient.invalidateQueries({
+        queryKey: ["settleUp", groupId as string],
+        exact: true,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["expenses", groupId as string],
+        exact: true,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["timelineChart", groupId as string],
+        exact: true,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["categoryChart", groupId as string],
+        exact: true,
+      });
       return toast.success(`${billName} deleted successfully`, {
         id: context.toastId,
       });
@@ -128,7 +133,7 @@ const BillDetails = ({
     await server_deleteGroup(billId!);
   };
 
-  const footerContent = (
+  const footerContent = isMembersOfThisGroup ? (
     <AlertDialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
       <AlertDialogTrigger asChild>
         <Button
@@ -168,7 +173,7 @@ const BillDetails = ({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  );
+  ) : null;
 
   return (
     <ResponsiveDialog
@@ -191,7 +196,7 @@ const BillDetails = ({
           <div className="flex h-[40vh] w-full flex-col items-center justify-center gap-4 md:h-[300px]">
             <NoContent className="size-32 md:size-48" />
             <div className="text-sm text-muted-foreground md:text-base">
-              No bill here. Click + to add transactions
+              No bill here. Click + to add bills
             </div>
           </div>
         ) : (

@@ -28,7 +28,7 @@ export default function ResponsiveDialog({
   children: React.ReactNode;
   footerContent?: React.ReactNode;
   isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsOpen: (value: boolean) => void;
   title: string;
   description?: string;
 }) {

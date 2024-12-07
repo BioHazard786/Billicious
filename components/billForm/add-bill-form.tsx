@@ -42,7 +42,7 @@ import useSplitTabStore from "@/store/split-tab-store";
 import useUserInfoStore from "@/store/user-info-store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus, Repeat, Users } from "lucide-react";
+import { Banknote, Plus, Users } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -130,8 +130,8 @@ function AddBillForm() {
   const selectedPayee = useChocieTabStore.use.selectedPayee();
   const selectedDrawee = useChocieTabStore.use.selectedDrawee();
   const description = usePaymentDetailsTabStore.use.description();
-  const transferNotes = usePaymentDetailsTabStore.use.notes();
-  const [transferCreatedAt, setTransferDate] = usePaymentDetailsTabStore(
+  const paymentNotes = usePaymentDetailsTabStore.use.notes();
+  const [paymentCreatedAt, setPaymentDate] = usePaymentDetailsTabStore(
     (state) => [state.createdAt, state.setCreatedAt],
   );
 
@@ -230,22 +230,22 @@ function AddBillForm() {
           (payee: { userIndex: number }) => payee.userIndex,
         ),
       });
-      queryClient.invalidateQueries({
-        queryKey: ["settleUp", groupId as string],
-        exact: true,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["expenses", groupId as string],
-        exact: true,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["timelineChart", groupId as string],
-        exact: true,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["categoryChart", groupId as string],
-        exact: true,
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["settleUp", groupId as string],
+      //   exact: true,
+      // });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["expenses", groupId as string],
+      //   exact: true,
+      // });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["timelineChart", groupId as string],
+      //   exact: true,
+      // });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["categoryChart", groupId as string],
+      //   exact: true,
+      // });
       resetBillFormStores();
       setChoiceSelected(null);
       return toast.success(`${variables.name} transaction added successfully`, {
@@ -263,57 +263,47 @@ function AddBillForm() {
     },
   });
 
-  const { isPending: isTransferPending, mutate: server_createTransfer } =
+  const { isPending: isPaymentPending, mutate: server_createPayment } =
     useMutation({
       mutationFn: addBillToGroupInDB,
       onMutate: (variables) => {
         const toastId = toast.loading(
-          `Transfering ${currencySymbol}${amountToBePaid.toFixed(2)} from ${members[Number(selectedPayee)].name} to ${members[Number(selectedDrawee)].name}...`,
+          `Processing a payment of ${currencySymbol}${amountToBePaid.toFixed(2)} from ${members[Number(selectedPayee)].name} to ${members[Number(selectedDrawee)].name}...`,
         );
         return { toastId };
       },
       onSuccess: async (data, variables, context) => {
-        addBillToGroup({
-          updatedMemberData: data.members,
-          totalAmount: Number(data.totalGroupExpense),
-        });
-        addTransaction({
-          name: variables.name,
-          category: variables.category,
-          createdAt: createdAt,
-          notes: variables.notes,
-          id: data.bill_id,
-          amount: payeesBill,
-          isPayment: true,
-          drawees: data.drawees.map(
-            (drawee: { userIndex: number }) => drawee.userIndex,
-          ),
-          payees: data.payees.map(
-            (payee: { userIndex: number }) => payee.userIndex,
-          ),
-        });
-        await Promise.all([
-          queryClient.invalidateQueries({
-            queryKey: ["settleUp", groupId as string],
-            exact: true,
-          }),
-          queryClient.invalidateQueries({
-            queryKey: ["expenses", groupId as string],
-            exact: true,
-          }),
-          queryClient.invalidateQueries({
-            queryKey: ["timelineChart", groupId as string],
-            exact: true,
-          }),
-          queryClient.invalidateQueries({
-            queryKey: ["categoryChart", groupId as string],
-            exact: true,
-          }),
-        ]);
+        console.log(data);
+        // addBillToGroup({
+        //   updatedMemberData: data.members,
+        // });
+        // addTransaction({
+        //   name: variables.name,
+        //   category: variables.category,
+        //   createdAt: createdAt,
+        //   notes: variables.notes,
+        //   id: data.bill_id,
+        //   amount: amountToBePaid,
+        //   isPayment: true,
+        //   drawees: data.drawees.map(
+        //     (drawee: { userIndex: number }) => drawee.userIndex,
+        //   ),
+        //   payees: data.payees.map(
+        //     (payee: { userIndex: number }) => payee.userIndex,
+        //   ),
+        // });
+        // queryClient.invalidateQueries({
+        //   queryKey: ["settleUp", groupId as string],
+        //   exact: true,
+        // });
+        // queryClient.invalidateQueries({
+        //   queryKey: ["expenses", groupId as string],
+        //   exact: true,
+        // });
         resetBillFormStores();
         setChoiceSelected(null);
         return toast.success(
-          `Successfully transferred ${currencySymbol}${amountToBePaid.toFixed(2)} from ${members[Number(selectedPayee)].name} to ${members[Number(selectedDrawee)].name}`,
+          `Successfully processed a payment of ${currencySymbol}${amountToBePaid.toFixed(2)} from ${members[Number(selectedPayee)].name} to ${members[Number(selectedDrawee)].name}`,
           {
             id: context.toastId,
           },
@@ -356,7 +346,7 @@ function AddBillForm() {
     });
   };
 
-  const createTransfer = () => {
+  const createPayment = () => {
     if (!description) {
       return toast.error("Description should not be empty");
     }
@@ -364,13 +354,14 @@ function AddBillForm() {
     const billCreatedBy =
       members.find((member) => member.memberId === user?.id)?.memberIndex || 0;
 
-    server_createTransfer({
+    server_createPayment({
       groupId: groupId as string,
       name: titleCase(description),
-      category: "Transfer",
-      createdAt: transferCreatedAt.getTime(),
+      category: "Payment",
+      createdAt: paymentCreatedAt.getTime(),
       createdBy: Number(billCreatedBy),
-      notes: transferNotes,
+      isPayment: true,
+      notes: paymentNotes,
       payees: { [selectedPayee as string]: amountToBePaid },
       drawees: { [selectedDrawee as string]: amountToBePaid },
     });
@@ -474,16 +465,16 @@ function AddBillForm() {
                     if (activeTab2 + 1 < tabs2.length) {
                       handleTabClick2(activeTab2 + 1);
                     } else {
-                      createTransfer();
+                      createPayment();
                     }
                   }}
                   isDisabled={
-                    isTransferPending ||
+                    isPaymentPending ||
                     !selectedPayee ||
                     !selectedDrawee ||
                     !amountToBePaid
                   }
-                  isLoading={isTransferPending}
+                  isLoading={isPaymentPending}
                 >
                   {activeTab2 + 1 === tabs2.length ? "Create" : "Next"}
                 </AnimatedButton>
@@ -492,23 +483,23 @@ function AddBillForm() {
           ) : (
             <>
               <DialogHeader>
-                <DialogTitle>Edit profile</DialogTitle>
+                <DialogTitle>Choose an Action</DialogTitle>
                 <DialogDescription>
-                  Make changes to your profile here. Click save when you're
-                  done.
+                  Would you like to manage group expenses or make a payment?
+                  Select an option to proceed.
                 </DialogDescription>
                 <div className="flex items-center justify-center gap-4 md:h-[366px]">
                   <div className="space-y-2 text-center">
                     <Button
                       className="size-[13rem] bg-[--accent-bg]"
-                      data-accent-color="crimson"
+                      data-accent-color="red"
                       variant="secondary"
                       size="icon"
                       onClick={() => setChoiceSelected("bill")}
                     >
                       <Users
                         className="size-[7rem] text-[--accent-fg]"
-                        data-accent-color="crimson"
+                        data-accent-color="red"
                       />
                     </Button>
                     <p className="text-lg font-semibold text-muted-foreground">
@@ -518,18 +509,18 @@ function AddBillForm() {
                   <div className="space-y-2 text-center">
                     <Button
                       className="size-[13rem] bg-[--accent-bg]"
-                      data-accent-color="plum"
+                      data-accent-color="jade"
                       variant="secondary"
                       size="icon"
                       onClick={() => setChoiceSelected("payment")}
                     >
-                      <Repeat
+                      <Banknote
                         className="size-[7rem] text-[--accent-fg]"
-                        data-accent-color="plum"
+                        data-accent-color="jade"
                       />
                     </Button>
                     <p className="text-lg font-semibold text-muted-foreground">
-                      Transfer
+                      Payment
                     </p>
                   </div>
                 </div>
@@ -646,16 +637,16 @@ function AddBillForm() {
                   if (activeTab2 + 1 < tabs2.length) {
                     handleTabClick2(activeTab2 + 1);
                   } else {
-                    createTransfer();
+                    createPayment();
                   }
                 }}
                 isDisabled={
-                  isTransferPending ||
+                  isPaymentPending ||
                   !selectedPayee ||
                   !selectedDrawee ||
                   !amountToBePaid
                 }
-                isLoading={isTransferPending}
+                isLoading={isPaymentPending}
               >
                 {activeTab2 + 1 === tabs2.length ? "Create" : "Next"}
               </AnimatedButton>
@@ -664,23 +655,24 @@ function AddBillForm() {
         ) : (
           <>
             <DrawerHeader>
-              <DrawerTitle>Edit profile</DrawerTitle>
+              <DrawerTitle>Choose an Action</DrawerTitle>
               <DrawerDescription>
-                Make changes to your profile here. Click save when you're done.
+                Would you like to manage group expenses or make a payment?
+                Select an option to proceed.
               </DrawerDescription>
             </DrawerHeader>
             <div className="flex h-[50vh] items-center justify-center gap-4 px-4 text-center">
               <div>
                 <Button
                   className="size-[10rem] bg-[--accent-bg]"
-                  data-accent-color="crimson"
+                  data-accent-color="red"
                   variant="secondary"
                   size="icon"
                   onClick={() => setChoiceSelected("bill")}
                 >
                   <Users
                     className="size-[5rem] text-[--accent-fg]"
-                    data-accent-color="crimson"
+                    data-accent-color="red"
                   />
                 </Button>
                 <p className="text-smmd font-medium text-muted-foreground">
@@ -690,18 +682,18 @@ function AddBillForm() {
               <div>
                 <Button
                   className="size-[10rem] bg-[--accent-bg]"
-                  data-accent-color="plum"
+                  data-accent-color="jade"
                   variant="secondary"
                   size="icon"
                   onClick={() => setChoiceSelected("payment")}
                 >
-                  <Repeat
-                    className="size-[5rem] text-[--accent-fg]"
-                    data-accent-color="plum"
+                  <Banknote
+                    className="size-[7rem] text-[--accent-fg]"
+                    data-accent-color="jade"
                   />
                 </Button>
                 <p className="text-smmd font-medium text-muted-foreground">
-                  Transfer
+                  Payment
                 </p>
               </div>
             </div>

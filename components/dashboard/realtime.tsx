@@ -1,8 +1,10 @@
 "use client";
 import { createClient } from "@/auth-utils/client";
 import { viewGroup } from "@/server/fetchHelpers";
+import useBillDeatilsState from "@/store/bill-details-state-store";
 import useDashboardStore from "@/store/dashboard-store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { set } from "date-fns";
 import { useParams } from "next/navigation";
 import React, { useEffect, useMemo } from "react";
 
@@ -12,6 +14,7 @@ const Realtime = () => {
   const { slug: groupId } = useParams();
   const addBillToGroup = useDashboardStore((state) => state.updateGroup);
   const addTransaction = useDashboardStore((state) => state.addTransaction);
+  const setIsBillDetailsOpen = useBillDeatilsState.use.setIsOpen();
   const removeTransaction = useDashboardStore(
     (state) => state.removeTransaction,
   );
@@ -84,8 +87,9 @@ const Realtime = () => {
         },
         async (payload) => {
           refetchQueries();
+          setIsBillDetailsOpen(false);
           await server_fetchNewGroupData(groupId as string);
-          removeTransaction(payload.old.id);
+          removeTransaction(payload.old.id, groupId as string);
         },
       )
       .subscribe();

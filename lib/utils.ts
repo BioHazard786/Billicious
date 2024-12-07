@@ -15,12 +15,12 @@ import useSplitTabStore from "@/store/split-tab-store";
 import { clsx, type ClassValue } from "clsx";
 import { formatDistanceToNow } from "date-fns";
 import {
+  Banknote,
   Bed,
   Bus,
   GlassWater,
   LucideProps,
   Pizza,
-  Repeat,
   ShoppingCart,
   Ticket,
   Tv,
@@ -127,7 +127,7 @@ export const categories: Record<
     color: string;
   }
 > = {
-  Transfer: { icon: Repeat, color: "plum" },
+  Payment: { icon: Banknote, color: "jade" },
   Transport: { icon: Bus, color: "brown" },
   Lodging: { icon: Bed, color: "amber" },
   Shopping: { icon: ShoppingCart, color: "tomato" },
