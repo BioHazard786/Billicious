@@ -8,7 +8,7 @@ import {
 } from "@/database/schema";
 import {
   and,
-  asc,
+  desc,
   eq,
   ExtractTablesWithRelations,
   gte,
@@ -403,7 +403,7 @@ export async function getGroupBillsFromDB(
           ...(to ? [lte(billsTable.createdAt, new Date(to))] : []),
         ),
       )
-      .orderBy(asc(billsTable.createdAt))
+      .orderBy(desc(billsTable.createdAt))
       .$dynamic(),
     page,
     pageSize,
