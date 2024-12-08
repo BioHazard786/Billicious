@@ -63,7 +63,7 @@ const SettleUp = () => {
       <CardHeader>
         <CardTitle>Settle Up</CardTitle>
         <CardDescription>
-          Easily clear your group’s balances and keep things fair
+          Settle group balances effortlessly and fairly
         </CardDescription>
         {data && data.length > 0 && (
           <Select
