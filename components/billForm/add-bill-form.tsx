@@ -40,7 +40,7 @@ import useSplitByPercentTabStore from "@/store/split-by-percent-tab-store";
 import useSplitEquallyTabStore from "@/store/split-equally-tab-store";
 import useSplitTabStore from "@/store/split-tab-store";
 import useUserInfoStore from "@/store/user-info-store";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { Banknote, Plus, Users } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -110,7 +110,6 @@ function AddBillForm() {
   >(null);
 
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const queryClient = useQueryClient();
 
   const activeTab = useAddBillStore.use.activeTab();
   const direction = useAddBillStore.use.direction();
@@ -380,7 +379,25 @@ function AddBillForm() {
             <Plus className="size-5" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="z-[101] placeholder:sm:max-w-[425px]">
+        <DialogContent
+          className="z-[101] placeholder:sm:max-w-[425px]"
+          onClose={() => {
+            setIsOpen(false);
+            setTimeout(() => {
+              setChoiceSelected(null);
+            }, 200);
+          }}
+          onEscapeKeyDown={() => {
+            setTimeout(() => {
+              setChoiceSelected(null);
+            }, 200);
+          }}
+          onInteractOutside={() => {
+            setTimeout(() => {
+              setChoiceSelected(null);
+            }, 200);
+          }}
+        >
           {choiceSelected === "bill" ? (
             <>
               <div className="relative mx-auto h-full w-full overflow-hidden">
@@ -488,7 +505,7 @@ function AddBillForm() {
                   Would you like to manage group expenses or make a payment?
                   Select an option to proceed.
                 </DialogDescription>
-                <div className="flex items-center justify-center gap-4 md:h-[366px]">
+                <div className="flex items-center justify-center gap-4 md:h-[346px]">
                   <div className="space-y-2 text-center">
                     <Button
                       className="size-[13rem] bg-[--accent-bg]"
@@ -543,7 +560,19 @@ function AddBillForm() {
           <Plus className="size-5" />
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="z-[101]">
+      <DrawerContent
+        className="z-[101]"
+        onEscapeKeyDown={() => {
+          setTimeout(() => {
+            setChoiceSelected(null);
+          }, 200);
+        }}
+        onInteractOutside={() => {
+          setTimeout(() => {
+            setChoiceSelected(null);
+          }, 200);
+        }}
+      >
         {choiceSelected === "bill" ? (
           <DrawerHeader className="justify-center pb-0">
             <CustomBreadcrumb
@@ -661,7 +690,7 @@ function AddBillForm() {
                 Select an option to proceed.
               </DrawerDescription>
             </DrawerHeader>
-            <div className="flex h-[50vh] items-center justify-center gap-4 px-4 text-center">
+            <div className="flex h-[53.3vh] items-center justify-center gap-4 px-4 text-center">
               <div>
                 <Button
                   className="size-[10rem] bg-[--accent-bg]"

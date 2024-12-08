@@ -72,13 +72,11 @@ const PaymentDetailsTab = () => {
       </DrawerHeader>
       <ScrollArea className="h-[40vh] md:h-[300px]">
         <div className="flex flex-col gap-5 p-4 md:px-0 md:pr-4">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center">
-              <Banknote
-                data-accent-color="jade"
-                className="size-5 text-[--accent-fg]"
-              />
-            </div>
+          <div className="flex items-center gap-4 pl-2">
+            <Banknote
+              data-accent-color="jade"
+              className="size-5 text-[--accent-fg]"
+            />
             <InputWithLimit
               maxLength={32}
               characterCount={description.length}

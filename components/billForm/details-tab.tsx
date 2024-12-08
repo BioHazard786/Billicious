@@ -106,7 +106,7 @@ const DetailsTab = () => {
       </DrawerHeader>
       <ScrollArea className="h-[40vh] md:h-[300px]">
         <div className="flex flex-col gap-5 p-4 md:px-0 md:pr-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <div className="flex items-center">
               <CategoryPopover />
             </div>
@@ -221,8 +221,8 @@ const CategoryPopover = () => {
   return (
     <Popover modal open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button variant="link" size="icon" className="px-2">
-          <div className="flex items-center">
+        <Button variant="link" size="icon" className="w-7 pl-2">
+          <div className="flex flex-col items-center">
             {getCategoryIcon(category, "size-5")}
             {category === "Default" && (
               <ChevronDown className="size-4 text-foreground" />
