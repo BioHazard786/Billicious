@@ -103,7 +103,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Authors
 
 - Mohd Zaid - [GitHub](https://github.com/BioHazard786)
-- Keshav Singh - [GitHub](https://github.com/yourusername)
+- Keshav Singh - [GitHub](https://github.com/K0DEL)
 
 ## Acknowledgements
 
