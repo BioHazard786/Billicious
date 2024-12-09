@@ -107,5 +107,6 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 - [Zustand](https://github.com/pmndrs/zustand)
 - [Tanstack Query](https://tanstack.com/query/latest)
 - [Shadcn UI](https://ui.shadcn.com/)
+- [TailwindCSS](https://tailwindcss.com/)
 - [Framer Motion](https://motion.dev/)
 - [Hanko](https://www.hanko.io/)

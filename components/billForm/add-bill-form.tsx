@@ -675,7 +675,7 @@ function AddBillForm({
                 Select an option to proceed.
               </DrawerDescription>
             </DrawerHeader>
-            <div className="flex h-[53.3vh] items-center justify-center gap-4 px-4 text-center">
+            <div className="my-[2.75rem] flex h-[40vh] items-center justify-center gap-4 px-4 text-center">
               <div>
                 <Button
                   className="size-[10rem] bg-[--accent-bg]"
