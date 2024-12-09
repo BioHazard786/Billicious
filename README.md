@@ -43,7 +43,7 @@ Billicious is an open-source bill splitter app designed to simplify group expens
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/billicious.git
+   git clone https://github.com/BioHazard786/billicious.git
    cd billicious
    ```
 
