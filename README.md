@@ -24,9 +24,10 @@ Billicious is an open-source bill splitter app designed to simplify group expens
 - **Frontend:** Next.js 14
 - **Backend:** Supabase
 - **State Management:** Zustand
-- **Data Fetching:** Tanstack Query
+- **Data Fetching and Mutations:** Tanstack Query
 - **UI Components:** Shadcn UI
 - **Real-time Updates:** Supabase Realtime
+- **Passkeys Authenication:** Hanko
 
 ## Getting Started
 
@@ -35,6 +36,7 @@ Billicious is an open-source bill splitter app designed to simplify group expens
 - Node.js
 - npm or yarn
 - Supabase account
+- Hanko account
 
 ### Installation
 
@@ -54,17 +56,7 @@ Billicious is an open-source bill splitter app designed to simplify group expens
    ```
 
 3. Set up environment variables:
-   Create a `.env.local` file in the root directory and add your Supabase credentials and other necessary environment variables.
-
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-   DOMAIN=your-domain
-   ```
-
-### Environment Variables
-
-Required environment variables for the application:
+   Create a `.env` file in the root directory and vars given in `example.env` and types in `env.d.ts`.
 
 ### Running the App
 
@@ -84,8 +76,11 @@ The project directory structure is as follows:
 
 ```
 billicious/
-├── app/                  # Next.js app directory
-├── components/          # Reusable UI components
+├── app/                # Next.js app directory
+├── auth-utils/         # Utility functions for supabase
+├── components/         # Reusable UI components
+├── constants/          # constants
+├── providers/          # state management and query providers
 ├── lib/                # Utility functions and types
 ├── store/              # Zustand store configurations
 ├── server/             # Server-side actions and API
@@ -108,7 +103,9 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Acknowledgements
 
 - [Next.js](https://nextjs.org/)
-- [Supabase](https://supabase.io/)
+- [Supabase](https://supabase.com/)
 - [Zustand](https://github.com/pmndrs/zustand)
-- [Tanstack Query](https://tanstack.com/query)
-- [Shadcn UI](https://shadcn.dev/)
+- [Tanstack Query](https://tanstack.com/query/latest)
+- [Shadcn UI](https://ui.shadcn.com/)
+- [Framer Motion](https://motion.dev/)
+- [Hanko](https://www.hanko.io/)

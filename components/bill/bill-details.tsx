@@ -25,7 +25,7 @@ import useDashboardStore from "@/store/dashboard-store";
 import useUserInfoStore from "@/store/user-info-store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarClock, CalendarPlus, ReceiptText, Trash2 } from "lucide-react";
+import { Banknote, CalendarDays, ReceiptText, Trash2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import React, { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -206,26 +206,21 @@ const BillDetails = ({
               <Input disabled value={data.bill.name} id="billName" />
             </div>
             <Separator />
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <Label htmlFor="createdAt">Created At</Label>
-                <div className="relative">
-                  <Input
-                    disabled
-                    value={format(data.bill.createdAt, "PP")}
-                    className="peer ps-9"
-                    id="createdAt"
-                  />
-                  <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-foreground/50">
-                    <CalendarPlus
-                      size={16}
-                      strokeWidth={2}
-                      aria-hidden="true"
-                    />
-                  </div>
+            <div className="flex-1">
+              <Label htmlFor="createdAt">Created At</Label>
+              <div className="relative">
+                <Input
+                  disabled
+                  value={format(data.bill.createdAt, "PPP")}
+                  className="peer ps-9"
+                  id="createdAt"
+                />
+                <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-foreground/50">
+                  <CalendarDays size={16} strokeWidth={2} aria-hidden="true" />
                 </div>
               </div>
-              <div className="flex-1">
+            </div>
+            {/* <div className="flex-1">
                 <Label htmlFor="updatedAt">Updated At</Label>
                 <div className="relative">
                   <Input
@@ -242,8 +237,7 @@ const BillDetails = ({
                     />
                   </div>
                 </div>
-              </div>
-            </div>
+              </div> */}
 
             <div className="flex gap-4">
               <div className="flex-1">
@@ -348,7 +342,12 @@ const BillDetails = ({
             </Table>
             <Separator />
             <div className="flex items-center gap-1.5 text-sm">
-              <ReceiptText className="size-6" /> Created By{" "}
+              {data.bill.category !== "Payment" ? (
+                <ReceiptText className="size-6" />
+              ) : (
+                <Banknote className="size-6" />
+              )}{" "}
+              Created By{" "}
               <span className="flex items-center gap-2 font-medium">
                 <Avatar className="size-6">
                   <AvatarImage

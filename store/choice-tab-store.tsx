@@ -21,7 +21,7 @@ const initialState: State = {
   amountToBePaid: 0,
 };
 
-const useChocieTabStoreBase = createWithEqualityFn<State & Action>(
+const useChoiceTabStoreBase = createWithEqualityFn<State & Action>(
   (set) => ({
     ...initialState,
     setSelectedPayee: (payee) => set({ selectedPayee: payee }),
@@ -32,6 +32,6 @@ const useChocieTabStoreBase = createWithEqualityFn<State & Action>(
   shallow,
 );
 
-const useChocieTabStore = createSelectors(useChocieTabStoreBase);
+const useChoiceTabStore = createSelectors(useChoiceTabStoreBase);
 
-export default useChocieTabStore;
+export default useChoiceTabStore;

@@ -20,7 +20,7 @@ type BillData = {
   name: string;
   category: string;
   createdBy: number;
-  createdAt?: number;
+  createdAt?: Date;
   isPayment?: boolean;
   notes?: string;
   drawees: { [key: string]: number };

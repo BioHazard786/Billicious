@@ -4,10 +4,16 @@ import AddBillForm from "@/components/billForm/add-bill-form";
 import { Button } from "@/components/ui/button";
 import { NavItemProps } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Handshake, LayoutDashboard, PieChart, Users } from "lucide-react";
+import {
+  Handshake,
+  LayoutDashboard,
+  PieChart,
+  Plus,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState } from "react";
 
 const NavItem = ({ href, icon: Icon, label, isActive }: NavItemProps) => (
   <Link href={href} className="flex flex-col items-center gap-1">
@@ -34,6 +40,7 @@ const BottomNavbar = ({
   const { slug } = useParams();
   const groupId = useMemo(() => slug as string, [slug]);
   const navPath = removeBillForm ? "/view/group" : "/group";
+  const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
     {
@@ -68,7 +75,18 @@ const BottomNavbar = ({
       {navItems.slice(0, 2).map((item) => (
         <NavItem key={item.label} {...item} />
       ))}
-      {!removeBillForm && <AddBillForm />}
+      {!removeBillForm && (
+        <AddBillForm isOpen={isOpen} setIsOpen={setIsOpen}>
+          <Button
+            variant="default"
+            size="icon"
+            className="rounded-lg"
+            aria-label="Add-Transactions"
+          >
+            <Plus className="size-5" />
+          </Button>
+        </AddBillForm>
+      )}
       {navItems.slice(2).map((item) => (
         <NavItem key={item.label} {...item} />
       ))}

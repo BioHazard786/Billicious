@@ -12,6 +12,7 @@ import usePaymentDetailsTabStore from "@/store/payment-details-tab-store";
 import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
 import useSplitByPercentTabStore from "@/store/split-by-percent-tab-store";
 import useSplitTabStore from "@/store/split-tab-store";
+import useBillChoiceStore from "@/store/user-bill-choice-store";
 import { clsx, type ClassValue } from "clsx";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -108,6 +109,7 @@ export function resetBillFormStores() {
   useChocieTabStore.getState().reset();
   usePaymentDetailsTabStore.getState().reset();
   useAddPaymentStore.getState().reset();
+  useBillChoiceStore.getState().reset();
 }
 
 export function resetGroupFormStores() {

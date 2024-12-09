@@ -39,12 +39,14 @@ import useSplitByAmountTabStore from "@/store/split-by-amount-tab-store";
 import useSplitByPercentTabStore from "@/store/split-by-percent-tab-store";
 import useSplitEquallyTabStore from "@/store/split-equally-tab-store";
 import useSplitTabStore from "@/store/split-tab-store";
+import useBillChoiceStore from "@/store/user-bill-choice-store";
 import useUserInfoStore from "@/store/user-info-store";
 import { useMutation } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
-import { Banknote, Plus, Users } from "lucide-react";
+import { Banknote, Users } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { Dispatch, ReactNode, SetStateAction, useMemo } from "react";
 import { toast } from "sonner";
 import AnimatedButton from "../ui/animated-button";
 import ContributionsTab from "./contributions-tab";
@@ -102,12 +104,20 @@ const variants = {
   }),
 };
 
-function AddBillForm() {
+function AddBillForm({
+  isOpen,
+  setIsOpen,
+  children,
+}: {
+  isOpen: boolean;
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
+  children?: ReactNode;
+}) {
   const { slug: groupId } = useParams();
-  const [isOpen, setIsOpen] = useState(false);
-  const [choiceSelected, setChoiceSelected] = useState<
-    "bill" | "payment" | null
-  >(null);
+
+  const choice = useBillChoiceStore.use.choice();
+  const setChoice = useBillChoiceStore.use.setChoice();
+  const resetChoice = useBillChoiceStore.use.reset();
 
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
@@ -229,24 +239,7 @@ function AddBillForm() {
           (payee: { userIndex: number }) => payee.userIndex,
         ),
       });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["settleUp", groupId as string],
-      //   exact: true,
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["expenses", groupId as string],
-      //   exact: true,
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["timelineChart", groupId as string],
-      //   exact: true,
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["categoryChart", groupId as string],
-      //   exact: true,
-      // });
       resetBillFormStores();
-      setChoiceSelected(null);
       return toast.success(`${variables.name} transaction added successfully`, {
         id: context.toastId,
       });
@@ -291,16 +284,7 @@ function AddBillForm() {
             (payee: { userIndex: number }) => payee.userIndex,
           ),
         });
-        // queryClient.invalidateQueries({
-        //   queryKey: ["settleUp", groupId as string],
-        //   exact: true,
-        // });
-        // queryClient.invalidateQueries({
-        //   queryKey: ["expenses", groupId as string],
-        //   exact: true,
-        // });
         resetBillFormStores();
-        setChoiceSelected(null);
         return toast.success(
           `Successfully processed a payment of ${currencySymbol}${amountToBePaid.toFixed(2)} from ${members[Number(selectedPayee)].name} to ${members[Number(selectedDrawee)].name}`,
           {
@@ -331,7 +315,16 @@ function AddBillForm() {
       groupId: groupId as string,
       name: titleCase(billName),
       category: category,
-      createdAt: createdAt.getTime(),
+      createdAt:
+        createdAt.toDateString() === new Date().toDateString()
+          ? new Date()
+          : new Date(
+              createdAt.setHours(
+                new Date().getHours(),
+                new Date().getMinutes(),
+                new Date().getSeconds(),
+              ),
+            ),
       createdBy: Number(billCreatedBy),
       notes: notes,
       payees: payees,
@@ -357,7 +350,16 @@ function AddBillForm() {
       groupId: groupId as string,
       name: titleCase(description),
       category: "Payment",
-      createdAt: paymentCreatedAt.getTime(),
+      createdAt:
+        paymentCreatedAt.toDateString() === new Date().toDateString()
+          ? new Date()
+          : new Date(
+              paymentCreatedAt.setHours(
+                new Date().getHours(),
+                new Date().getMinutes(),
+                new Date().getSeconds(),
+              ),
+            ),
       createdBy: Number(billCreatedBy),
       isPayment: true,
       notes: paymentNotes,
@@ -369,36 +371,28 @@ function AddBillForm() {
   if (isDesktop) {
     return (
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogTrigger asChild>
-          <Button
-            variant="default"
-            size="icon"
-            className="rounded-lg"
-            aria-label="Add-Transactions"
-          >
-            <Plus className="size-5" />
-          </Button>
-        </DialogTrigger>
+        {children && <DialogTrigger asChild>{children}</DialogTrigger>}
+
         <DialogContent
           className="z-[101] placeholder:sm:max-w-[425px]"
           onClose={() => {
             setIsOpen(false);
             setTimeout(() => {
-              setChoiceSelected(null);
+              resetChoice();
             }, 200);
           }}
           onEscapeKeyDown={() => {
             setTimeout(() => {
-              setChoiceSelected(null);
+              resetChoice();
             }, 200);
           }}
           onInteractOutside={() => {
             setTimeout(() => {
-              setChoiceSelected(null);
+              resetChoice();
             }, 200);
           }}
         >
-          {choiceSelected === "bill" ? (
+          {choice === "bill" ? (
             <>
               <div className="relative mx-auto h-full w-full overflow-hidden">
                 <AnimatePresence
@@ -445,7 +439,7 @@ function AddBillForm() {
                 </AnimatedButton>
               </DialogFooter>
             </>
-          ) : choiceSelected === "payment" ? (
+          ) : choice === "payment" ? (
             <>
               <div className="relative mx-auto h-full w-full overflow-hidden">
                 <AnimatePresence
@@ -512,7 +506,7 @@ function AddBillForm() {
                       data-accent-color="red"
                       variant="secondary"
                       size="icon"
-                      onClick={() => setChoiceSelected("bill")}
+                      onClick={() => setChoice("bill")}
                     >
                       <Users
                         className="size-[7rem] text-[--accent-fg]"
@@ -529,7 +523,7 @@ function AddBillForm() {
                       data-accent-color="jade"
                       variant="secondary"
                       size="icon"
-                      onClick={() => setChoiceSelected("payment")}
+                      onClick={() => setChoice("payment")}
                     >
                       <Banknote
                         className="size-[7rem] text-[--accent-fg]"
@@ -550,30 +544,21 @@ function AddBillForm() {
   }
   return (
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
-      <DrawerTrigger asChild>
-        <Button
-          variant="default"
-          size="icon"
-          className="rounded-lg"
-          aria-label="Add-Transactions"
-        >
-          <Plus className="size-5" />
-        </Button>
-      </DrawerTrigger>
+      {children && <DrawerTrigger asChild>{children}</DrawerTrigger>}
       <DrawerContent
         className="z-[101]"
         onEscapeKeyDown={() => {
           setTimeout(() => {
-            setChoiceSelected(null);
+            resetChoice();
           }, 200);
         }}
         onInteractOutside={() => {
           setTimeout(() => {
-            setChoiceSelected(null);
+            resetChoice();
           }, 200);
         }}
       >
-        {choiceSelected === "bill" ? (
+        {choice === "bill" ? (
           <DrawerHeader className="justify-center pb-0">
             <CustomBreadcrumb
               handleTabClick={handleTabClick}
@@ -581,7 +566,7 @@ function AddBillForm() {
               activeTab={activeTab}
             />
           </DrawerHeader>
-        ) : choiceSelected === "payment" ? (
+        ) : choice === "payment" ? (
           <DrawerHeader className="justify-center pb-0">
             <CustomBreadcrumb
               handleTabClick={handleTabClick2}
@@ -590,7 +575,7 @@ function AddBillForm() {
             />
           </DrawerHeader>
         ) : null}
-        {choiceSelected === "bill" ? (
+        {choice === "bill" ? (
           <>
             <div className="relative mx-auto h-full w-full overflow-hidden">
               <AnimatePresence
@@ -633,7 +618,7 @@ function AddBillForm() {
               </AnimatedButton>
             </DrawerFooter>
           </>
-        ) : choiceSelected === "payment" ? (
+        ) : choice === "payment" ? (
           <>
             <div className="relative mx-auto h-full w-full overflow-hidden">
               <AnimatePresence
@@ -697,7 +682,7 @@ function AddBillForm() {
                   data-accent-color="red"
                   variant="secondary"
                   size="icon"
-                  onClick={() => setChoiceSelected("bill")}
+                  onClick={() => setChoice("bill")}
                 >
                   <Users
                     className="size-[5rem] text-[--accent-fg]"
@@ -714,7 +699,7 @@ function AddBillForm() {
                   data-accent-color="jade"
                   variant="secondary"
                   size="icon"
-                  onClick={() => setChoiceSelected("payment")}
+                  onClick={() => setChoice("payment")}
                 >
                   <Banknote
                     className="size-[7rem] text-[--accent-fg]"

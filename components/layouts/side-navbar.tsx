@@ -1,10 +1,15 @@
 "use client";
 
-import { Handshake, LayoutDashboard, PieChart, Users } from "lucide-react";
+import {
+  Handshake,
+  LayoutDashboard,
+  PieChart,
+  Plus,
+  Users,
+} from "lucide-react";
 
 import AddBillForm from "@/components/billForm/add-bill-form";
 import { Button } from "@/components/ui/button";
-import Mascot from "@/components/ui/mascot";
 import {
   Tooltip,
   TooltipContent,
@@ -14,7 +19,7 @@ import { NavItemProps } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState } from "react";
 
 const NavItem = ({ href, icon: Icon, label, isActive }: NavItemProps) => (
   <Tooltip>
@@ -46,6 +51,7 @@ const SideNavbar = ({
   const { slug } = useParams();
   const groupId = useMemo(() => slug as string, [slug]);
   const navPath = removeBillForm ? "/view/group" : "/group";
+  const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
     {
@@ -81,7 +87,18 @@ const SideNavbar = ({
         {navItems.slice(0, 2).map((item) => (
           <NavItem key={item.label} {...item} />
         ))}
-        {!removeBillForm && <AddBillForm />}
+        {!removeBillForm && (
+          <AddBillForm isOpen={isOpen} setIsOpen={setIsOpen}>
+            <Button
+              variant="default"
+              size="icon"
+              className="rounded-lg"
+              aria-label="Add-Transactions"
+            >
+              <Plus className="size-5" />
+            </Button>
+          </AddBillForm>
+        )}
         {navItems.slice(2).map((item) => (
           <NavItem key={item.label} {...item} />
         ))}
