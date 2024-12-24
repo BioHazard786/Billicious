@@ -2,6 +2,7 @@ import {
   billsTable,
   draweesInBillsTable,
   groupsTable,
+  inviteTable,
   membersTable,
   payeesInBillsTable,
   transactionsTable,
@@ -374,6 +375,7 @@ export async function deleteGroupInDB(
       .where(eq(transactionsTable.groupId, groupId)),
     transaction.delete(membersTable).where(eq(membersTable.groupId, groupId)),
     transaction.delete(billsTable).where(eq(billsTable.groupId, groupId)),
+    transaction.delete(inviteTable).where(eq(inviteTable.groupId, groupId)),
     transaction.delete(groupsTable).where(eq(groupsTable.id, groupId)),
   ]);
 

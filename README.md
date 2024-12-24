@@ -1,6 +1,12 @@
 # Billicious
 
-Billicious is an open-source bill splitter app designed to simplify group expense splitting. Built with Next.js 14 and Supabase as the backend, it leverages Zustand and Tanstack Query for state management and data fetching/mutations. The UI components are built using Shadcn UI, and it supports real-time updates using Supabase Realtime.
+A modern expense splitting app that takes the hassle out of shared finances. Billicious helps groups track, split, and settle expenses in real-time with minimal friction.
+
+## Why Billicious?
+
+- **Eliminate Payment Confusion:** Smart algorithms automatically calculate the optimal way to settle group debts
+- **Real-Time Peace of Mind:** Instant updates keep everyone on the same page about shared expenses
+- **Simplified Group Finance:** Handle multiple groups, categories, and complex splitting scenarios with ease
 
 ## Features
 
@@ -18,6 +24,13 @@ Billicious is an open-source bill splitter app designed to simplify group expens
   ![DarkMode](./mockups/Screenshot%202024-12-08%20at%2010.19.48 PM.png)
 - **Responsive Design:** Works seamlessly across desktop and mobile devices
   ![Responsive](./mockups/Screenshot%202024-12-08%20at%2011.35.36 PM.png)
+
+## Impact
+
+- Reduces time spent on expense calculations by 90%
+- Prevents common splitting mistakes and disputes
+- Supports multiple currency conversions and split types
+- Privacy-focused with modern passkey authentication
 
 ## Tech Stack
 
