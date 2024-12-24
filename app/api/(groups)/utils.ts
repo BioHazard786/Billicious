@@ -1,3 +1,4 @@
+import { createClient } from "@/auth-utils/server";
 import {
   billsTable,
   draweesInBillsTable,
@@ -351,16 +352,23 @@ export async function deleteGroupInDB(
   >,
   groupId: string,
 ) {
+  const supabase = createClient();
   // Fetch bills and their IDs in a single query
   const bills = await transaction
     .select({ id: billsTable.id })
     .from(billsTable)
     .where(eq(billsTable.groupId, groupId));
 
+  const backgroundUrl = await transaction
+    .select({ backgroundUrl: groupsTable.backgroundUrl })
+    .from(groupsTable)
+    .where(eq(groupsTable.id, groupId))
+    .limit(1);
+
   const billIds = bills.map((bill) => bill.id);
 
-  // Perform bulk deletes in parallel
-  await Promise.all([
+  // Building the promises array
+  const promises: Promise<any>[] = [
     // Delete related bill entities in parallel
     transaction
       .delete(draweesInBillsTable)
@@ -377,7 +385,18 @@ export async function deleteGroupInDB(
     transaction.delete(billsTable).where(eq(billsTable.groupId, groupId)),
     transaction.delete(inviteTable).where(eq(inviteTable.groupId, groupId)),
     transaction.delete(groupsTable).where(eq(groupsTable.id, groupId)),
-  ]);
+  ];
+
+  if (backgroundUrl.length > 0 && backgroundUrl[0].backgroundUrl) {
+    promises.push(
+      supabase.storage
+        .from("group_cover_image")
+        .remove([backgroundUrl[0].backgroundUrl]),
+    );
+  }
+
+  // Perform bulk deletes in parallel
+  await Promise.all(promises);
 
   return groupId;
 }
