@@ -227,7 +227,7 @@ const Debt = ({
       </span>
       <ChevronsRight className="size-5" />
       <span className="flex items-center gap-2 text-nowrap">
-        <Avatar className="relative size-6">
+        <Avatar className="relative size-7">
           <AvatarImage src={receiver.avatarUrl} alt={receiver.name} />
           {receiver.status === 1 && receiver.avatarUrl && (
             <div

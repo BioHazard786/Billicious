@@ -41,7 +41,7 @@ export function DateRangePicker({
             disabled={disabled}
             id="date"
             variant={"outline"}
-            className="flex w-full items-center justify-start gap-2 text-sm md:w-64"
+            className="flex w-full items-center justify-start gap-2 text-sm shadow-none md:w-64"
           >
             <CalendarDays className="size-4" />
             {date?.from ? (
