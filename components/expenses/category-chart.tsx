@@ -105,6 +105,7 @@ const CategoryChart = () => {
                 size="icon"
                 onClick={handleFiltering}
                 disabled={isRefetching}
+                className="shadow-none"
               >
                 {isRefetching ? (
                   <Spinner
